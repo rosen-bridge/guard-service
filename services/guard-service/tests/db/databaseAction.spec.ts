@@ -1207,7 +1207,6 @@ describe('DatabaseActions', () => {
       await DatabaseActionMock.testDatabase.updateWithSignedTx(
         mockTx.txId,
         '{}',
-        10,
       );
 
       // assert
@@ -1249,7 +1248,6 @@ describe('DatabaseActions', () => {
       await DatabaseActionMock.testDatabase.updateWithSignedTx(
         mockTx.txId,
         '{}',
-        10,
       );
 
       // assert
@@ -1284,7 +1282,11 @@ describe('DatabaseActions', () => {
       await DatabaseActionMock.insertTxRecord(mockTx, TransactionStatus.inSign);
 
       // act
-      await DatabaseActionMock.testDatabase.replaceTx(mockTx.txId, mockTx2);
+      await DatabaseActionMock.testDatabase.replaceTx(
+        mockTx.txId,
+        mockTx2,
+        100,
+      );
 
       // assert
       const record =
@@ -1323,7 +1325,11 @@ describe('DatabaseActions', () => {
       const mockTx2 = TxTestData.mockPaymentTransaction(TransactionType.reward);
 
       // act
-      await DatabaseActionMock.testDatabase.replaceTx(mockTx.txId, mockTx2);
+      await DatabaseActionMock.testDatabase.replaceTx(
+        mockTx.txId,
+        mockTx2,
+        100,
+      );
 
       // assert
       expect(updatePublicTxStatusSpy).not.toHaveBeenCalled();
@@ -1352,7 +1358,13 @@ describe('DatabaseActions', () => {
       const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
 
       // act
-      await DatabaseActionMock.testDatabase.insertNewTx(mockTx, null, 2, null);
+      await DatabaseActionMock.testDatabase.insertNewTx(
+        mockTx,
+        null,
+        2,
+        null,
+        100,
+      );
 
       // assert
       const record =
@@ -1398,6 +1410,7 @@ describe('DatabaseActions', () => {
         null,
         2,
         null,
+        100,
       );
 
       // assert

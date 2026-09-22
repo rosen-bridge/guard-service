@@ -19,6 +19,7 @@ import RequestVerifier from '../../src/verification/requestVerifier';
 import TransactionVerifier from '../../src/verification/transactionVerifier';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import * as EventTestData from '../event/testData';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TestUtils from '../testUtils/testUtils';
 import { mockPaymentTransaction } from './testData';
@@ -1142,6 +1143,7 @@ describe('TxAgreement', () => {
   describe('processAgreementResponse', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
+      ChainHandlerMock.resetMock();
     });
 
     /**
@@ -1327,9 +1329,12 @@ describe('TxAgreement', () => {
      * message for payment tx when sufficient number of guards agreed
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock testdata
      * - insert mocked event into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - mock txAgreement.sendMessage
      * - insert mocked tx into memory
      * - run test (call `processMessage`)
@@ -1363,6 +1368,15 @@ describe('TxAgreement', () => {
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingPayment,
+      );
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(mockedEvent.toChain);
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getHeight',
+        100,
+        true,
       );
 
       // mock txAgreement.sendMessage
@@ -1448,8 +1462,11 @@ describe('TxAgreement', () => {
      * message for cold storage tx when sufficient number of guards agreed
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock testdata
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - mock txAgreement.sendMessage
      * - insert mocked tx into memory
      * - run test (call `processMessage`)
@@ -1476,6 +1493,10 @@ describe('TxAgreement', () => {
       const senderIndex = 0;
       const peerId = 'peerId';
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      ChainHandlerMock.mockChainFunction(chain, 'getHeight', 100, true);
 
       // mock txAgreement.sendMessage
       const txAgreement = new TestTxAgreement();
@@ -1547,6 +1568,7 @@ describe('TxAgreement', () => {
   describe('processApprovalMessage', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
+      ChainHandlerMock.resetMock();
     });
 
     /**
@@ -1696,9 +1718,12 @@ describe('TxAgreement', () => {
      * when required number of signs met for a payment tx
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock testdata
      * - insert mocked event into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - mock signer verify function to return true
      * - insert mocked tx into memory
      * - run test (call `processMessage`)
@@ -1733,6 +1758,15 @@ describe('TxAgreement', () => {
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingPayment,
+      );
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(mockedEvent.toChain);
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getHeight',
+        100,
+        true,
       );
 
       // mock signer verify function to return true
@@ -1783,8 +1817,11 @@ describe('TxAgreement', () => {
      * when required number of signs met for a cold storage tx
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock testdata
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - mock signer verify function to return true
      * - insert mocked tx into memory
      * - run test (call `processMessage`)
@@ -1812,6 +1849,10 @@ describe('TxAgreement', () => {
       const peerId = 'peerId';
 
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      ChainHandlerMock.mockChainFunction(chain, 'getHeight', 100, true);
 
       // mock signer verify function to return true
       const txAgreement = new TestTxAgreement();
@@ -1858,9 +1899,12 @@ describe('TxAgreement', () => {
      * when required number of signs met
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock testdata
      * - insert mocked event into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - mock signer verify function to return true
      * - mock txAgreement.verifyTransactionRequest to return true
      * - run test (call `processMessage`)
@@ -1895,6 +1939,15 @@ describe('TxAgreement', () => {
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingPayment,
+      );
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(mockedEvent.toChain);
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getHeight',
+        100,
+        true,
       );
 
       // mock signer verify function to return true

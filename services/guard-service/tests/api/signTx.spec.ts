@@ -42,6 +42,7 @@ describe('signTx', () => {
      * - mock PaymentTransaction
      * - mock ChainHandler `getChain`
      *   - mock `rawTxToPaymentTransaction`
+     *   - mock `getHeight`
      * - send a request to the server
      * - check the result
      * - check database
@@ -67,6 +68,8 @@ describe('signTx', () => {
         paymentTx,
         true,
       );
+      // mock `getHeight`
+      ChainHandlerMock.mockChainFunction(chain, 'getHeight', 100, true);
 
       // send a request to the server
       const result = await mockedServer.inject({
