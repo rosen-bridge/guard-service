@@ -1,0 +1,16 @@
+{
+  "amount_zat": "40000000",
+  "expected_branch_id": "c2d6d0b4",
+  "expiry_height": 306,
+  "fee_zat": "10000",
+  "network": "Regtest",
+  "operation": "withdraw",
+  "payout_script_hex": "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+  "prevout": {
+    "amount_zat": "100000000",
+    "script_pubkey_hex": "76a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac",
+    "txid": "aaf9bf3fc7be562ff268327ee983510480d212df65e2f91883f82aea60f7727b",
+    "vout": 0
+  },
+  "reserve_pubkey_hex": "03e81665f832096960c4b205b466afd55560598163d9bf16431b6cf8ceacbb1fee"
+}

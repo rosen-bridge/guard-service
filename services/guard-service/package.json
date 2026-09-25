@@ -18,6 +18,7 @@
     "madge": "npx madge --circular --extensions ts ./",
     "prettify": "prettier --write . --ignore-path ./.gitignore",
     "prettify:check": "prettier --check . --ignore-path ./.gitignore",
+    "recover:zcash-observed-signing": "tsx ./src/commands/recoverZcashObservedSigning.ts",
     "start": "tsx ./src/index.ts",
     "start:dev": "tsx watch ./src/index.ts",
     "test": "NODE_OPTIONS='--import tsx' vitest",
@@ -28,6 +29,11 @@
     "typeorm:migrate": "npm run typeorm migration:run -- -d src/db/dataSource.ts"
   },
   "dependencies": {
+    "@rosen-bridge/address-codec-zcash": "^0.1.0",
+    "@rosen-bridge/rosen-extractor": "^12.2.0",
+    "@rosen-chains/zcash-event": "^0.0.0",
+    "@rosen-chains/zcash-payment": "^0.0.0",
+    "@rosen-chains/zcash": "^0.0.0",
     "@fastify/cors": "^11.2.0",
     "@fastify/rate-limit": "^10.3.0",
     "@rosen-bridge/abstract-logger": "^4.0.0",

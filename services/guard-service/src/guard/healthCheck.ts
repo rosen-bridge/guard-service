@@ -41,6 +41,8 @@ import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import { rosenConfig } from '../configs/rosenConfig';
 import { DatabaseAction } from '../db/databaseAction';
 import { NotificationHandler } from '../handlers/notificationHandler';
+import { TokenHandler } from '../handlers/tokenHandler';
+import { getConfiguredZcashGuardRuntime } from '../handlers/zcashHandler';
 import {
   ADA_DECIMALS,
   ERG_DECIMALS,
@@ -49,6 +51,7 @@ import {
   BINANCE_BLOCK_TIME,
   ERGO_BLOCK_TIME,
 } from '../utils/constants';
+import { ZcashNodeHealthCheckParam } from './zcashHealthCheck';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -328,6 +331,18 @@ const getHealthCheck = async () => {
         GuardsBinanceConfigs.rpc.scannerInterval,
       );
       healthCheck.register(binanceScannerSyncCheck);
+    }
+
+    const zcashRuntime = getConfiguredZcashGuardRuntime(
+      TokenHandler.getInstance().getTokenMap(),
+    );
+    if (zcashRuntime) {
+      healthCheck.register(
+        new ZcashNodeHealthCheckParam(
+          async () => ({ height: await zcashRuntime.chain.getHeight() }),
+          Configs.zcashMaximumNoProgressSeconds,
+        ),
+      );
     }
 
     // add LogLevel param

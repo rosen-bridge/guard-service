@@ -1,0 +1,479 @@
+{
+  "schema": 1,
+  "result": "pass",
+  "recordedAt": "2026-09-20T00:32:40.531Z",
+  "policy": {
+    "network": "regtest",
+    "sourceId": "zebra-regtest-01",
+    "genesisHash": "029f11d80ef9765602235e1bc9727e3eb6ba20839319f761fee920d63401e327",
+    "branches": [
+      {
+        "height": 0,
+        "branchId": "00000000"
+      },
+      {
+        "height": 1,
+        "branchId": "c2d6d0b4"
+      }
+    ],
+    "minimumConfirmations": 1,
+    "maximumExpiryDelta": 200
+  },
+  "sourceHashes": {
+    "paymentEvidence.ts": "6c3324ad5723924b3af442faac382eff8c5f471f0fd584c5ca890cc08fb8748f",
+    "sourceCheckedSigner.ts": "2e691bc715ac1bb1321ecbec52bd6d5acc87ff717677dd556e417dd07c5c6bc9",
+    "rpcEvidenceSource.ts": "2aac964e84783ec5033d584e0adc454d2faabdf1dbff306e9cbca393ff274900",
+    "index.ts": "2377ff9b85ce50ff42396b5f70c46ce132acf0c763fadbc6442c6a58d6f98711"
+  },
+  "nativeSha256": "a897d20378811cd968f335a49b3d338252af2bcf1fbaf0563cf87b51f72bf481",
+  "inspectorSha256": "a36390f9c77004594f95c1bbc126213df91cbbf6ff69951fa3098968fc0631a3",
+  "zebraVersion": "6.3.0",
+  "zebraCommit": "f5c5277fe41eba9c74f37098738f93f35dd70d60",
+  "zebraBinarySha256": "5e74b3b0fae286394e9c0ddd70d2014360816fdebf01b39dd3e3a6691d6a6e63",
+  "positive": {
+    "kind": "consistent-source-observation",
+    "sourceId": "zebra-regtest-01",
+    "network": "regtest",
+    "genesisHash": "029f11d80ef9765602235e1bc9727e3eb6ba20839319f761fee920d63401e327",
+    "candidateSha256": "a8b8c61c7a76c722c972504a9696ce560caf97ad61724acf5a62928c31c365f2",
+    "tipHash": "b279ace4c93de3ff5e41a7ef55fddbc72b705034b60534713d51eba03c258a26",
+    "tipHeight": 107,
+    "candidateBranchId": "c2d6d0b4",
+    "previousBranchId": "c2d6d0b4",
+    "previousBlockHash": "b279ace4c93de3ff5e41a7ef55fddbc72b705034b60534713d51eba03c258a26",
+    "previousHeight": 107,
+    "confirmations": 1,
+    "outpoint": "1e7e3e6c9c6f17660c1ac51c769b324fe4e9b53ff21231ff311d5c589a15bc72:1",
+    "amountZat": "59990000",
+    "scriptPubKeyHex": "76a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac"
+  },
+  "unsignedTxHex": "050000800a27a726b4d0d6c200000000330100000172bc159a585c1d31ff3112f23fb5e9e44f329b761cc51a0c66176f9c6c3e7e1e0100000000feffffff0280969800000000001976a914751e76e8199196d454941c45d1b3a323f1433bd688ac60a2fa02000000001976a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac000000",
+  "digest": {
+    "operation": "digest",
+    "txid_raw": "909f51d763df745d4211848f2371f852b1a8b9321892b3664d9481048c877b82",
+    "sighash_all": "4d3d5680350cf12ca3b94fb5ad0d426c5ef009a15e4a781bd00b53a1eaed1a13",
+    "actual_fee_zat": 10000,
+    "zip317_conventional_fee_zat": 10000
+  },
+  "unavailablePrevoutPreventsSigning": true,
+  "mediatorCalls": 0,
+  "observations": [
+    {
+      "method": "getGenesisHash",
+      "arguments": [],
+      "result": "029f11d80ef9765602235e1bc9727e3eb6ba20839319f761fee920d63401e327"
+    },
+    {
+      "method": "getBlockchainInfo",
+      "arguments": [],
+      "result": {
+        "chain": "test",
+        "blocks": 107,
+        "headers": 107,
+        "difficulty": 1,
+        "verificationprogress": 1,
+        "chainwork": 0,
+        "pruned": false,
+        "size_on_disk": 21336,
+        "commitments": 0,
+        "bestblockhash": "b279ace4c93de3ff5e41a7ef55fddbc72b705034b60534713d51eba03c258a26",
+        "estimatedheight": 6575783,
+        "chainSupply": {
+          "chainValue": 668.75,
+          "chainValueZat": 66875000000,
+          "monitored": true
+        },
+        "valuePools": [
+          {
+            "id": "transparent",
+            "chainValue": 668.75,
+            "chainValueZat": 66875000000,
+            "monitored": true
+          },
+          {
+            "id": "sprout",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "sapling",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "orchard",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "lockbox",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "ironwood",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          }
+        ],
+        "upgrades": {
+          "5ba81b19": {
+            "name": "Overwinter",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "76b809bb": {
+            "name": "Sapling",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "2bb40e60": {
+            "name": "Blossom",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "f5b9230b": {
+            "name": "Heartwood",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "e9ff75a6": {
+            "name": "Canopy",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "c2d6d0b4": {
+            "name": "NU5",
+            "activationheight": 1,
+            "status": "active"
+          }
+        },
+        "consensus": {
+          "chaintip": "c2d6d0b4",
+          "nextblock": "c2d6d0b4"
+        }
+      }
+    },
+    {
+      "method": "getTxOut",
+      "arguments": [
+        "1e7e3e6c9c6f17660c1ac51c769b324fe4e9b53ff21231ff311d5c589a15bc72",
+        1
+      ],
+      "result": {
+        "bestblock": "b279ace4c93de3ff5e41a7ef55fddbc72b705034b60534713d51eba03c258a26",
+        "confirmations": 1,
+        "value": "0.5999",
+        "scriptPubKey": {
+          "asm": "OP_DUP OP_HASH160 f09ce3435526cda8bffce9b09336d23ec5cc7c91 OP_EQUALVERIFY OP_CHECKSIG",
+          "hex": "76a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac",
+          "reqSigs": 1,
+          "type": "pubkeyhash",
+          "addresses": [
+            "tmXebSxnVN4HGSTK4icB4i3FitWjNv5u6pt"
+          ]
+        },
+        "version": 5,
+        "coinbase": false
+      }
+    },
+    {
+      "method": "getBlockHash",
+      "arguments": [
+        107
+      ],
+      "result": "b279ace4c93de3ff5e41a7ef55fddbc72b705034b60534713d51eba03c258a26"
+    },
+    {
+      "method": "getTransaction",
+      "arguments": [
+        "1e7e3e6c9c6f17660c1ac51c769b324fe4e9b53ff21231ff311d5c589a15bc72",
+        "b279ace4c93de3ff5e41a7ef55fddbc72b705034b60534713d51eba03c258a26"
+      ],
+      "result": {
+        "in_active_chain": true,
+        "hex": "050000800a27a726b4d0d6c20000000032010000017b72f760ea2af88318f9e265df12d280045183e97e3268f22f56bec73fbff9aa000000006b483045022100bfcd82f3ac4cf31915e3f5475d11878c28f926d5b9ec6ff7014059b253f35ad902207527fb7ddf5d3dd56050485d9bc08c9456b0c30bf67498d4b04569e597297e66012103e81665f832096960c4b205b466afd55560598163d9bf16431b6cf8ceacbb1feefeffffff02005a6202000000001976a914751e76e8199196d454941c45d1b3a323f1433bd688acf05f9303000000001976a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac000000",
+        "height": 107,
+        "confirmations": 1,
+        "vin": [
+          {
+            "txid": "aaf9bf3fc7be562ff268327ee983510480d212df65e2f91883f82aea60f7727b",
+            "vout": 0,
+            "scriptSig": {
+              "asm": "3045022100bfcd82f3ac4cf31915e3f5475d11878c28f926d5b9ec6ff7014059b253f35ad902207527fb7ddf5d3dd56050485d9bc08c9456b0c30bf67498d4b04569e597297e66[ALL] 03e81665f832096960c4b205b466afd55560598163d9bf16431b6cf8ceacbb1fee",
+              "hex": "483045022100bfcd82f3ac4cf31915e3f5475d11878c28f926d5b9ec6ff7014059b253f35ad902207527fb7ddf5d3dd56050485d9bc08c9456b0c30bf67498d4b04569e597297e66012103e81665f832096960c4b205b466afd55560598163d9bf16431b6cf8ceacbb1fee"
+            },
+            "sequence": 4294967294
+          }
+        ],
+        "vout": [
+          {
+            "value": 0.4,
+            "valueZat": 40000000,
+            "n": 0,
+            "scriptPubKey": {
+              "asm": "OP_DUP OP_HASH160 751e76e8199196d454941c45d1b3a323f1433bd6 OP_EQUALVERIFY OP_CHECKSIG",
+              "hex": "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+              "reqSigs": 1,
+              "type": "pubkeyhash",
+              "addresses": [
+                "tmLPctKo9j49rtCSKpwEBpLBeykiTGomGQs"
+              ]
+            }
+          },
+          {
+            "value": 0.5999,
+            "valueZat": 59990000,
+            "n": 1,
+            "scriptPubKey": {
+              "asm": "OP_DUP OP_HASH160 f09ce3435526cda8bffce9b09336d23ec5cc7c91 OP_EQUALVERIFY OP_CHECKSIG",
+              "hex": "76a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac",
+              "reqSigs": 1,
+              "type": "pubkeyhash",
+              "addresses": [
+                "tmXebSxnVN4HGSTK4icB4i3FitWjNv5u6pt"
+              ]
+            }
+          }
+        ],
+        "vShieldedSpend": [],
+        "vShieldedOutput": [],
+        "vjoinsplit": [],
+        "orchard": {
+          "actions": [],
+          "valueBalance": 0,
+          "valueBalanceZat": 0
+        },
+        "valueBalance": 0,
+        "valueBalanceZat": 0,
+        "size": 241,
+        "time": 1296688622,
+        "txid": "1e7e3e6c9c6f17660c1ac51c769b324fe4e9b53ff21231ff311d5c589a15bc72",
+        "authdigest": "b8b95d4119e4035440ba11d04f66c590866ce81875955cd0eadceb8e0dd57efb",
+        "overwintered": true,
+        "version": 5,
+        "versiongroupid": "26a7270a",
+        "locktime": 0,
+        "expiryheight": 306,
+        "blockhash": "b279ace4c93de3ff5e41a7ef55fddbc72b705034b60534713d51eba03c258a26",
+        "blocktime": 1296688622
+      }
+    },
+    {
+      "method": "getGenesisHash",
+      "arguments": [],
+      "result": "029f11d80ef9765602235e1bc9727e3eb6ba20839319f761fee920d63401e327"
+    },
+    {
+      "method": "getBlockchainInfo",
+      "arguments": [],
+      "result": {
+        "chain": "test",
+        "blocks": 107,
+        "headers": 107,
+        "difficulty": 1,
+        "verificationprogress": 1,
+        "chainwork": 0,
+        "pruned": false,
+        "size_on_disk": 21336,
+        "commitments": 0,
+        "bestblockhash": "b279ace4c93de3ff5e41a7ef55fddbc72b705034b60534713d51eba03c258a26",
+        "estimatedheight": 6575783,
+        "chainSupply": {
+          "chainValue": 668.75,
+          "chainValueZat": 66875000000,
+          "monitored": true
+        },
+        "valuePools": [
+          {
+            "id": "transparent",
+            "chainValue": 668.75,
+            "chainValueZat": 66875000000,
+            "monitored": true
+          },
+          {
+            "id": "sprout",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "sapling",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "orchard",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "lockbox",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "ironwood",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          }
+        ],
+        "upgrades": {
+          "5ba81b19": {
+            "name": "Overwinter",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "76b809bb": {
+            "name": "Sapling",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "2bb40e60": {
+            "name": "Blossom",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "f5b9230b": {
+            "name": "Heartwood",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "e9ff75a6": {
+            "name": "Canopy",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "c2d6d0b4": {
+            "name": "NU5",
+            "activationheight": 1,
+            "status": "active"
+          }
+        },
+        "consensus": {
+          "chaintip": "c2d6d0b4",
+          "nextblock": "c2d6d0b4"
+        }
+      }
+    },
+    {
+      "method": "getGenesisHash",
+      "arguments": [],
+      "result": "029f11d80ef9765602235e1bc9727e3eb6ba20839319f761fee920d63401e327"
+    },
+    {
+      "method": "getBlockchainInfo",
+      "arguments": [],
+      "result": {
+        "chain": "test",
+        "blocks": 107,
+        "headers": 107,
+        "difficulty": 1,
+        "verificationprogress": 1,
+        "chainwork": 0,
+        "pruned": false,
+        "size_on_disk": 21336,
+        "commitments": 0,
+        "bestblockhash": "b279ace4c93de3ff5e41a7ef55fddbc72b705034b60534713d51eba03c258a26",
+        "estimatedheight": 6575783,
+        "chainSupply": {
+          "chainValue": 668.75,
+          "chainValueZat": 66875000000,
+          "monitored": true
+        },
+        "valuePools": [
+          {
+            "id": "transparent",
+            "chainValue": 668.75,
+            "chainValueZat": 66875000000,
+            "monitored": true
+          },
+          {
+            "id": "sprout",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "sapling",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "orchard",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "lockbox",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          },
+          {
+            "id": "ironwood",
+            "chainValue": 0,
+            "chainValueZat": 0,
+            "monitored": false
+          }
+        ],
+        "upgrades": {
+          "5ba81b19": {
+            "name": "Overwinter",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "76b809bb": {
+            "name": "Sapling",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "2bb40e60": {
+            "name": "Blossom",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "f5b9230b": {
+            "name": "Heartwood",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "e9ff75a6": {
+            "name": "Canopy",
+            "activationheight": 1,
+            "status": "active"
+          },
+          "c2d6d0b4": {
+            "name": "NU5",
+            "activationheight": 1,
+            "status": "active"
+          }
+        },
+        "consensus": {
+          "chaintip": "c2d6d0b4",
+          "nextblock": "c2d6d0b4"
+        }
+      }
+    },
+    {
+      "method": "getTxOut",
+      "arguments": [
+        "aaf9bf3fc7be562ff268327ee983510480d212df65e2f91883f82aea60f7727b",
+        0
+      ],
+      "result": null
+    }
+  ],
+  "scope": "Live read-only source observation and unsigned candidate; no signing, broadcast, reservation or atomicity claim"
+}

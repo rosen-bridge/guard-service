@@ -6,8 +6,16 @@ import { ErgoChain, ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import GuardsCardanoConfigs from '../../src/configs/guardsCardanoConfigs';
 import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
+import type { ZcashBroadcastCapability } from '../../src/transaction/zcashBroadcastCoordinator';
+import type { ZcashApprovedSigningCapability } from '../../src/transaction/zcashSigningCoordinator';
 
 export const chainHandlerInstance = {
+  getZcashBroadcastCapability: (): ZcashBroadcastCapability => {
+    throw Error('Zcash broadcast capability is not mocked');
+  },
+  getZcashSigningCapability: (): ZcashApprovedSigningCapability => {
+    throw Error('Zcash signing capability is not mocked');
+  },
   /* eslint-disable @typescript-eslint/no-unused-vars */
   /* eslint-disable @typescript-eslint/no-explicit-any */
   getChain: (chainName: string): AbstractChain<any> => {

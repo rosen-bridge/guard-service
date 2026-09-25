@@ -226,6 +226,10 @@ export const TssCallbackParams = z.object({
   algorithm: z.string(),
 });
 
+export const TssCallbackQuery = z.object({
+  boundOperationId: z.string().uuid().optional(),
+});
+
 export const TssCallbackSchema = z.object({
   status: z.string(),
   error: z.optional(z.string()),

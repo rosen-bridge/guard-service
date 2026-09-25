@@ -23,6 +23,9 @@ export class ConfirmedEventEntity {
   @Column('varchar')
   status: string;
 
+  @Column('varchar', { nullable: true })
+  zcashSigningAttemptId: string | null;
+
   @Column('varchar', {
     nullable: true,
   })

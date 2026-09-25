@@ -56,6 +56,20 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
 
 class Configs {
   // express config
+  static zcashMaximumNoProgressSeconds = (() => {
+    const value = getOptionalConfig<number>(
+      'healthCheck.zcash.maximumNoProgressSeconds',
+      900,
+    );
+    if (
+      !Number.isSafeInteger(value) ||
+      value <= 0 ||
+      value > Number.MAX_SAFE_INTEGER / 1000
+    )
+      throw Error('Invalid healthCheck.zcash.maximumNoProgressSeconds');
+    return value;
+  })();
+
   static apiPort = getConfigIntKeyOrDefault('api.port', 8080);
   static apiHost = getOptionalConfig<string>('api.host', 'localhost');
 
