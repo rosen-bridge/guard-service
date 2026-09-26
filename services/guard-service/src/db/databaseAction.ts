@@ -5,6 +5,7 @@ import { BlockEntity, PROCEED } from '@rosen-bridge/abstract-scanner';
 import {
   And,
   DataSource,
+  FindOptionsWhere,
   In,
   IsNull,
   LessThan,
@@ -27,6 +28,10 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 
+import {
+  assertApprovalBinding,
+  decodeTransactionApproval,
+} from '../agreement/transactionApproval';
 import PublicStatusHandler from '../handlers/publicStatusHandler';
 import { ReprocessStatus } from '../reprocess/interfaces';
 import { AddressType, Page, SortRequest } from '../types/api';
@@ -49,8 +54,57 @@ import { RevenueChartView } from './entities/revenueChartView';
 import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
 import { TransactionEntity } from './entities/transactionEntity';
+import { withZcashSigningTransaction } from './zcashSigningAttemptStore';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
+
+interface ApprovalRowIdentity {
+  txId: string;
+  network: string;
+  txType: TransactionType;
+  eventId: string;
+}
+
+const assertRowApproval = (
+  encoded: string,
+  txJson: string,
+  requiredSign: number,
+  identity: ApprovalRowIdentity,
+  eventId?: string,
+  orderId?: string,
+) => {
+  const approval = decodeTransactionApproval(encoded);
+  assertApprovalBinding(approval, txJson, requiredSign);
+  const proposal = JSON.parse(approval.approvedTxJson);
+  if (Object.entries(identity).some(([key, value]) => proposal[key] !== value))
+    throw Error('Approval row identity differs from certified proposal');
+  const hasEvent = eventId !== undefined;
+  const hasOrder = orderId !== undefined;
+  let validRelations: boolean;
+  switch (identity.txType) {
+    case TransactionType.payment:
+    case TransactionType.reward:
+      validRelations = hasEvent && !hasOrder;
+      break;
+    case TransactionType.arbitrary:
+      validRelations = hasOrder && !hasEvent;
+      break;
+    case TransactionType.coldStorage:
+    case TransactionType.manual:
+      validRelations = !hasEvent && !hasOrder;
+      break;
+    default:
+      throw Error('Approval has unsupported transaction type');
+  }
+  if (!validRelations)
+    throw Error('Approval relation shape does not match transaction type');
+  if (
+    (eventId !== undefined && eventId !== proposal.eventId) ||
+    (orderId !== undefined && orderId !== proposal.eventId)
+  )
+    throw Error('Approval row relation differs from certified proposal');
+  return approval;
+};
 
 class DatabaseAction {
   private static instance: DatabaseAction;
@@ -115,6 +169,113 @@ class DatabaseAction {
     return DatabaseAction.instance;
   };
 
+  private updateFreeTransaction = (
+    criteria: FindOptionsWhere<TransactionEntity>,
+    values: QueryDeepPartialEntity<TransactionEntity>,
+  ): Promise<UpdateResult> =>
+    withZcashSigningTransaction(this.dataSource, (manager) =>
+      manager
+        .getRepository(TransactionEntity)
+        .update({ ...criteria, signingAttemptId: IsNull() }, values),
+    );
+
+  private assertTransactionWrite = async (
+    result: UpdateResult,
+    txId: string,
+    allowUnclaimedNoop = false,
+  ): Promise<void> => {
+    if (
+      (result.affected ?? 0) === 0 &&
+      (await this.TransactionRepository.existsBy({
+        txId,
+        ...(allowUnclaimedNoop ? { signingAttemptId: Not(IsNull()) } : {}),
+      }))
+    )
+      throw Error('Transaction write conflicts with signing custody or state');
+  };
+
+  private updateEventWithCustody = async (
+    eventId: string,
+    status: string,
+    values: QueryDeepPartialEntity<ConfirmedEventEntity>,
+  ): Promise<UpdateResult> => {
+    const result = await withZcashSigningTransaction(
+      this.dataSource,
+      (manager) => {
+        const query = manager
+          .getRepository(ConfirmedEventEntity)
+          .createQueryBuilder()
+          .update()
+          .set(values)
+          .where('"id" = :eventId', { eventId });
+        if (
+          [EventStatus.pendingPayment, EventStatus.inPayment].includes(status)
+        )
+          query.andWhere('"zcashSigningAttemptId" IS NULL');
+        else if (
+          [
+            EventStatus.pendingReward,
+            EventStatus.inReward,
+            EventStatus.rewardWaiting,
+            EventStatus.completed,
+          ].includes(status)
+        ) {
+          const predecessors =
+            status === EventStatus.inReward
+              ? [EventStatus.pendingReward, EventStatus.inReward]
+              : status === EventStatus.completed
+                ? [EventStatus.inReward, EventStatus.completed]
+                : [
+                    EventStatus.pendingReward,
+                    EventStatus.inReward,
+                    EventStatus.rewardWaiting,
+                  ];
+          query.andWhere(
+            `("zcashSigningAttemptId" IS NULL OR (
+          "status" IN (:...zcashEventPredecessors) AND EXISTS (
+          SELECT 1 FROM "zcash_signing_attempt_entity" a
+          JOIN "transaction_entity" t ON t."txId" = a."txId"
+          JOIN "zcash_settlement_entity" s ON s."txId" = t."txId"
+          WHERE a."attemptId" = "confirmed_event_entity"."zcashSigningAttemptId"
+          AND a."state" = 'signed' AND t."signingAttemptId" = a."attemptId"
+          AND t."txJson" = a."signedJson" AND t."status" = 'completed'
+          AND s."attemptId" = a."attemptId"
+          AND s."eventId" = "confirmed_event_entity"."id"
+        )))`,
+            { zcashEventPredecessors: predecessors },
+          );
+        }
+        return query.execute();
+      },
+    );
+    if (
+      (result.affected ?? 0) === 0 &&
+      (await this.ConfirmedEventRepository.existsBy({ id: eventId }))
+    )
+      throw Error('Event write conflicts with Zcash signing custody');
+    return result;
+  };
+
+  private insertTransactionWithCustody = (
+    row: QueryDeepPartialEntity<TransactionEntity>,
+    eventId?: string,
+  ): Promise<void> =>
+    withZcashSigningTransaction(this.dataSource, async (manager) => {
+      if (row.chain === 'zcash' && eventId !== undefined) {
+        const locked = await manager
+          .getRepository(ConfirmedEventEntity)
+          .update(
+            { id: eventId, zcashSigningAttemptId: IsNull() },
+            { status: () => '"status"' },
+          );
+        if (locked.affected !== 1)
+          throw Error(
+            'Zcash event is missing or reserved by a signing attempt',
+          );
+      }
+      await manager.getRepository(TransactionEntity).insert(row);
+    });
+
   /**
    * updates the status of an event by id
    *  NOTE: this method does NOT update firstTry column
@@ -130,18 +291,14 @@ class DatabaseAction {
     let result: UpdateResult;
 
     if (incrementUnexpectedFails)
-      result = await this.ConfirmedEventRepository.update(
-        { id: eventId },
-        {
-          status: status,
-          unexpectedFails: () => '"unexpectedFails" + 1',
-        },
-      );
+      result = await this.updateEventWithCustody(eventId, status, {
+        status: status,
+        unexpectedFails: () => '"unexpectedFails" + 1',
+      });
     else
-      result = await this.ConfirmedEventRepository.update(
-        { id: eventId },
-        { status: status },
-      );
+      result = await this.updateEventWithCustody(eventId, status, {
+        status: status,
+      });
 
     if ((result.affected ?? 0) === 0) return;
     PublicStatusHandler.getInstance().updatePublicEventStatus(eventId, status);
@@ -218,13 +375,34 @@ class DatabaseAction {
    * @param status tx status
    */
   setTxStatus = async (txId: string, status: string): Promise<void> => {
-    const result: UpdateResult = await this.TransactionRepository.update(
-      { txId: txId },
-      {
-        status: status,
-        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+    const result = await withZcashSigningTransaction(
+      this.dataSource,
+      (manager) => {
+        const query = manager
+          .getRepository(TransactionEntity)
+          .createQueryBuilder()
+          .update()
+          .set({
+            status: status,
+            lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+          })
+          .where('"txId" = :txId', { txId });
+        if (status === TransactionStatus.sent) {
+          const previous = [TransactionStatus.signed, TransactionStatus.sent];
+          query.andWhere(
+            `("signingAttemptId" IS NULL OR (
+          "chain" = 'zcash' AND "status" IN (:...previous) AND EXISTS (
+            SELECT 1 FROM "zcash_signing_attempt_entity" a
+            WHERE a."attemptId" = "transaction_entity"."signingAttemptId"
+            AND a."txId" = "transaction_entity"."txId" AND a."state" = 'signed'
+            AND a."signedJson" = "transaction_entity"."txJson")))`,
+            { previous },
+          );
+        } else query.andWhere('"signingAttemptId" IS NULL');
+        return query.execute();
       },
     );
+    await this.assertTransactionWrite(result, txId);
     if ((result.affected ?? 0) === 0) return;
     PublicStatusHandler.getInstance().updatePublicTxStatus(txId, status);
   };
@@ -234,7 +412,7 @@ class DatabaseAction {
    * @param txId the transaction id
    */
   setTxAsSignFailed = async (txId: string): Promise<void> => {
-    const result: UpdateResult = await this.TransactionRepository.update(
+    const result: UpdateResult = await this.updateFreeTransaction(
       {
         txId: txId,
         status: TransactionStatus.inSign,
@@ -246,6 +424,9 @@ class DatabaseAction {
         failedInSign: true,
       },
     );
+    // Duplicate failure callbacks remain no-ops for unclaimed rows. An owned
+    // Zcash attempt must still refuse the legacy callback regardless of status.
+    await this.assertTransactionWrite(result, txId, true);
     if ((result.affected ?? 0) === 0) return;
     PublicStatusHandler.getInstance().updatePublicTxStatus(
       txId,
@@ -262,10 +443,26 @@ class DatabaseAction {
     txId: string,
     currentHeight: number,
   ): Promise<void> => {
-    await this.TransactionRepository.update(
-      { txId: txId },
-      { lastCheck: currentHeight },
+    const result = await withZcashSigningTransaction(
+      this.dataSource,
+      (manager) =>
+        manager
+          .getRepository(TransactionEntity)
+          .createQueryBuilder()
+          .update()
+          .set({ lastCheck: currentHeight })
+          .where('"txId" = :txId', { txId })
+          .andWhere(
+            `("signingAttemptId" IS NULL OR EXISTS (
+          SELECT 1 FROM "zcash_signing_attempt_entity" a
+          WHERE a."attemptId" = "transaction_entity"."signingAttemptId"
+          AND a."txId" = "transaction_entity"."txId" AND a."state" = 'signed'
+          AND a."signedJson" = "transaction_entity"."txJson"
+          AND "transaction_entity"."status" IN ('signed','sent','completed')))`,
+          )
+          .execute(),
     );
+    await this.assertTransactionWrite(result, txId);
   };
 
   /**
@@ -277,8 +474,9 @@ class DatabaseAction {
     eventId: string,
     status: string,
   ): Promise<void> => {
-    const result: UpdateResult = await this.ConfirmedEventRepository.update(
-      { id: eventId },
+    const result: UpdateResult = await this.updateEventWithCustody(
+      eventId,
+      status,
       { status: status, firstTry: String(Math.round(Date.now() / 1000)) },
     );
     if ((result.affected ?? 0) === 0) return;
@@ -309,7 +507,7 @@ class DatabaseAction {
     txJson: string,
     currentHeight: number,
   ): Promise<void> => {
-    const result: UpdateResult = await this.TransactionRepository.update(
+    const result: UpdateResult = await this.updateFreeTransaction(
       { txId: txId },
       {
         txJson: txJson,
@@ -318,6 +516,7 @@ class DatabaseAction {
         lastCheck: currentHeight,
       },
     );
+    await this.assertTransactionWrite(result, txId);
     if ((result.affected ?? 0) === 0) return;
     PublicStatusHandler.getInstance().updatePublicTxStatus(
       txId,
@@ -354,25 +553,150 @@ class DatabaseAction {
   replaceTx = async (
     previousTxId: string,
     tx: PaymentTransaction,
+    requiredSign?: number,
+    approvalEvidence?: string,
   ): Promise<void> => {
-    const result: UpdateResult = await this.TransactionRepository.update(
-      { txId: previousTxId },
+    const txJson = tx.toJson();
+    const nextTxId = tx.txId;
+    const nextType = tx.txType;
+    const nextChain = tx.network;
+    const nextEventId = tx.eventId;
+    const previous = await this.getTxById(previousTxId);
+    const protectedWrite =
+      requiredSign !== undefined ||
+      approvalEvidence !== undefined ||
+      previous?.approvalEvidence != null;
+    if (!previous) {
+      if (protectedWrite) throw Error('Approval replacement row not found');
+      return;
+    }
+    if (previous.approvalEvidence != null && approvalEvidence === undefined)
+      throw Error('Approval evidence cannot be removed');
+    if (
+      previousTxId === nextTxId &&
+      (previous.approvalEvidence != null || approvalEvidence !== undefined)
+    ) {
+      if (tx.toJson() !== txJson)
+        throw Error('Approval proposal changed during replacement');
+      await this.reinsertTxApproval(
+        previous,
+        tx,
+        requiredSign ?? previous.requiredSign,
+        approvalEvidence,
+      );
+      return;
+    }
+    if (protectedWrite && previous.status !== TransactionStatus.approved)
+      throw Error('Approval replacement requires an approved row');
+    const nextRequiredSign = requiredSign ?? previous.requiredSign;
+    if (approvalEvidence !== undefined)
+      assertRowApproval(
+        approvalEvidence,
+        txJson,
+        nextRequiredSign,
+        {
+          txId: nextTxId,
+          network: nextChain,
+          txType: nextType,
+          eventId: nextEventId,
+        },
+        previous.event?.id,
+        previous.order?.id,
+      );
+    const result: UpdateResult = await this.updateFreeTransaction(
+      protectedWrite
+        ? {
+            txId: previousTxId,
+            status: TransactionStatus.approved,
+            txJson: previous.txJson,
+            requiredSign: previous.requiredSign,
+            approvalEvidence: previous.approvalEvidence ?? IsNull(),
+            event: previous.event ? { id: previous.event.id } : IsNull(),
+            order: previous.order ? { id: previous.order.id } : IsNull(),
+          }
+        : { txId: previousTxId, approvalEvidence: IsNull() },
       {
-        txId: tx.txId,
-        txJson: tx.toJson(),
-        type: tx.txType,
-        chain: tx.network,
+        txId: nextTxId,
+        txJson,
+        type: nextType,
+        chain: nextChain,
+        requiredSign: protectedWrite ? nextRequiredSign : undefined,
+        approvalEvidence: approvalEvidence ?? null,
         status: TransactionStatus.approved,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
         lastCheck: 0,
         failedInSign: false,
       },
     );
-    if ((result.affected ?? 0) === 0) return;
+    if ((result.affected ?? 0) === 0) {
+      if (protectedWrite) throw Error('Approval replacement row changed');
+      await this.assertTransactionWrite(result, previousTxId);
+      return;
+    }
     PublicStatusHandler.getInstance().updatePublicTxStatus(
-      tx.txId,
+      nextTxId,
       TransactionStatus.approved,
     );
+  };
+
+  /** Preserves the original certificate when the same approved proposal is received again. */
+  reinsertTxApproval = async (
+    previous: TransactionEntity,
+    tx: PaymentTransaction,
+    requiredSign: number,
+    approvalEvidence?: string,
+  ): Promise<void> => {
+    if (previous.approvalEvidence == null || approvalEvidence === undefined)
+      throw Error('Approval reinsertion requires both certificates');
+    const incoming = assertRowApproval(
+      approvalEvidence,
+      tx.toJson(),
+      requiredSign,
+      {
+        txId: tx.txId,
+        network: tx.network,
+        txType: tx.txType,
+        eventId: tx.eventId,
+      },
+      previous.event?.id,
+      previous.order?.id,
+    );
+    const retained = decodeTransactionApproval(previous.approvalEvidence);
+    assertApprovalBinding(
+      retained,
+      retained.approvedTxJson,
+      previous.requiredSign,
+    );
+    if (
+      tx.txId !== previous.txId ||
+      tx.network !== previous.chain ||
+      tx.txType !== previous.type ||
+      incoming.approvedTxJson !== retained.approvedTxJson ||
+      incoming.txDataHash !== retained.txDataHash ||
+      incoming.protocolVersion !== retained.protocolVersion ||
+      incoming.requiredSign !== retained.requiredSign ||
+      JSON.stringify(incoming.guardPublicKeys) !==
+        JSON.stringify(retained.guardPublicKeys)
+    )
+      throw Error('Approval reinsertion changes proposal or policy');
+    // An identical announcement must not mutate a row owned by an attempt.
+    if (previous.signingAttemptId != null) return;
+    const result = await this.updateFreeTransaction(
+      {
+        txId: previous.txId,
+        status: previous.status,
+        txJson: previous.txJson,
+        requiredSign: previous.requiredSign,
+        approvalEvidence: previous.approvalEvidence,
+        chain: previous.chain,
+        type: previous.type,
+        event: previous.event ? { id: previous.event.id } : IsNull(),
+        order: previous.order ? { id: previous.order.id } : IsNull(),
+      },
+      { failedInSign: false },
+    );
+    if ((result.affected ?? 0) === 0)
+      throw Error('Approval reinsertion row changed');
   };
 
   /**
@@ -380,12 +704,13 @@ class DatabaseAction {
    * @param txId
    */
   resetFailedInSign = async (txId: string): Promise<void> => {
-    await this.TransactionRepository.update(
+    const result = await this.updateFreeTransaction(
       { txId: txId },
       {
         failedInSign: false,
       },
     );
+    await this.assertTransactionWrite(result, txId);
   };
 
   /**
@@ -397,12 +722,19 @@ class DatabaseAction {
     txId: string,
     requiredSign: number,
   ): Promise<void> => {
-    await this.TransactionRepository.update(
-      { txId: txId },
+    const previous = await this.getTxById(txId);
+    if (previous?.approvalEvidence != null) {
+      if (previous.requiredSign !== requiredSign)
+        throw Error('Approval threshold cannot be changed independently');
+      return;
+    }
+    const result = await this.updateFreeTransaction(
+      { txId: txId, approvalEvidence: IsNull() },
       {
         requiredSign: requiredSign,
       },
     );
+    await this.assertTransactionWrite(result, txId);
   };
 
   /**
@@ -413,23 +745,46 @@ class DatabaseAction {
     event: ConfirmedEventEntity | null,
     requiredSign: number,
     order: ArbitraryEntity | null,
+    approvalEvidence?: string,
   ): Promise<void> => {
-    await this.TransactionRepository.insert({
+    const txJson = paymentTx.toJson();
+    const identity = {
       txId: paymentTx.txId,
-      txJson: paymentTx.toJson(),
-      type: paymentTx.txType,
-      chain: paymentTx.network,
-      status: TransactionStatus.approved,
-      lastStatusUpdate: String(Math.round(Date.now() / 1000)),
-      lastCheck: 0,
-      event: event !== null ? event : undefined,
-      order: order !== null ? order : undefined,
-      failedInSign: false,
-      signFailedCount: 0,
-      requiredSign: requiredSign,
-    });
+      network: paymentTx.network,
+      txType: paymentTx.txType,
+      eventId: paymentTx.eventId,
+    };
+    const eventId = event?.id;
+    const orderId = order?.id;
+    if (approvalEvidence !== undefined)
+      assertRowApproval(
+        approvalEvidence,
+        txJson,
+        requiredSign,
+        identity,
+        eventId,
+        orderId,
+      );
+    await this.insertTransactionWithCustody(
+      {
+        txId: identity.txId,
+        txJson,
+        approvalEvidence: approvalEvidence ?? null,
+        type: identity.txType,
+        chain: identity.network,
+        status: TransactionStatus.approved,
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+        lastCheck: 0,
+        event: eventId !== undefined ? { id: eventId } : undefined,
+        order: orderId !== undefined ? { id: orderId } : undefined,
+        failedInSign: false,
+        signFailedCount: 0,
+        requiredSign: requiredSign,
+      },
+      eventId,
+    );
     PublicStatusHandler.getInstance().updatePublicTxStatus(
-      paymentTx.txId,
+      identity.txId,
       TransactionStatus.approved,
     );
   };
@@ -443,20 +798,27 @@ class DatabaseAction {
     requiredSign: number,
     order: ArbitraryEntity | null,
   ): Promise<void> => {
-    await this.TransactionRepository.insert({
-      txId: paymentTx.txId,
-      txJson: paymentTx.toJson(),
-      type: paymentTx.txType,
-      chain: paymentTx.network,
-      status: TransactionStatus.completed,
-      lastStatusUpdate: String(Math.round(Date.now() / 1000)),
-      lastCheck: 0,
-      event: event !== null ? event : undefined,
-      order: order !== null ? order : undefined,
-      failedInSign: false,
-      signFailedCount: 0,
-      requiredSign: requiredSign,
-    });
+    if (paymentTx.network === 'zcash')
+      throw Error(
+        'Zcash completed transactions require confirmed settlement proof',
+      );
+    await this.insertTransactionWithCustody(
+      {
+        txId: paymentTx.txId,
+        txJson: paymentTx.toJson(),
+        type: paymentTx.txType,
+        chain: paymentTx.network,
+        status: TransactionStatus.completed,
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+        lastCheck: 0,
+        event: event !== null ? event : undefined,
+        order: order !== null ? order : undefined,
+        failedInSign: false,
+        signFailedCount: 0,
+        requiredSign: requiredSign,
+      },
+      event?.id,
+    );
     PublicStatusHandler.getInstance().updatePublicTxStatus(
       paymentTx.txId,
       TransactionStatus.completed,

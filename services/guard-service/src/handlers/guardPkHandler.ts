@@ -42,22 +42,22 @@ class GuardPkHandler {
     const guardPkConfig = await ChainHandler.getInstance()
       .getErgoChain()
       .getGuardsPkConfig(rosenConfig.guardNFT, rosenConfig.guardSignAddress);
-    this.publicKeys = guardPkConfig.publicKeys;
-    this.guardsLen = guardPkConfig.publicKeys.length;
-    this.requiredSign = guardPkConfig.requiredSigns;
-
+    const publicKeys = [...guardPkConfig.publicKeys];
+    const guardsLen = publicKeys.length;
+    const requiredSign = guardPkConfig.requiredSigns;
     const guardPk = await Configs.guardSecretEcdsa.getPk();
-    this.guardId = -1;
-    for (const [i, value] of this.publicKeys.entries()) {
+    let guardId = -1;
+    for (const [i, value] of publicKeys.entries()) {
       if (guardPk == value) {
-        this.guardId = i;
+        guardId = i;
         break;
       }
     }
-    if (this.guardId == -1)
+    if (guardId == -1)
       throw new Error(
         "The guard public key doesn't exist in current service guard config",
       );
+    Object.assign(this, { publicKeys, guardsLen, requiredSign, guardId });
     logger.info('Guards public keys and required signs updated successfully');
     return;
   };

@@ -419,6 +419,10 @@ class EventSynchronization extends Communicator {
     tx: PaymentTransaction,
     actualTxId: string,
   ): Promise<boolean> => {
+    if (tx.network === 'zcash')
+      throw Error(
+        'Zcash synchronization requires a bound confirmed payment proof',
+      );
     const baseError = `Received tx [${tx.txId}] for syncing event [${tx.eventId}] but `;
     // verify sync request
     const activeSync = this.activeSyncMap.get(tx.eventId);

@@ -1,0 +1,47 @@
+{
+  "name": "@rosen-chains/zcash-event",
+  "version": "0.0.0",
+  "description": "Zcash transparent event verification for Rosen guards",
+  "keywords": [
+    "rosen",
+    "zcash"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosen-bridge/guard-service.git",
+    "directory": "packages/chains/zcash-event"
+  },
+  "license": "MIT",
+  "author": "Rosen Team",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "clean": "rimraf dist && rimraf tsconfig.build.tsbuildinfo",
+    "lint:check": "eslint . && npm run prettify:check",
+    "prettify:check": "prettier --check . --ignore-path ../../../.gitignore",
+    "test": "node tests/runTests.mjs",
+    "release": "npm run test && npm run clean && npm run build && npm publish --access public",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/rosen-extractor": "^12.2.0",
+    "@rosen-chains/abstract-chain": "^17.0.0"
+  },
+  "devDependencies": {
+    "@rosen-bridge/address-codec-ergo": "^0.1.0",
+    "@rosen-bridge/address-manager": "^0.1.0",
+    "@rosen-bridge/minimum-fee": "^4.0.1",
+    "@rosen-bridge/tokens": "^6.0.2"
+  },
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": "11.6.2"
+  }
+}

@@ -6,6 +6,16 @@ import configShared from '../../vitest.shared';
 
 const projectSpecific = defineConfig({
   test: {
+    // Keep the native adapter and workspace abstract-chain in one module graph.
+    server: {
+      deps: {
+        inline: [
+          '@rosen-chains/zcash-payment',
+          '@rosen-chains/zcash',
+          '@rosen-chains/zcash-event',
+        ],
+      },
+    },
     setupFiles: [
       './tests/setup/setupTests.ts',
       './tests/setup/mockChainHandler.ts',

@@ -34,6 +34,8 @@ import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
 import { RevenueView } from '../../../src/db/entities/revenueView';
 import { TransactionEntity } from '../../../src/db/entities/transactionEntity';
+import { ZcashSettlementEntity } from '../../../src/db/entities/zcashSettlementEntity';
+import { ZcashSigningAttemptEntity } from '../../../src/db/entities/zcashSigningAttemptEntity';
 import migrations from '../../../src/db/migrations';
 import { ReprocessStatus } from '../../../src/reprocess/interfaces';
 import { OrderStatus } from '../../../src/utils/constants';
@@ -52,6 +54,8 @@ class DatabaseActionMock {
       ConfirmedEventEntity,
       EventTriggerEntity,
       TransactionEntity,
+      ZcashSigningAttemptEntity,
+      ZcashSettlementEntity,
       RevenueEntity,
       RevenueView,
       RevenueChartView,
@@ -96,6 +100,8 @@ class DatabaseActionMock {
    * deletes every record in Event and Transaction table in database
    */
   static clearTables = async () => {
+    await this.testDataSource.getRepository(ZcashSettlementEntity).clear();
+    await this.testDataSource.getRepository(ZcashSigningAttemptEntity).clear();
     await this.testDatabase.RevenueRepository.clear();
     await this.testDatabase.CommitmentRepository.clear();
     await this.testDatabase.TransactionRepository.clear();

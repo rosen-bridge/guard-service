@@ -26,6 +26,8 @@ import { RevenueChartView } from './entities/revenueChartView';
 import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
 import { TransactionEntity } from './entities/transactionEntity';
+import { ZcashSettlementEntity } from './entities/zcashSettlementEntity';
+import { ZcashSigningAttemptEntity } from './entities/zcashSigningAttemptEntity';
 import migrations from './migrations';
 
 const dbType = Configs.dbType as keyof typeof migrations;
@@ -37,6 +39,8 @@ const dbConfigs = {
     EventTriggerEntity,
     ConfirmedEventEntity,
     TransactionEntity,
+    ZcashSigningAttemptEntity,
+    ZcashSettlementEntity,
     RevenueEntity,
     RevenueView,
     RevenueChartView,

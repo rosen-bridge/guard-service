@@ -1,0 +1,26 @@
+{
+  "callbackAliases": ["alpha"],
+  "chainCode": "0123456789abcdef0123456789abcdef",
+  "derivationPath": [0],
+  "digest": "f970cc9d49ce85d5762e4706a442b73803055e743085659951cb0c61a5c264e1",
+  "effectiveSigningParticipants": 2,
+  "protocolMessages": {
+    "detection:approval": 6,
+    "detection:heartbeat": 6,
+    "detection:register": 0,
+    "tss:approve": 2,
+    "tss:cached": 1,
+    "tss:request": 2,
+    "tss:start": 1
+  },
+  "publicKey": "03e81665f832096960c4b205b466afd55560598163d9bf16431b6cf8ceacbb1fee",
+  "signature": "bfcd82f3ac4cf31915e3f5475d11878c28f926d5b9ec6ff7014059b253f35ad97527fb7ddf5d3dd56050485d9bc08c9456b0c30bf67498d4b04569e597297e66",
+  "signatureRecovery": "01",
+  "verification": {
+    "digestMutationRejected": true,
+    "directSecp256k1Verified": true,
+    "recoveryMutationRejected": true,
+    "signatureMutationRejected": true,
+    "signerCallbackVerified": true
+  }
+}
