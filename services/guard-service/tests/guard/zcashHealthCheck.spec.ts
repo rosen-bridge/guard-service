@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
 
-import { ZcashNodeHealthCheckParam } from '../../src/guard/zcashHealthCheck';
+import {
+  registerZcashHealthChecks,
+  ZcashNodeHealthCheckParam,
+} from '../../src/guard/zcashHealthCheck';
 
 describe('ZcashNodeHealthCheckParam', () => {
   it('starts broken and becomes healthy after a valid node height', async () => {
@@ -82,5 +85,40 @@ describe('ZcashNodeHealthCheckParam', () => {
     expect(
       () => new ZcashNodeHealthCheckParam(async () => ({ height: 1 }), 0),
     ).toThrow('maximumNoProgressSeconds');
+  });
+});
+
+describe('registerZcashHealthChecks', () => {
+  it('preserves the node check when the asset policy is disabled', () => {
+    const registered: Array<{ getId: () => string }> = [];
+
+    registerZcashHealthChecks(
+      { register: (param) => registered.push(param) },
+      async () => ({ height: 1 }),
+      30,
+    );
+
+    expect(registered.map((param) => param.getId())).toEqual(['zcash-node']);
+  });
+
+  it('registers the ZEC reserve check for the same enabled Zcash context', () => {
+    const registered: Array<{ getId: () => string }> = [];
+
+    registerZcashHealthChecks(
+      { register: (param) => registered.push(param) },
+      async () => ({ height: 1 }),
+      30,
+      {
+        address: 't1reserve',
+        warnThreshold: 1_000_000n,
+        criticalThreshold: 100_000n,
+        rpcUrl: 'http://127.0.0.1:8232',
+      },
+    );
+
+    expect(registered.map((param) => param.getId())).toEqual([
+      'zcash-node',
+      'asset_zec_t1reserve',
+    ]);
   });
 });

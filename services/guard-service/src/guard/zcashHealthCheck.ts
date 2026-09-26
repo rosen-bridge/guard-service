@@ -1,3 +1,4 @@
+import { ZcashRpcAssetHealthCheckParam } from '@rosen-bridge/asset-check';
 import {
   AbstractHealthCheckParam,
   HealthStatusLevel,
@@ -8,6 +9,19 @@ export interface ZcashNodeStatus {
 }
 
 export type ReadZcashNodeStatus = () => Promise<ZcashNodeStatus>;
+
+export interface ZcashAssetHealthCheckOptions {
+  readonly address: string;
+  readonly warnThreshold: bigint;
+  readonly criticalThreshold: bigint;
+  readonly rpcUrl: string;
+  readonly rpcUsername?: string;
+  readonly rpcPassword?: string;
+}
+
+export interface ZcashHealthCheckRegistrar {
+  register(param: AbstractHealthCheckParam): void;
+}
 
 /** Checks RPC reachability and whether the observed tip continues to advance. */
 export class ZcashNodeHealthCheckParam extends AbstractHealthCheckParam {
@@ -94,3 +108,29 @@ export class ZcashNodeHealthCheckParam extends AbstractHealthCheckParam {
     this.details = `Zcash node reported height ${height}.`;
   };
 }
+
+/** Registers the node check and, when configured, the transparent reserve check. */
+export const registerZcashHealthChecks = (
+  registrar: ZcashHealthCheckRegistrar,
+  readNodeStatus: ReadZcashNodeStatus,
+  maximumNoProgressSeconds: number,
+  asset?: ZcashAssetHealthCheckOptions,
+) => {
+  registrar.register(
+    new ZcashNodeHealthCheckParam(readNodeStatus, maximumNoProgressSeconds),
+  );
+  if (asset) {
+    registrar.register(
+      new ZcashRpcAssetHealthCheckParam(
+        'ZEC',
+        asset.address,
+        asset.warnThreshold,
+        asset.criticalThreshold,
+        asset.rpcUrl,
+        asset.rpcUsername,
+        asset.rpcPassword,
+        8,
+      ),
+    );
+  }
+};

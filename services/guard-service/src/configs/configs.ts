@@ -70,6 +70,32 @@ class Configs {
     return value;
   })();
 
+  static zcashAssetHealthCheck = (() => {
+    const enabled = getOptionalConfig<unknown>(
+      'healthCheck.asset.zec.enabled',
+      false,
+    );
+    if (typeof enabled !== 'boolean')
+      throw Error('Invalid healthCheck.asset.zec.enabled');
+    if (!enabled) return undefined;
+
+    const parseThreshold = (key: string) => {
+      const value = config.get<unknown>(key);
+      if (typeof value !== 'string' || !/^[1-9][0-9]{0,15}$/.test(value))
+        throw Error(`Invalid ${key}`);
+      const threshold = BigInt(value);
+      if (threshold > 2_100_000_000_000_000n) throw Error(`Invalid ${key}`);
+      return threshold;
+    };
+    const warnThreshold = parseThreshold('healthCheck.asset.zec.warnThreshold');
+    const criticalThreshold = parseThreshold(
+      'healthCheck.asset.zec.criticalThreshold',
+    );
+    if (criticalThreshold > warnThreshold)
+      throw Error('Invalid healthCheck.asset.zec thresholds');
+    return Object.freeze({ warnThreshold, criticalThreshold });
+  })();
+
   static apiPort = getConfigIntKeyOrDefault('api.port', 8080);
   static apiHost = getOptionalConfig<string>('api.host', 'localhost');
 

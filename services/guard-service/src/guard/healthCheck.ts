@@ -38,6 +38,7 @@ import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
+import GuardsZcashConfigs from '../configs/guardsZcashConfigs';
 import { rosenConfig } from '../configs/rosenConfig';
 import { DatabaseAction } from '../db/databaseAction';
 import { NotificationHandler } from '../handlers/notificationHandler';
@@ -51,7 +52,7 @@ import {
   BINANCE_BLOCK_TIME,
   ERGO_BLOCK_TIME,
 } from '../utils/constants';
-import { ZcashNodeHealthCheckParam } from './zcashHealthCheck';
+import { registerZcashHealthChecks } from './zcashHealthCheck';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -337,11 +338,24 @@ const getHealthCheck = async () => {
       TokenHandler.getInstance().getTokenMap(),
     );
     if (zcashRuntime) {
-      healthCheck.register(
-        new ZcashNodeHealthCheckParam(
-          async () => ({ height: await zcashRuntime.chain.getHeight() }),
-          Configs.zcashMaximumNoProgressSeconds,
-        ),
+      const zcashConfig = GuardsZcashConfigs.read();
+      if (!zcashConfig)
+        throw Error('Configured Zcash runtime has no enabled configuration');
+      const assetThresholds = Configs.zcashAssetHealthCheck;
+      registerZcashHealthChecks(
+        healthCheck,
+        async () => ({ height: await zcashRuntime.chain.getHeight() }),
+        Configs.zcashMaximumNoProgressSeconds,
+        assetThresholds
+          ? {
+              address: zcashConfig.chain.addresses.lock,
+              warnThreshold: assetThresholds.warnThreshold,
+              criticalThreshold: assetThresholds.criticalThreshold,
+              rpcUrl: zcashConfig.rpc.rpcUrl,
+              rpcUsername: zcashConfig.rpc.auth?.username,
+              rpcPassword: zcashConfig.rpc.auth?.password,
+            }
+          : undefined,
       );
     }
 
