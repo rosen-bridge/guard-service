@@ -126,7 +126,6 @@ export const rpcTxResponse = {
   confirmations: 49,
   time: 1709554372,
   blocktime: 1709554372,
-  blockheight: 150000,
 };
 
 // Transaction with non-zero covenant output
@@ -185,10 +184,9 @@ export const rpcTxWithNonZeroCovenant = {
   confirmations: 10,
   time: 1709554372,
   blocktime: 1709554372,
-  blockheight: 149990,
 };
 
-export const txConfirmation = 1; // blockHeight (150000) - tx blockheight (150000) + 1 = 1
+export const txConfirmation = 49; // the `confirmations` the node reports for the tx
 
 // Expected HandshakeTx format (after conversion)
 export const handshakeTx = {
@@ -274,7 +272,6 @@ export const unconfirmedRpcTxResponse = {
   txid: '5f753368e7eeaa3e8629ce3f826fe8dfac1fd628ccd6651c87fe2ead18fd8249',
   blockhash: undefined,
   confirmations: 0,
-  blockheight: undefined,
 };
 
 // gettxout response (for unspent box)
@@ -316,30 +313,80 @@ export const estimateFeeResponse = 0.001024; // 0.001024 HNS/KB = 1024 dollarydo
 
 export const targetFeeEstimation = 1.024; // 1024 / 1000 = 1.024 dollarydoo per vB
 
-// Wallet RPC listunspent response
-export const walletListUnspentResponse = [
+// a node estimating just below the relay minimum, as public hsd nodes do
+export const belowMinimumEstimateFeeResponse = 0.000999; // 999 dollarydoos/kB
+export const minimumFeeEstimation = 1; // clamped up to the relay minimum
+
+// hsd reports an unknown transaction as a misc error
+export const txNotFoundRpcError = {
+  code: -1,
+  message: 'Transaction not found.',
+};
+
+// `/coin/address` response
+//
+// hsd reports these values in dollarydoos (unlike the RPC, which reports HNS),
+// merges in mempool coins with a height of -1, and includes name covenants
+export const addressCoins = [
   {
-    txid: '7c53537a189f91e74a4a9c56f1655827ac358187573bd644b1e974ebef374a5c',
-    vout: 0,
-    amount: 0.0006, // 600 dollarydoos (6 decimals)
-    confirmations: 100,
+    version: 0,
+    height: 149900,
+    value: 600, // 600 dollarydoos
+    address: lockAddress,
     covenant: {
       type: 0, // NONE = coin
       action: 'NONE',
+      items: [],
     },
+    coinbase: false,
+    hash: '7c53537a189f91e74a4a9c56f1655827ac358187573bd644b1e974ebef374a5c',
+    index: 0,
   },
   {
-    txid: 'ac7b42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfed3ba',
-    vout: 2,
-    amount: 29.989144, // 29989144 dollarydoos
-    confirmations: 50,
+    version: 0,
+    height: 149950,
+    value: 10000000, // 10 HNS, locked in a name covenant, not spendable
+    address: lockAddress,
+    covenant: {
+      type: 2, // OPEN = name operation
+      action: 'OPEN',
+      items: ['6e616d65', '00000001'],
+    },
+    coinbase: false,
+    hash: 'bbbb42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfedbbbb',
+    index: 1,
+  },
+  {
+    version: 0,
+    height: -1, // still in the mempool
+    value: 5000000,
+    address: lockAddress,
     covenant: {
       type: 0, // NONE = coin
       action: 'NONE',
+      items: [],
     },
+    coinbase: false,
+    hash: 'cccc42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfedcccc',
+    index: 0,
+  },
+  {
+    version: 0,
+    height: 149990,
+    value: 29989144, // 29989144 dollarydoos
+    address: lockAddress,
+    covenant: {
+      type: 0, // NONE = coin
+      action: 'NONE',
+      items: [],
+    },
+    coinbase: false,
+    hash: 'ac7b42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfed3ba',
+    index: 2,
   },
 ];
 
+// only the confirmed, covenant-free coins of `addressCoins`
 export const addressUtxos = [
   {
     txId: '7c53537a189f91e74a4a9c56f1655827ac358187573bd644b1e974ebef374a5c',
@@ -354,52 +401,3 @@ export const addressUtxos = [
 ];
 
 export const addressBalance = 29989744n; // 600 + 29989144
-
-// Wallet RPC response with mixed coin and non-zero covenant outputs
-export const walletListUnspentWithNamesResponse = [
-  {
-    txid: '7c53537a189f91e74a4a9c56f1655827ac358187573bd644b1e974ebef374a5c',
-    vout: 0,
-    amount: 0.0006, // 600 dollarydoos (coin)
-    confirmations: 100,
-    covenant: {
-      type: 0, // NONE = coin
-      action: 'NONE',
-    },
-  },
-  {
-    txid: 'bbbb42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfedbbbb',
-    vout: 1,
-    amount: 10.0, // 10 HNS (name-related, should be filtered)
-    confirmations: 50,
-    covenant: {
-      type: 2, // OPEN = name operation
-      action: 'OPEN',
-    },
-  },
-  {
-    txid: 'ac7b42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfed3ba',
-    vout: 2,
-    amount: 29.989144, // 29989144 dollarydoos (coin)
-    confirmations: 50,
-    covenant: {
-      type: 0, // NONE = coin
-      action: 'NONE',
-    },
-  },
-];
-
-export const addressUtxosCoinsOnly = [
-  {
-    txId: '7c53537a189f91e74a4a9c56f1655827ac358187573bd644b1e974ebef374a5c',
-    index: 0,
-    value: 600n,
-  },
-  {
-    txId: 'ac7b42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfed3ba',
-    index: 2,
-    value: 29989144n,
-  },
-];
-
-export const addressBalanceCoinsOnly = 29989744n; // Only coins: 600 + 29989144 (name UTXO filtered out)
