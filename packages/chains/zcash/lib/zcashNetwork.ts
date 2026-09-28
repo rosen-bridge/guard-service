@@ -456,6 +456,9 @@ export class ZcashNetwork extends AbstractUtxoChainNetwork<ZcashNetworkTransacti
     if (inspected.expiry_height <= before.height || inspected.expiry_height > 499_999_999 ||
         inspected.expiry_height - before.height > this.#policy.maximumExpiryDelta) fail('expiry');
     if (authorize !== undefined) await authorize();
+    // Authorization may await durable reservation or policy work. Recheck the
+    // chain context after that yield, before handing old-branch bytes to RPC.
+    this.#sameContext(before, await this.#context());
     assertCurrent?.();
     const submission = this.#read(() => this.#source.sendRawTransaction(hex));
     const result = hash(await submission, 'submit');

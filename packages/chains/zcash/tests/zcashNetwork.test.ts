@@ -438,7 +438,7 @@ test('submission accepts signed transparent v5 bytes and requires the returned t
   });
   assert.equal(ok.calls.some(call => call.startsWith('submit:')), true);
   const submitIndex = ok.calls.findIndex(call => call.startsWith('submit:'));
-  assert.deepEqual(ok.calls.slice(submitIndex - 2, submitIndex), ['authorize', 'assertCurrent']);
+  assert.deepEqual(ok.calls.slice(submitIndex - 4, submitIndex), ['authorize', 'genesis', 'info', 'assertCurrent']);
   const wrong = controlled(state => { state.submitResult = '99'.repeat(32); });
   await assert.rejects(network(wrong.source).submitTransaction(retainedConfirmed.hex as string), fails('identity'));
   const blocked = controlled();
@@ -456,7 +456,7 @@ test('submission accepts signed transparent v5 bytes and requires the returned t
     }),
     /policy changed/,
   );
-  assert.deepEqual(blocked.calls.slice(-2), ['authorize', 'assertCurrent']);
+  assert.deepEqual(blocked.calls.slice(-4), ['authorize', 'genesis', 'info', 'assertCurrent']);
   assert.equal(blocked.calls.some(call => call.startsWith('submit:')), false);
 });
 
@@ -488,6 +488,41 @@ test('submission captures both guard methods before authorization can yield to c
   await assert.rejects(pending, /captured policy changed/);
   assert.equal(f.calls.includes('capturedAssertCurrent'), true);
   assert.equal(f.calls.includes('replacementAssertCurrent'), false);
+  assert.equal(f.calls.some(call => call.startsWith('submit:')), false);
+});
+
+test('activation during pending authorization refuses the retained bytes before transport', async () => {
+  const f = controlled();
+  const policy = {...clone(live.policy), branches: [
+    ...live.policy.branches, {height: live.positive.tipHeight + 2, branchId: '77190ad9'},
+  ]};
+  const n = new ZcashNetwork({source: f.source, policy, inspector});
+  await assert.rejects(n.submitTransaction(retainedConfirmed.hex as string, {
+    async authorize() {
+      const info = f.state.info as Record<string, unknown>;
+      info.blocks = live.positive.tipHeight + 1;
+      info.bestblockhash = '55'.repeat(32);
+      info.consensus = {chaintip: live.positive.candidateBranchId, nextblock: '77190ad9'};
+    },
+    assertCurrent() {},
+  }), fails('context'));
+  assert.equal(f.calls.some(call => call.startsWith('submit:')), false);
+});
+
+test('a historical confirmed signed payment remains observable after activation', async () => {
+  const f = controlled();
+  const policy = {...clone(live.policy), branches: [
+    ...live.policy.branches, {height: live.positive.tipHeight + 1, branchId: '77190ad9'},
+  ]};
+  const info = f.state.info as Record<string, unknown>;
+  info.blocks = live.positive.tipHeight + 1;
+  info.bestblockhash = '55'.repeat(32);
+  info.consensus = {chaintip: '77190ad9', nextblock: '77190ad9'};
+  (f.state.unbound as Record<string, unknown>).confirmations = 2;
+  (f.state.block as Record<string, unknown>).confirmations = 2;
+  const n = new ZcashNetwork({source: f.source, policy, inspector});
+  const result = await n.observeSignedTransaction(mempoolInspection.txid, retainedConfirmed.hex as string);
+  assert.equal(result.kind, 'confirmed');
   assert.equal(f.calls.some(call => call.startsWith('submit:')), false);
 });
 
