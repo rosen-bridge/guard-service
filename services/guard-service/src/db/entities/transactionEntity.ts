@@ -17,6 +17,12 @@ export class TransactionEntity {
   @Column('varchar')
   txJson: string;
 
+  @Column('text', { nullable: true })
+  approvalEvidence: string | null;
+
+  @Column('varchar', { nullable: true })
+  signingAttemptId: string | null;
+
   @Column('varchar')
   type: string;
 

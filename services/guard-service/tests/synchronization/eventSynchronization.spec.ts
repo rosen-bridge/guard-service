@@ -1,5 +1,6 @@
 import {
   ConfirmationStatus,
+  PaymentTransaction,
   PaymentOrder,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
@@ -20,6 +21,23 @@ import TestUtils from '../testUtils/testUtils';
 import TestEventSynchronization from './testEventSynchronization';
 
 describe('EventSynchronization', () => {
+  it('rejects Zcash synchronization before trusting a peer-supplied confirmation ID', async () => {
+    const sync = new TestEventSynchronization();
+    const tx = new PaymentTransaction(
+      'zcash',
+      'ab'.repeat(32),
+      'cd'.repeat(32),
+      Buffer.from('proposal'),
+      TransactionType.payment,
+    );
+    sync.insertEventIntoActiveSync(tx.eventId, {
+      responses: [],
+      timestamp: 0,
+    } as never);
+    await expect(
+      sync.callVerifySynchronizationResponse(tx, 'ef'.repeat(32)),
+    ).rejects.toThrow(/bound confirmed payment proof/);
+  });
   describe('addEventToQueue', () => {
     /**
      * @target EventSynchronization.addEventToQueue should add the event to the memory queue

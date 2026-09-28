@@ -16,6 +16,7 @@ import {
 
 import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
+import type { ZcashBoundSigner } from '../transaction/zcashNativeSigningCapability';
 import { TssAlgorithms } from '../utils/constants';
 import DetectionHandler from './detectionHandler';
 
@@ -27,7 +28,7 @@ class TssHandler {
     curve: 'tss-ecdsa-signing',
     edward: 'tss-eddsa-signing',
   };
-  protected static tssCurveSigner: TssSigner;
+  protected static tssCurveSigner: EcdsaSigner;
   protected static tssEdwardSigner: TssSigner;
   protected static dialer: RosenDialerNode;
   protected static tssApiKey: string;
@@ -203,6 +204,7 @@ class TssHandler {
     message: string,
     signature: string | undefined,
     signatureRecovery: string | undefined,
+    boundOperationId?: string,
   ) => {
     let tssSigner: TssSigner;
     if (algorithm === TssAlgorithms.curve)
@@ -217,6 +219,8 @@ class TssHandler {
         message,
         signature,
         signatureRecovery,
+        undefined,
+        boundOperationId,
       );
     else
       await tssSigner.handleSignData(
@@ -225,6 +229,7 @@ class TssHandler {
         undefined,
         undefined,
         error,
+        boundOperationId,
       );
   };
 
@@ -256,6 +261,66 @@ class TssHandler {
         };
       },
     };
+  };
+
+  /** Captures the actual initialized signer and its configured membership, never the legacy cache path. */
+  wrapBoundCurveSigner = (
+    chainCode: string,
+    derivationPath: readonly number[],
+  ): ZcashBoundSigner => {
+    const signer = TssHandler.tssCurveSigner;
+    if (
+      !(signer instanceof EcdsaSigner) ||
+      typeof signer.signBoundPromised !== 'function'
+    )
+      throw Error('Bound ECDSA signer is unavailable');
+    const path = Object.freeze([...derivationPath]);
+    const configuration = () =>
+      JSON.stringify(
+        Configs.tssKeys.pubs.map((pub) => [pub.curvePub, pub.curveShareId]),
+      );
+    const capturedConfiguration = configuration();
+    const assertCurrent = () => {
+      if (
+        TssHandler.tssCurveSigner !== signer ||
+        configuration() !== capturedConfiguration
+      )
+        throw Error('Bound ECDSA signer configuration changed');
+    };
+    const prepare = signer.prepareBoundProfile.bind(signer);
+    const sign = signer.signBoundPromised.bind(signer);
+    return Object.freeze({
+      prepare: async () => {
+        assertCurrent();
+        const profile = await prepare(chainCode, path);
+        assertCurrent();
+        return profile;
+      },
+      sign: (
+        ...[digest, profile, hooks]: Parameters<ZcashBoundSigner['sign']>
+      ) => {
+        assertCurrent();
+        if (
+          profile.chainCode !== chainCode ||
+          JSON.stringify(profile.derivationPath) !== JSON.stringify(path)
+        )
+          throw Error('Bound ECDSA signer derivation mismatch');
+        const authorize = hooks.authorize.bind(hooks);
+        const assert = hooks.assertCurrent.bind(hooks);
+        return sign(digest, profile, {
+          authorize: async (currentProfile, stage) => {
+            assertCurrent();
+            await authorize(currentProfile, stage);
+            assertCurrent();
+          },
+          assertCurrent: (currentProfile, stage) => {
+            assert(currentProfile, stage);
+            assertCurrent();
+          },
+        });
+      },
+      assertCurrent,
+    });
   };
 
   /**

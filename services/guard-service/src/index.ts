@@ -18,6 +18,7 @@ import { NotificationHandler } from './handlers/notificationHandler';
 import PublicStatusHandler from './handlers/publicStatusHandler';
 import { TokenHandler } from './handlers/tokenHandler';
 import TssHandler from './handlers/tssHandler';
+import { initializeZcashGuardRuntime } from './handlers/zcashHandler';
 import { initApiServer } from './jobs/apiServer';
 import { initDataSources } from './jobs/dataSources';
 import { configUpdateJob } from './jobs/guardConfigUpdate';
@@ -34,6 +35,9 @@ import EventSynchronization from './synchronization/eventSynchronization';
 const init = async () => {
   // initialize tokens config
   await TokenHandler.init(Configs.tokensPath);
+
+  // Fail before peers and signing start if the enabled Zcash node is unusable.
+  await initializeZcashGuardRuntime(TokenHandler.getInstance().getTokenMap());
 
   // initialize NotificationHandler object
   NotificationHandler.setup();

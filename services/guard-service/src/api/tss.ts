@@ -6,6 +6,7 @@ import { authenticateTssApiKey } from '../utils/authentication';
 import {
   MessageResponseSchema,
   TssCallbackParams,
+  TssCallbackQuery,
   TssCallbackSchema,
 } from './schemas';
 
@@ -21,6 +22,7 @@ const signRoute = (server: FastifyWithZod) => {
     {
       schema: {
         params: TssCallbackParams,
+        querystring: TssCallbackQuery,
         body: TssCallbackSchema,
         response: {
           200: MessageResponseSchema,
@@ -33,6 +35,7 @@ const signRoute = (server: FastifyWithZod) => {
     async (request, reply) => {
       try {
         const { algorithm } = request.params;
+        const { boundOperationId } = request.query;
         const { status, error, message, signature, signatureRecovery } =
           request.body;
         await TssHandler.getInstance().handleSignData(
@@ -42,6 +45,7 @@ const signRoute = (server: FastifyWithZod) => {
           message,
           signature,
           signatureRecovery,
+          boundOperationId,
         );
         reply.send({ message: 'ok' });
       } catch (error) {

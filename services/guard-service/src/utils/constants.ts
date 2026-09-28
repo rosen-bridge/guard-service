@@ -7,6 +7,7 @@ import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
 import { HANDSHAKE_CHAIN, HNS } from '@rosen-chains/handshake';
+import GuardsZcashConfigs from '../configs/guardsZcashConfigs';
 
 class EventStatus {
   static pendingPayment = 'pending-payment';
@@ -52,7 +53,7 @@ const DefaultRevenueApiCount = 10;
 const ADA_DECIMALS = 6;
 const ERG_DECIMALS = 9;
 
-const SUPPORTED_CHAINS = [
+const LEGACY_SUPPORTED_CHAINS = [
   ERGO_CHAIN,
   CARDANO_CHAIN,
   BITCOIN_CHAIN,
@@ -63,6 +64,14 @@ const SUPPORTED_CHAINS = [
   HANDSHAKE_CHAIN,
   BITCOIN_RUNES_CHAIN,
 ] as const;
+
+const SUPPORTED_CHAINS: readonly [
+  ...typeof LEGACY_SUPPORTED_CHAINS,
+  ...'zcash'[],
+] = [
+  ...LEGACY_SUPPORTED_CHAINS,
+  ...(GuardsZcashConfigs.read() ? (['zcash'] as const) : []),
+];
 
 enum RevenueType {
   fraud = 'fraud',
@@ -86,6 +95,7 @@ const ChainNativeToken: Record<string, string> = {
   [HANDSHAKE_CHAIN]: HNS,
   [BINANCE_CHAIN]: BNB,
   [BITCOIN_RUNES_CHAIN]: BTC,
+  zcash: 'zec',
 };
 
 const ChainConfigKey: Record<string, string> = {
@@ -98,6 +108,7 @@ const ChainConfigKey: Record<string, string> = {
   [HANDSHAKE_CHAIN]: HANDSHAKE_CHAIN,
   [BINANCE_CHAIN]: BINANCE_CHAIN,
   [BITCOIN_RUNES_CHAIN]: 'bitcoinRunes',
+  zcash: 'zcash',
 };
 
 enum OrderStatus {

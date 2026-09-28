@@ -1,0 +1,19 @@
+{
+  "name": "@rosen-chains/zcash-payment", "version": "0.0.0",
+  "description": "Transparent Zcash transaction construction and signing for Rosen Bridge",
+  "repository": {"type": "git", "url": "git+https://github.com/rosen-bridge/guard-service.git", "directory": "packages/chains/zcash-payment"},
+  "author": "Rosen Team", "license": "MIT", "type": "module",
+  "main": "dist/index.js", "types": "dist/index.d.ts", "files": ["dist"],
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json", "type-check": "tsc --noEmit",
+    "clean": "rimraf dist && rimraf tsconfig.build.tsbuildinfo",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "release": "npm run test && npm run clean && npm run build && npm publish --access public"
+  },
+  "dependencies": {
+    "@rosen-chains/abstract-chain": "^17.0.0",
+    "@rosen-bridge/address-codec-zcash": "^0.1.0",
+    "@rosen-bridge/rosen-extractor": "^12.2.0"
+  },
+  "engines": {"node": ">=22.18.0", "npm": "11.6.2"}
+}

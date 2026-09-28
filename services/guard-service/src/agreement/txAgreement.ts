@@ -31,12 +31,19 @@ import {
   ApprovedCandidate,
   AgreementMessageTypes,
 } from './interfaces';
+import {
+  assertApprovalBinding,
+  assertApprovalPolicy,
+  createTransactionApproval,
+  decodeTransactionApproval,
+  verifyTransactionApproval,
+} from './transactionApproval';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class TxAgreement extends Communicator {
   private static instance: TxAgreement;
-  protected readonly protocolVersion = '1.0.0';
+  protected readonly protocolVersion = '1.0.0' as const;
   protected static CHANNEL = 'tx-agreement';
   protected static dialer: RosenDialerNode;
   protected transactionQueue: PaymentTransaction[];
@@ -411,6 +418,13 @@ class TxAgreement extends Communicator {
   ): Promise<void> => {
     const candidateTx = this.transactions.get(txDataHash);
     if (candidateTx === undefined) return;
+    if (
+      candidateTx.tx.network === 'zcash' &&
+      (!Number.isSafeInteger(signerIndex) ||
+        signerIndex < 0 ||
+        signerIndex >= this.guardPks.length)
+    )
+      throw new Error('Invalid Zcash approval signer index');
     if (candidateTx.timestamp !== timestamp) {
       logger.debug(
         `Received guard [${signerIndex}] agreement for tx [${candidateTx.tx.txId}] but timestamp is wrong [${candidateTx.timestamp} !== ${timestamp}]`,
@@ -440,7 +454,15 @@ class TxAgreement extends Communicator {
             `The majority of guards agreed with transaction [${candidateTx.tx.txId}]`,
           );
 
-          const approvals = this.transactionApprovals.get(txDataHash)!;
+          const approvals = [...this.transactionApprovals.get(txDataHash)!];
+          const approvalEvidence =
+            candidateTx.tx.network === 'zcash'
+              ? await this.prepareZcashApproval(
+                  candidateTx.tx,
+                  approvals,
+                  timestamp,
+                )
+              : undefined;
           const approvedTx: ApprovedCandidate = {
             tx: candidateTx.tx,
             signatures: approvals,
@@ -454,7 +476,7 @@ class TxAgreement extends Communicator {
             )
           )
             this.approvedTransactions.push(approvedTx);
-          await this.setTxAsApproved(candidateTx.tx);
+          await this.setTxAsApproved(candidateTx.tx, approvalEvidence);
         }
         release();
       } catch (e) {
@@ -503,35 +525,54 @@ class TxAgreement extends Communicator {
     const txDataHash = TransactionSerializer.getTxDataHash(tx);
     let baseError = `Received approval message for tx [${tx.txId}] (with data hash [${txDataHash}]) from sender [${sender}] `;
     let signs = 0;
+    let approvalEvidence: string | undefined;
     const approvedGuards: number[] = [];
-    for (let i = 0; i < signatures.length; i++) {
-      if (signatures[i] === '') continue;
-      const message = Communicator.generatePayloadToSign(
-        { txDataHash },
-        timestamp,
-        this.guardPks[i],
-        this.protocolVersion,
-      );
-      if (
-        !(await this.messageEnc.verify(
-          message,
-          signatures[i],
-          this.guardPks[i],
-        ))
-      ) {
-        logger.warn(baseError + `but guard [${i}] signature doesn't verify`);
+    if (tx.network === 'zcash') {
+      try {
+        approvalEvidence = await this.prepareZcashApproval(
+          tx,
+          signatures,
+          timestamp,
+        );
+        decodeTransactionApproval(approvalEvidence).signatures.forEach(
+          (signature, index) => {
+            if (signature !== '') approvedGuards.push(index);
+          },
+        );
+      } catch (error) {
+        logger.warn(baseError + `but approval evidence is invalid: ${error}`);
         return;
       }
-      signs++;
-      approvedGuards.push(i);
-    }
-    const requiredSign = GuardPkHandler.getInstance().requiredSign;
-    if (signs < requiredSign) {
-      logger.warn(
-        baseError +
-          `but signs is less than required value [${signs} < ${requiredSign}]`,
-      );
-      return;
+    } else {
+      for (let i = 0; i < signatures.length; i++) {
+        if (signatures[i] === '') continue;
+        const message = Communicator.generatePayloadToSign(
+          { txDataHash },
+          timestamp,
+          this.guardPks[i],
+          this.protocolVersion,
+        );
+        if (
+          !(await this.messageEnc.verify(
+            message,
+            signatures[i],
+            this.guardPks[i],
+          ))
+        ) {
+          logger.warn(baseError + `but guard [${i}] signature doesn't verify`);
+          return;
+        }
+        signs++;
+        approvedGuards.push(i);
+      }
+      const requiredSign = GuardPkHandler.getInstance().requiredSign;
+      if (signs < requiredSign) {
+        logger.warn(
+          baseError +
+            `but signs is less than required value [${signs} < ${requiredSign}]`,
+        );
+        return;
+      }
     }
     logger.info(
       `Guards [${approvedGuards}] agreed on tx [${tx.txId}] (with data hash [${txDataHash}])`,
@@ -540,7 +581,7 @@ class TxAgreement extends Communicator {
     const agreedTx = this.transactions.get(txDataHash);
     if (agreedTx) {
       logger.info(`Transaction [${agreedTx.tx.txId}] approved`);
-      await this.setTxAsApproved(agreedTx.tx);
+      await this.setTxAsApproved(agreedTx.tx, approvalEvidence);
     } else {
       baseError = `Other guards [${approvedGuards}] agreed on tx [${tx.txId}] `;
       const currentAgreedTxDataHash = this.eventAgreedTransactions.get(
@@ -552,7 +593,7 @@ class TxAgreement extends Communicator {
           return;
         } else {
           logger.info(`Transaction [${tx.txId}] verified and approved`);
-          await this.setTxAsApproved(tx);
+          await this.setTxAsApproved(tx, approvalEvidence);
         }
       } else if (currentAgreedTxDataHash !== txDataHash) {
         logger.warn(
@@ -571,14 +612,32 @@ class TxAgreement extends Communicator {
    * sets the transaction as approved in db and removes it from memory
    * @param tx
    */
-  protected setTxAsApproved = async (tx: PaymentTransaction): Promise<void> => {
-    const txRecord = await DatabaseAction.getInstance().getTxById(tx.txId);
-    try {
-      if (txRecord === null) {
+  protected setTxAsApproved = async (
+    tx: PaymentTransaction,
+    approvalEvidence?: string,
+  ): Promise<void> => {
+    const persist = async () => {
+      if (tx.network === 'zcash' || approvalEvidence !== undefined) {
+        if (approvalEvidence === undefined)
+          throw new Error('Zcash approval evidence is required');
+        const approval = this.assertZcashApproval(tx, approvalEvidence);
+        await DatabaseHandler.insertTx(
+          tx,
+          approval.requiredSign,
+          false,
+          approvalEvidence,
+        );
+      } else {
         await DatabaseHandler.insertTx(
           tx,
           GuardPkHandler.getInstance().requiredSign,
         );
+      }
+    };
+    const txRecord = await DatabaseAction.getInstance().getTxById(tx.txId);
+    try {
+      if (txRecord === null) {
+        await persist();
         await this.updateEventOrOrderOfApprovedTx(tx);
       } else {
         if (txRecord.status === TransactionStatus.invalid) {
@@ -589,10 +648,7 @@ class TxAgreement extends Communicator {
           logger.debug(
             `Tx [${tx.txId}] is already in database. Only reinserting tx...`,
           );
-          await DatabaseHandler.insertTx(
-            tx,
-            GuardPkHandler.getInstance().requiredSign,
-          );
+          await persist();
         }
       }
       const txDataHash = TransactionSerializer.getTxDataHash(tx);
@@ -610,6 +666,59 @@ class TxAgreement extends Communicator {
       );
       logger.warn(e.stack);
     }
+  };
+
+  /** Retain the exact proposal and policy checked by the existing peer signatures. */
+  private prepareZcashApproval = async (
+    tx: PaymentTransaction,
+    signatures: readonly string[],
+    timestamp: number,
+  ): Promise<string> => {
+    const guardConfig = GuardPkHandler.getInstance();
+    const configuredKeys = guardConfig.publicKeys;
+    const communicatorKeys = this.guardPks;
+    const policy = {
+      protocolVersion: this.protocolVersion,
+      guardPublicKeys: [...configuredKeys],
+      requiredSign: guardConfig.requiredSign,
+    } as const;
+    const encoded = createTransactionApproval(
+      tx.toJson(),
+      timestamp,
+      signatures,
+      policy,
+    );
+    assertApprovalPolicy(decodeTransactionApproval(encoded), {
+      ...policy,
+      guardPublicKeys: communicatorKeys,
+    });
+    await verifyTransactionApproval(encoded, policy, this.messageEnc);
+    // GuardPkHandler.update replaces the key array even when the values recur.
+    // A policy refresh during verification must be retried, not relabelled.
+    if (
+      GuardPkHandler.getInstance().publicKeys !== configuredKeys ||
+      this.guardPks !== communicatorKeys
+    )
+      throw new Error('Guard policy refreshed during approval verification');
+    this.assertZcashApproval(tx, encoded);
+    return encoded;
+  };
+
+  private assertZcashApproval = (tx: PaymentTransaction, encoded: string) => {
+    const approval = decodeTransactionApproval(encoded);
+    const guardConfig = GuardPkHandler.getInstance();
+    assertApprovalBinding(approval, tx.toJson(), guardConfig.requiredSign);
+    assertApprovalPolicy(approval, {
+      protocolVersion: this.protocolVersion,
+      guardPublicKeys: guardConfig.publicKeys,
+      requiredSign: guardConfig.requiredSign,
+    });
+    assertApprovalPolicy(approval, {
+      protocolVersion: this.protocolVersion,
+      guardPublicKeys: this.guardPks,
+      requiredSign: guardConfig.requiredSign,
+    });
+    return approval;
   };
 
   /**

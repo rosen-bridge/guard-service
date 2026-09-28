@@ -1,0 +1,17 @@
+{
+  "scope": "one-input NU5 regtest fixture; no bridge event admission or application authorization",
+  "operation": "withdraw",
+  "expected_branch_id": "c2d6d0b4",
+  "unsigned_tx_hex": "050000800a27a726b4d0d6c20000000032010000017b72f760ea2af88318f9e265df12d280045183e97e3268f22f56bec73fbff9aa0000000000feffffff02005a6202000000001976a914751e76e8199196d454941c45d1b3a323f1433bd688acf05f9303000000001976a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac000000",
+  "input_amount_zat": "100000000",
+  "prevout_script_hex": "76a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac",
+  "reserve_script_hex": "76a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac",
+  "amount_zat": "40000000",
+  "change_zat": "59990000",
+  "fee_zat": "10000",
+  "output_scripts": [
+    "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+    "76a914f09ce3435526cda8bffce9b09336d23ec5cc7c9188ac"
+  ],
+  "rosen_payload_hex": null
+}

@@ -19,6 +19,7 @@ import EventOrder from '../event/eventOrder';
 import ChainHandler from '../handlers/chainHandler';
 import MinimumFeeHandler from '../handlers/minimumFeeHandler';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
+import { ZcashRewardEligibility } from '../transaction/zcashRewardEligibility';
 import { ChainNativeToken } from '../utils/constants';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
@@ -88,6 +89,19 @@ class TransactionVerifier {
     const chain = ChainHandler.getInstance().getChain(tx.network);
     const dbAction = DatabaseAction.getInstance();
 
+    const zcashAuthorization =
+      tx.txType === TransactionType.reward &&
+      (await ZcashRewardEligibility.isRequired(
+        dbAction.dataSource,
+        tx.eventId,
+        event.toChain,
+      ))
+        ? await new ZcashRewardEligibility(
+            dbAction.dataSource,
+            ChainHandler.getInstance().getZcashBroadcastCapability(),
+          ).capture(event, eventTxId)
+        : undefined;
+
     // verify tx order
     const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
     const txOrder = chain.extractTransactionOrder(tx);
@@ -104,17 +118,21 @@ class TransactionVerifier {
       );
     else {
       // get event payment transaction
-      const eventTxs = await dbAction.getEventValidTxsByType(
-        tx.eventId,
-        TransactionType.payment,
-      );
-      if (eventTxs.length !== 1)
-        throw new ImpossibleBehavior(
-          `Received tx [${tx.txId}] for reward distribution of event [${tx.eventId}] but no payment tx found for the event in database`,
+      let paymentTxId: string;
+      if (zcashAuthorization) paymentTxId = zcashAuthorization.paymentTxId;
+      else {
+        const eventTxs = await dbAction.getEventValidTxsByType(
+          tx.eventId,
+          TransactionType.payment,
         );
-      const paymentTxId = await ChainHandler.getInstance()
-        .getChain(event.toChain)
-        .getActualTxId(eventTxs[0].txId);
+        if (eventTxs.length !== 1)
+          throw new ImpossibleBehavior(
+            `Received tx [${tx.txId}] for reward distribution of event [${tx.eventId}] but no payment tx found for the event in database`,
+          );
+        paymentTxId = await ChainHandler.getInstance()
+          .getChain(event.toChain)
+          .getActualTxId(eventTxs[0].txId);
+      }
       expectedOrder = await EventOrder.createEventRewardOrder(
         event,
         eventTxId,
@@ -130,6 +148,8 @@ class TransactionVerifier {
       return false;
     }
 
+    await zcashAuthorization?.assertCurrent();
+    zcashAuthorization?.assertPolicyCurrent();
     return true;
   };
 

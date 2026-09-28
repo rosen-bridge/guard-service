@@ -2,6 +2,7 @@ import { DatabaseAction } from 'src/db/databaseAction';
 
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { chainDecoders, chainValidators } from '@rosen-bridge/address-codec';
+import { createZcashAddressCodec } from '@rosen-bridge/address-codec-zcash';
 import { AddressManager } from '@rosen-bridge/address-manager';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import { BINANCE_CHAIN, BinanceChain } from '@rosen-chains/binance';
@@ -60,16 +61,23 @@ import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import GuardsHandshakeConfigs from '../configs/guardsHandshakeConfigs';
+import GuardsZcashConfigs from '../configs/guardsZcashConfigs';
 import { dataSource } from '../db/dataSource';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
 import MultiSigHandler from './multiSigHandler';
 import { TokenHandler } from './tokenHandler';
 import TssHandler from './tssHandler';
+import {
+  getConfiguredZcashGuardRuntime,
+  type ZcashGuardRuntime,
+} from './zcashHandler';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class ChainHandler {
   private static instance: ChainHandler;
+  private readonly zcashConfig = GuardsZcashConfigs.read();
+  private zcashRuntime?: ZcashGuardRuntime;
   private readonly ergoChain: ErgoChain;
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
@@ -81,9 +89,18 @@ class ChainHandler {
   private readonly bitcoinRunesChain: BitcoinRunesChain;
 
   private constructor() {
+    const zcashCodec = this.zcashConfig
+      ? createZcashAddressCodec(this.zcashConfig.sourcePolicy.network)
+      : undefined;
     AddressManager.init(
-      chainValidators,
-      chainDecoders,
+      {
+        ...chainValidators,
+        ...(zcashCodec ? { zcash: zcashCodec.validateAddress } : {}),
+      },
+      {
+        ...chainDecoders,
+        ...(zcashCodec ? { zcash: zcashCodec.decodeAddress } : {}),
+      },
       DefaultLogger.getInstance().child('AddressManager'),
     );
     this.ergoChain = this.generateErgoChain();
@@ -495,6 +512,8 @@ class ChainHandler {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getChain = (chain: string): AbstractChain<any> => {
     switch (chain) {
+      case 'zcash':
+        return this.getZcashRuntime().chain;
       case ERGO_CHAIN:
         return this.ergoChain;
       case CARDANO_CHAIN:
@@ -517,6 +536,22 @@ class ChainHandler {
         throw Error(`Chain [${chain}] is not implemented`);
     }
   };
+
+  private getZcashRuntime = (): ZcashGuardRuntime => {
+    if (!this.zcashConfig) throw Error('Zcash is not enabled');
+    if (!this.zcashRuntime)
+      this.zcashRuntime = getConfiguredZcashGuardRuntime(
+        TokenHandler.getInstance().getTokenMap(),
+      );
+    if (!this.zcashRuntime) throw Error('Zcash is not enabled');
+    return this.zcashRuntime;
+  };
+
+  getZcashSigningCapability = () =>
+    this.getZcashRuntime().getSigningCapability();
+
+  getZcashBroadcastCapability = () =>
+    this.getZcashRuntime().getBroadcastCapability();
 
   /**
    * gets ergo chain object

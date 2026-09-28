@@ -18,6 +18,7 @@ import GuardPkHandler from '../handlers/guardPkHandler';
 import MinimumFeeHandler from '../handlers/minimumFeeHandler';
 import { NotificationHandler } from '../handlers/notificationHandler';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
+import { ZcashRewardEligibility } from '../transaction/zcashRewardEligibility';
 import { EventStatus, EventUnexpectedFailsLimit } from '../utils/constants';
 import GuardTurn from '../utils/guardTurn';
 import EventVerifier from '../verification/eventVerifier';
@@ -290,18 +291,32 @@ class EventProcessor {
         'Events with Ergo as toChain will distribute rewards in a single transaction with payment',
       );
 
-    // get event payment transaction
-    const eventTxs = await DatabaseAction.getInstance().getEventValidTxsByType(
+    const zcashAuthorization = (await ZcashRewardEligibility.isRequired(
+      DatabaseAction.getInstance().dataSource,
       eventId,
-      TransactionType.payment,
-    );
-    if (eventTxs.length !== 1)
-      throw new ImpossibleBehavior(
-        `Processing event [${eventId}] for reward distribution but no payment tx found for it in database`,
-      );
-
-    const targetChain = ChainHandler.getInstance().getChain(event.toChain);
-    const paymentTxId = await targetChain.getActualTxId(eventTxs[0].txId);
+      event.toChain,
+    ))
+      ? await new ZcashRewardEligibility(
+          DatabaseAction.getInstance().dataSource,
+          ChainHandler.getInstance().getZcashBroadcastCapability(),
+        ).capture(event, eventTxId)
+      : undefined;
+    let paymentTxId: string;
+    if (zcashAuthorization) paymentTxId = zcashAuthorization.paymentTxId;
+    else {
+      const eventTxs =
+        await DatabaseAction.getInstance().getEventValidTxsByType(
+          eventId,
+          TransactionType.payment,
+        );
+      if (eventTxs.length !== 1)
+        throw new ImpossibleBehavior(
+          `Processing event [${eventId}] for reward distribution but no payment tx found for it in database`,
+        );
+      paymentTxId = await ChainHandler.getInstance()
+        .getChain(event.toChain)
+        .getActualTxId(eventTxs[0].txId);
+    }
 
     // get minimum-fee and verify event
     const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
@@ -313,9 +328,12 @@ class EventProcessor {
         feeConfig,
         paymentTxId,
       );
-      if (GuardTurn.guardTurn() === GuardPkHandler.getInstance().guardId)
-        (await TxAgreement.getInstance()).addTransactionToQueue(tx);
-      else
+      if (GuardTurn.guardTurn() === GuardPkHandler.getInstance().guardId) {
+        const agreement = await TxAgreement.getInstance();
+        await zcashAuthorization?.assertCurrent();
+        zcashAuthorization?.assertPolicyCurrent();
+        agreement.addTransactionToQueue(tx);
+      } else
         logger.info(
           `Tx [${tx.txId}] is generated but turn is over. No tx will be added to Agreement queue`,
         );

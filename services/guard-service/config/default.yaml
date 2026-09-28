@@ -306,6 +306,10 @@ healthCheck:
     btc:
       warnThreshold: 100000 # minimum recommended btc balance
       criticalThreshold: 6000 # minimum required btc balance
+    zec:
+      enabled: false # set true only with operator-approved zatoshi thresholds below
+      # warnThreshold: '' # minimum recommended transparent reserve balance in zatoshis
+      # criticalThreshold: '' # minimum required transparent reserve balance in zatoshis
     firo:
       warnThreshold: 2500000000 # minimum recommended firo balance
       criticalThreshold: 500000000 # minimum required firo balance
@@ -387,6 +391,9 @@ balanceHandler:
     tokensPerIteration:
       rpc: 10
   bitcoinRunes:
+    tokensPerIteration:
+      rpc: 9999
+  zcash:
     tokensPerIteration:
       rpc: 9999
 ergoMultiSig:

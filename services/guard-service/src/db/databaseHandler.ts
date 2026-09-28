@@ -29,6 +29,7 @@ class DatabaseHandler {
     newTx: PaymentTransaction,
     requiredSign: number,
     overwrite = false,
+    approvalEvidence?: string,
   ): Promise<void> => {
     await DatabaseAction.getInstance()
       .txSignSemaphore.acquire()
@@ -42,15 +43,30 @@ class DatabaseHandler {
               );
               if (event === null)
                 throw new Error(`Event [${newTx.eventId}] not found`);
-              await this.insertEventOrOderTx(newTx, event, null, requiredSign);
+              await this.insertEventOrOderTx(
+                newTx,
+                event,
+                null,
+                requiredSign,
+                approvalEvidence,
+              );
               break;
             }
             case TransactionType.manual: {
-              await this.insertManualTx(newTx, requiredSign, overwrite);
+              await this.insertManualTx(
+                newTx,
+                requiredSign,
+                overwrite,
+                approvalEvidence,
+              );
               break;
             }
             case TransactionType.coldStorage: {
-              await this.insertColdStorageTx(newTx, requiredSign);
+              await this.insertColdStorageTx(
+                newTx,
+                requiredSign,
+                approvalEvidence,
+              );
               break;
             }
             case TransactionType.arbitrary: {
@@ -59,7 +75,13 @@ class DatabaseHandler {
               );
               if (order === null)
                 throw new Error(`Order [${newTx.eventId}] not found`);
-              await this.insertEventOrOderTx(newTx, null, order, requiredSign);
+              await this.insertEventOrOderTx(
+                newTx,
+                null,
+                order,
+                requiredSign,
+                approvalEvidence,
+              );
               break;
             }
           }
@@ -84,6 +106,7 @@ class DatabaseHandler {
     event: ConfirmedEventEntity | null,
     order: ArbitraryEntity | null,
     requiredSign: number,
+    approvalEvidence?: string,
   ): Promise<void> => {
     let txs: TransactionEntity[];
     let eventOrOrderId: string;
@@ -108,6 +131,15 @@ class DatabaseHandler {
     } else if (txs.length === 1) {
       const tx = txs[0];
       if (tx.txId === newTx.txId) {
+        if (tx.approvalEvidence != null || approvalEvidence !== undefined) {
+          await DatabaseAction.getInstance().reinsertTxApproval(
+            tx,
+            newTx,
+            requiredSign,
+            approvalEvidence,
+          );
+          return;
+        }
         logger.info(
           `Reinsertion for tx [${tx.txId}], 'failedInSign' updated to false`,
         );
@@ -118,7 +150,12 @@ class DatabaseHandler {
             logger.info(
               `Replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`,
             );
-            await DatabaseAction.getInstance().replaceTx(tx.txId, newTx);
+            await DatabaseAction.getInstance().replaceTx(
+              tx.txId,
+              newTx,
+              requiredSign,
+              approvalEvidence,
+            );
           } else
             logger.info(
               `Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`,
@@ -137,6 +174,7 @@ class DatabaseHandler {
         event,
         requiredSign,
         order,
+        approvalEvidence,
       );
   };
 
@@ -149,12 +187,23 @@ class DatabaseHandler {
   private static insertColdStorageTx = async (
     newTx: PaymentTransaction,
     requiredSign: number,
+    approvalEvidence?: string,
   ): Promise<void> => {
     const txs =
       await DatabaseAction.getInstance().getActiveColdStorageTxsInChain(
         newTx.network,
       );
-    if (txs.some((tx) => tx.txId === newTx.txId)) {
+    const existing = txs.find((tx) => tx.txId === newTx.txId);
+    if (existing) {
+      if (existing.approvalEvidence != null || approvalEvidence !== undefined) {
+        await DatabaseAction.getInstance().reinsertTxApproval(
+          existing,
+          newTx,
+          requiredSign,
+          approvalEvidence,
+        );
+        return;
+      }
       logger.info(
         `Reinsertion for cold storage tx [${newTx.txId}], 'failedInSign' updated to false`,
       );
@@ -165,6 +214,7 @@ class DatabaseHandler {
         null,
         requiredSign,
         null,
+        approvalEvidence,
       );
   };
 
@@ -180,6 +230,7 @@ class DatabaseHandler {
     newTx: PaymentTransaction,
     requiredSign: number,
     overwrite: boolean,
+    approvalEvidence?: string,
   ): Promise<void> => {
     const txs = await DatabaseAction.getInstance().getTxById(newTx.txId);
     if (txs) {
@@ -188,6 +239,15 @@ class DatabaseHandler {
           `Tx [${newTx.txId}] is already in database with status [${txs.status}]`,
         );
       } else {
+        if (txs.approvalEvidence != null || approvalEvidence !== undefined) {
+          await DatabaseAction.getInstance().reinsertTxApproval(
+            txs,
+            newTx,
+            requiredSign,
+            approvalEvidence,
+          );
+          return;
+        }
         await DatabaseAction.getInstance().updateRequiredSign(
           newTx.txId,
           requiredSign,
@@ -199,6 +259,7 @@ class DatabaseHandler {
         null,
         requiredSign,
         null,
+        approvalEvidence,
       );
     }
   };

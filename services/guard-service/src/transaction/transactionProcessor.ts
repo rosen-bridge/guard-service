@@ -10,21 +10,144 @@ import { SigningStatus } from '@rosen-chains/abstract-chain';
 import { DOGE_CHAIN } from '@rosen-chains/doge';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
+import Configs from '../configs/configs';
 import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import { DatabaseAction } from '../db/databaseAction';
 import { TransactionEntity } from '../db/entities/transactionEntity';
+import { ZcashSigningAttemptStore } from '../db/zcashSigningAttemptStore';
+import EventSerializer from '../event/eventSerializer';
 import ChainHandler from '../handlers/chainHandler';
+import GuardPkHandler from '../handlers/guardPkHandler';
 import { NotificationHandler } from '../handlers/notificationHandler';
+import PublicStatusHandler from '../handlers/publicStatusHandler';
 import {
   EventStatus,
   OrderStatus,
   TransactionStatus,
 } from '../utils/constants';
 import * as TransactionSerializer from './transactionSerializer';
+import { ZcashBroadcastCoordinator } from './zcashBroadcastCoordinator';
+import { ZcashRewardEligibility } from './zcashRewardEligibility';
+import { ZcashSigningCoordinator } from './zcashSigningCoordinator';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class TransactionProcessor {
+  private static loadRetainedTransaction = async (
+    txId: string,
+  ): Promise<TransactionEntity> => {
+    const retained = await DatabaseAction.getInstance().getTxById(txId);
+    if (!retained) throw Error(`Transaction [${txId}] is not retained`);
+    return retained;
+  };
+
+  private static assertSameDispatchIdentity = (
+    expected: TransactionEntity,
+    current: TransactionEntity,
+  ): void => {
+    if (
+      current.txId !== expected.txId ||
+      current.txJson !== expected.txJson ||
+      current.chain !== expected.chain ||
+      current.type !== expected.type ||
+      current.requiredSign !== expected.requiredSign ||
+      current.approvalEvidence !== expected.approvalEvidence ||
+      current.signingAttemptId !== expected.signingAttemptId ||
+      current.event?.id !== expected.event?.id ||
+      current.order?.id !== expected.order?.id
+    )
+      throw Error(`Transaction [${expected.txId}] dispatch custody changed`);
+  };
+
+  /**
+   * Reloads the exact retained transaction and, for a Zcash-linked reward,
+   * revalidates its settled payment authority immediately before dispatch.
+   */
+  private static prepareGenericDispatch = async (
+    expected: TransactionEntity,
+    expectedStatus: string,
+  ): Promise<{
+    row: TransactionEntity;
+    paymentTx: PaymentTransaction;
+    assertPolicyCurrent?: () => void;
+  }> => {
+    const dbAction = DatabaseAction.getInstance();
+    let retained = await this.loadRetainedTransaction(expected.txId);
+    this.assertSameDispatchIdentity(expected, retained);
+    if (retained.status !== expectedStatus)
+      throw Error(`Transaction [${retained.txId}] dispatch phase changed`);
+    let paymentTx = TransactionSerializer.fromJson(
+      retained.txJson,
+      ChainHandler.getInstance().getChain,
+    );
+    if (
+      paymentTx.network !== retained.chain ||
+      paymentTx.txId !== retained.txId ||
+      paymentTx.txType !== retained.type ||
+      (retained.event && paymentTx.eventId !== retained.event.id)
+    )
+      throw Error(`Transaction [${retained.txId}] has invalid identity`);
+    const eventId = retained.event?.id ?? paymentTx.eventId;
+    const confirmed = await dbAction.getEventById(eventId);
+    const targetChain = confirmed?.eventData?.toChain ?? '';
+    if (
+      !(await ZcashRewardEligibility.isRequired(
+        dbAction.dataSource,
+        eventId,
+        targetChain,
+      ))
+    )
+      return { row: retained, paymentTx };
+
+    if (
+      retained.chain !== ERGO_CHAIN ||
+      retained.type !== TransactionType.reward ||
+      !retained.event ||
+      retained.event.id !== eventId ||
+      !confirmed?.eventData ||
+      confirmed.id !== eventId
+    )
+      throw Error(`Zcash-linked reward [${retained.txId}] has invalid custody`);
+    const event = EventSerializer.fromConfirmedEntity(confirmed);
+    if (EventSerializer.getId(event) !== eventId)
+      throw Error(`Zcash-linked reward [${retained.txId}] has invalid event`);
+    const authorization = await new ZcashRewardEligibility(
+      dbAction.dataSource,
+      ChainHandler.getInstance().getZcashBroadcastCapability(),
+    ).capture(event, confirmed.eventData.txId);
+
+    retained = await this.loadRetainedTransaction(expected.txId);
+    this.assertSameDispatchIdentity(expected, retained);
+    if (retained.status !== expectedStatus)
+      throw Error(`Transaction [${retained.txId}] dispatch phase changed`);
+    paymentTx = TransactionSerializer.fromJson(
+      retained.txJson,
+      ChainHandler.getInstance().getChain,
+    );
+    if (
+      paymentTx.network !== retained.chain ||
+      paymentTx.txId !== retained.txId ||
+      paymentTx.txType !== retained.type ||
+      paymentTx.eventId !== retained.event?.id
+    )
+      throw Error(`Zcash-linked reward [${retained.txId}] changed identity`);
+    await authorization.assertCurrent();
+    authorization.assertPolicyCurrent();
+    retained = await this.loadRetainedTransaction(expected.txId);
+    this.assertSameDispatchIdentity(expected, retained);
+    if (retained.status !== expectedStatus)
+      throw Error(`Transaction [${retained.txId}] dispatch phase changed`);
+    paymentTx = TransactionSerializer.fromJson(
+      retained.txJson,
+      ChainHandler.getInstance().getChain,
+    );
+    return {
+      row: retained,
+      paymentTx,
+      assertPolicyCurrent: authorization.assertPolicyCurrent,
+    };
+  };
+
   /**
    * processes all active transactions in the database
    */
@@ -74,17 +197,61 @@ class TransactionProcessor {
     const dbAction = DatabaseAction.getInstance();
     await dbAction.txSignSemaphore.acquire().then(async (release) => {
       try {
-        const chain = ChainHandler.getInstance().getChain(tx.chain);
-        const paymentTx = TransactionSerializer.fromJson(
-          tx.txJson,
-          ChainHandler.getInstance().getChain,
+        const retained = await this.loadRetainedTransaction(tx.txId);
+        if (
+          ![TransactionStatus.approved, TransactionStatus.signFailed].includes(
+            retained.status,
+          )
+        )
+          throw Error(
+            `Transaction [${retained.txId}] is not ready for signing`,
+          );
+        if (retained.chain === 'zcash') {
+          const coordinator = new ZcashSigningCoordinator(
+            dbAction.dataSource,
+            ChainHandler.getInstance().getZcashSigningCapability(),
+            () => {
+              const current = GuardPkHandler.getInstance();
+              return {
+                protocolVersion: '1.0.0',
+                guardPublicKeys: [...current.publicKeys],
+                requiredSign: current.requiredSign,
+              };
+            },
+            Configs.guardSecretEcdsa,
+          );
+          const attempt = await coordinator.start(retained);
+          PublicStatusHandler.getInstance().updatePublicTxStatus(
+            retained.txId,
+            TransactionStatus.inSign,
+          );
+          void attempt.completion
+            .then(() => {
+              PublicStatusHandler.getInstance().updatePublicTxStatus(
+                retained.txId,
+                TransactionStatus.signed,
+              );
+            })
+            .catch((error: unknown) => {
+              logger.warn(
+                `Zcash attempt [${attempt.attemptId}] stopped; durable state retained: ${String(error)}`,
+              );
+            });
+          release();
+          return;
+        }
+        const chain = ChainHandler.getInstance().getChain(retained.chain);
+        await dbAction.setTxStatus(retained.txId, TransactionStatus.inSign);
+        const dispatch = await this.prepareGenericDispatch(
+          retained,
+          TransactionStatus.inSign,
         );
-        await dbAction.setTxStatus(tx.txId, TransactionStatus.inSign);
+        dispatch.assertPolicyCurrent?.();
         chain
-          .signTransaction(paymentTx, tx.requiredSign)
+          .signTransaction(dispatch.paymentTx, dispatch.row.requiredSign)
           .then(this.handleSuccessfulSign)
-          .catch(async (e) => await this.handleFailedSign(tx.txId, e));
-        logger.info(`Tx [${tx.txId}] got sent to the signer`);
+          .catch(async (e) => await this.handleFailedSign(retained.txId, e));
+        logger.info(`Tx [${retained.txId}] got sent to the signer`);
         release();
       } catch (e) {
         logger.warn(
@@ -103,6 +270,8 @@ class TransactionProcessor {
   static handleSuccessfulSign = async (
     tx: PaymentTransaction,
   ): Promise<void> => {
+    if (tx.network === 'zcash')
+      throw Error('Zcash signed outcomes require an attempt-bound completion');
     logger.info(`Tx [${tx.txId}] is signed successfully`);
     const currentHeight = await ChainHandler.getInstance()
       .getChain(tx.network)
@@ -129,6 +298,17 @@ class TransactionProcessor {
    * @param tx transaction record
    */
   static processInSignTx = async (tx: TransactionEntity): Promise<void> => {
+    if (tx.chain === 'zcash') {
+      const attempt = await new ZcashSigningAttemptStore(
+        DatabaseAction.getInstance().dataSource,
+      ).getActive(tx.txId);
+      if (!attempt || attempt.attemptId !== tx.signingAttemptId)
+        throw Error('Zcash in-sign row has no matching durable attempt');
+      logger.info(
+        `Zcash attempt [${attempt.attemptId}] remains [${attempt.state}]; queue absence cannot authorize retry`,
+      );
+      return;
+    }
     const chain = ChainHandler.getInstance().getChain(tx.chain);
     const paymentTx = TransactionSerializer.fromJson(
       tx.txJson,
@@ -149,6 +329,10 @@ class TransactionProcessor {
    * @param tx transaction record
    */
   static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
+    if (tx.chain === 'zcash')
+      throw Error(
+        'Zcash failed signing requires durable outcome reconciliation',
+      );
     const chain = ChainHandler.getInstance().getChain(tx.chain);
     // TODO: Remove this if and implement a general way to reduce confirmation check frequency
     // local:ergo/rosen-bridge/guard-service#447
@@ -209,14 +393,22 @@ class TransactionProcessor {
    * @param tx transaction record
    */
   static processSignedTx = async (tx: TransactionEntity): Promise<void> => {
-    const chain = ChainHandler.getInstance().getChain(tx.chain);
-    const paymentTx = TransactionSerializer.fromJson(
-      tx.txJson,
-      ChainHandler.getInstance().getChain,
+    const retained = await this.loadRetainedTransaction(tx.txId);
+    if (retained.status !== TransactionStatus.signed)
+      throw Error(`Transaction [${retained.txId}] is not ready to submit`);
+    if (retained.chain === 'zcash') {
+      await this.processZcashBroadcast(retained.txId);
+      return;
+    }
+    const chain = ChainHandler.getInstance().getChain(retained.chain);
+    const dispatch = await this.prepareGenericDispatch(
+      retained,
+      TransactionStatus.signed,
     );
-    await chain.submitTransaction(paymentTx);
+    dispatch.assertPolicyCurrent?.();
+    await chain.submitTransaction(dispatch.paymentTx);
     await DatabaseAction.getInstance().setTxStatus(
-      tx.txId,
+      retained.txId,
       TransactionStatus.sent,
     );
   };
@@ -226,6 +418,13 @@ class TransactionProcessor {
    * @param tx transaction record
    */
   static processSentTx = async (tx: TransactionEntity): Promise<void> => {
+    tx = await this.loadRetainedTransaction(tx.txId);
+    if (tx.status !== TransactionStatus.sent)
+      throw Error(`Transaction [${tx.txId}] is not ready to reconcile`);
+    if (tx.chain === 'zcash') {
+      await this.processZcashBroadcast(tx.txId);
+      return;
+    }
     const chain = ChainHandler.getInstance().getChain(tx.chain);
     // TODO: Remove this if and implement a general way to reduce confirmation check frequency
     // local:ergo/rosen-bridge/guard-service#447
@@ -331,7 +530,12 @@ class TransactionProcessor {
           if (validityStatus.isValid) {
             // tx is valid. resending...
             logger.info(`Tx [${tx.txId}] is still valid. Resending tx...`);
-            await chain.submitTransaction(paymentTx);
+            const dispatch = await this.prepareGenericDispatch(
+              tx,
+              TransactionStatus.sent,
+            );
+            dispatch.assertPolicyCurrent?.();
+            await chain.submitTransaction(dispatch.paymentTx);
           } else {
             // tx is invalid. reset status if enough blocks past.
             await this.setTransactionAsInvalid(
@@ -343,6 +547,32 @@ class TransactionProcessor {
         }
       }
     }
+  };
+
+  private static processZcashBroadcast = async (
+    txId: string,
+  ): Promise<void> => {
+    const coordinator = new ZcashBroadcastCoordinator(
+      DatabaseAction.getInstance().dataSource,
+      ChainHandler.getInstance().getZcashBroadcastCapability(),
+      () => {
+        const guards = GuardPkHandler.getInstance();
+        return {
+          protocolVersion: '1.0.0',
+          guardPublicKeys: [...guards.publicKeys],
+          requiredSign: guards.requiredSign,
+        };
+      },
+      Configs.guardSecretEcdsa,
+    );
+    const result = await coordinator.process(txId);
+    if (result.kind === 'settled') {
+      PublicStatusHandler.getInstance().updatePublicTxStatus(
+        txId,
+        TransactionStatus.completed,
+      );
+    }
+    logger.info(`Zcash transaction [${txId}] result [${result.kind}]`);
   };
 
   /**

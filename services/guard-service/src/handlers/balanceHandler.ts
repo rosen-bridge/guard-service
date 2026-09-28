@@ -92,6 +92,11 @@ class BalanceHandler {
           this.chainsTokensPerIteration[chain] =
             Configs.balanceHandler.bitcoinRunes.tokensPerIteration.rpc;
           break;
+        case 'zcash':
+          this.nativeTokenIds[chain] = 'zec';
+          this.chainsTokensPerIteration[chain] =
+            Configs.balanceHandler.zcash.tokensPerIteration.rpc;
+          break;
         default:
           throw Error(`Chain [${chain}] is not implemented`);
       }
