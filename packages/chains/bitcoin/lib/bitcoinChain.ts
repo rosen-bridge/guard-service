@@ -339,6 +339,13 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     }
 
     const fee = inBtc - outBtc;
+    if (fee > this.configs.txMaxFee) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified: Fee is more than allowed max fee [${fee} > ${this.configs.txMaxFee}]`,
+      );
+      return false;
+    }
+
     const estimatedFee = estimateTxFee(
       tx.txInputs.length,
       tx.txOutputs.length,
