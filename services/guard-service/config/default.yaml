@@ -78,6 +78,7 @@ firo:
   electrumx:
     host: ''
     port: 50002
+    useTls: true # if true, uses SSL connection, otherwise uses unencrypted TCP connection
     reconnectDelay: 5
     timeout: 30
   bankPublicKey: '' # corresponding public key of lock address
@@ -224,8 +225,13 @@ eventSync:
   timeout: 3600
   interval: 60
 eventReprocessCooldown: 43200
+scanners:
+  blockCleanup:
+    isActiveForErgoChain: false
+    isActiveForNonErgoChains: true
 extractors:
   initializeEventTriggers: false # if true, all event trigger extractors will be initialized upon starting the service
+  initializeCommitments: false # if true, all commitment extractors will be initialized upon starting the service
 tss:
   path: './bin/tss.exe' # path to tss executable file
   configPath: './bin/conf/conf.env'

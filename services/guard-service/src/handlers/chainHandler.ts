@@ -307,6 +307,7 @@ class ChainHandler {
       },
       GuardsFiroConfigs.electrumx.reconnectDelay,
       GuardsFiroConfigs.electrumx.timeout,
+      GuardsFiroConfigs.electrumx.useTls,
       DefaultLogger.getInstance().child('firoElectrumXNetwork'),
     );
     const chainCode = GuardsFiroConfigs.tssChainCode;
