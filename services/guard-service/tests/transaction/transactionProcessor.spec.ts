@@ -241,40 +241,31 @@ describe('TransactionProcessor', () => {
      * transaction in database to signed tx
      * @dependencies
      * - database
-     * - ChainHandler
      * @scenario
-     * - mock transaction and insert into db as 'in-sign'
-     * - mock ChainHandler `getChain`
-     *   - mock `getHeight`
+     * - mock transaction and insert into db as 'in-sign' with a known lastCheck
      * - run test
      * - check if function got called
      * - check tx in database
      * @expected
      * - tx status should be updated to 'signed'
+     * - tx lastCheck should remain unchanged
      */
     it('should update transaction in database to signed tx', async () => {
-      // mock transaction and insert into db as 'in-sign'
+      // mock transaction and insert into db as 'in-sign' with a known lastCheck
       const tx = mockPaymentTransaction();
       const signedTx = tx;
       signedTx.txBytes = Buffer.from('signed');
-      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.inSign);
-
-      // mock ChainHandler `getChain`
-      const chain = tx.network;
-      ChainHandlerMock.mockChainName(chain);
-      // mock `getHeight`
-      const mockedCurrentHeight = 102;
-      ChainHandlerMock.mockChainFunction(
-        chain,
-        'getHeight',
-        mockedCurrentHeight,
-        true,
+      const initialLastCheck = 102;
+      await DatabaseActionMock.insertTxRecord(
+        tx,
+        TransactionStatus.inSign,
+        initialLastCheck,
       );
 
       // run test
       await TransactionProcessor.handleSuccessfulSign(signedTx);
 
-      // tx status should be updated to 'signed'
+      // tx status should be updated to 'signed', lastCheck should remain unchanged
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
         tx.txJson,
@@ -288,7 +279,7 @@ describe('TransactionProcessor', () => {
           signedTx.toJson(),
           TransactionStatus.signed,
           currentTimeStampSeconds.toString(),
-          mockedCurrentHeight,
+          initialLastCheck,
         ],
       ]);
     });
@@ -589,6 +580,7 @@ describe('TransactionProcessor', () => {
      *   - mock `getTxConfirmationStatus`
      *   - mock `isTxInMempool`
      *   - mock `isTxValid`
+     *   - mock `getHeight`
      *   - mock `signTransaction` (lock it's resolution to avoid inconsistency)
      * - run test (call `processTransactions`)
      * - check if function got called
@@ -597,6 +589,7 @@ describe('TransactionProcessor', () => {
      * @expected
      * - `signTransaction` should got called
      * - tx status should be updated to 'in-sign'
+     * - tx lastCheck should be updated to current height
      */
     it('should resend tx to sign process if tx is still valid', async () => {
       // mock transaction and insert into db as 'sign-failed'
@@ -622,6 +615,14 @@ describe('TransactionProcessor', () => {
         defaultInvalidationDetails(true),
         true,
       );
+      // mock `getHeight`
+      const mockedCurrentHeight = 105;
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getHeight',
+        mockedCurrentHeight,
+        true,
+      );
       // mock `signTransaction`
       let resolvePromise: (value: unknown) => void;
       const signTransactionLock = new Promise(
@@ -644,14 +645,20 @@ describe('TransactionProcessor', () => {
         ChainHandlerMock.getChainMockedFunction(chain, 'signTransaction'),
       ).toHaveBeenCalledOnce();
 
-      // tx status should be updated to 'in-sign'
+      // tx status should be updated to 'in-sign', lastCheck should be updated
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
         tx.status,
         tx.lastStatusUpdate,
+        tx.lastCheck,
       ]);
       expect(dbTxs).toEqual([
-        [tx.txId, TransactionStatus.inSign, currentTimeStampSeconds.toString()],
+        [
+          tx.txId,
+          TransactionStatus.inSign,
+          currentTimeStampSeconds.toString(),
+          mockedCurrentHeight,
+        ],
       ]);
 
       // release signTransaction promise

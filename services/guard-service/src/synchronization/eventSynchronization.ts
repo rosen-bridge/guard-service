@@ -505,11 +505,15 @@ class EventSynchronization extends Communicator {
         );
       }
 
+      const currentHeight = await ChainHandler.getInstance()
+        .getChain(tx.network)
+        .getHeight();
       await dbAction.insertCompletedTx(
         tx,
         event,
         GuardPkHandler.getInstance().requiredSign,
         null,
+        currentHeight,
       );
       await DatabaseAction.getInstance().setEventStatusToPending(
         tx.eventId,

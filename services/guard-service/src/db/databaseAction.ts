@@ -302,20 +302,14 @@ class DatabaseAction {
    * updates the tx and set status as signed
    * @param txId the transaction id
    * @param txJson tx json
-   * @param currentHeight current height of the blockchain
    */
-  updateWithSignedTx = async (
-    txId: string,
-    txJson: string,
-    currentHeight: number,
-  ): Promise<void> => {
+  updateWithSignedTx = async (txId: string, txJson: string): Promise<void> => {
     const result: UpdateResult = await this.TransactionRepository.update(
       { txId: txId },
       {
         txJson: txJson,
         status: TransactionStatus.signed,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
-        lastCheck: currentHeight,
       },
     );
     if ((result.affected ?? 0) === 0) return;
@@ -350,10 +344,12 @@ class DatabaseAction {
    * replaces a transaction with a new one
    * @param previousTxId the previous transaction id
    * @param tx the new transaction
+   * @param currentHeight current height of the blockchain
    */
   replaceTx = async (
     previousTxId: string,
     tx: PaymentTransaction,
+    currentHeight: number,
   ): Promise<void> => {
     const result: UpdateResult = await this.TransactionRepository.update(
       { txId: previousTxId },
@@ -364,7 +360,7 @@ class DatabaseAction {
         chain: tx.network,
         status: TransactionStatus.approved,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
-        lastCheck: 0,
+        lastCheck: currentHeight,
         failedInSign: false,
       },
     );
@@ -407,12 +403,14 @@ class DatabaseAction {
 
   /**
    * inserts a tx record into transactions table
+   * @param currentHeight current height of the blockchain
    */
   insertNewTx = async (
     paymentTx: PaymentTransaction,
     event: ConfirmedEventEntity | null,
     requiredSign: number,
     order: ArbitraryEntity | null,
+    currentHeight: number,
   ): Promise<void> => {
     await this.TransactionRepository.insert({
       txId: paymentTx.txId,
@@ -421,7 +419,7 @@ class DatabaseAction {
       chain: paymentTx.network,
       status: TransactionStatus.approved,
       lastStatusUpdate: String(Math.round(Date.now() / 1000)),
-      lastCheck: 0,
+      lastCheck: currentHeight,
       event: event !== null ? event : undefined,
       order: order !== null ? order : undefined,
       failedInSign: false,
@@ -436,12 +434,14 @@ class DatabaseAction {
 
   /**
    * inserts a tx record into transactions table
+   * @param currentHeight current height of the blockchain
    */
   insertCompletedTx = async (
     paymentTx: PaymentTransaction,
     event: ConfirmedEventEntity | null,
     requiredSign: number,
     order: ArbitraryEntity | null,
+    currentHeight: number,
   ): Promise<void> => {
     await this.TransactionRepository.insert({
       txId: paymentTx.txId,
@@ -450,7 +450,7 @@ class DatabaseAction {
       chain: paymentTx.network,
       status: TransactionStatus.completed,
       lastStatusUpdate: String(Math.round(Date.now() / 1000)),
-      lastCheck: 0,
+      lastCheck: currentHeight,
       event: event !== null ? event : undefined,
       order: order !== null ? order : undefined,
       failedInSign: false,

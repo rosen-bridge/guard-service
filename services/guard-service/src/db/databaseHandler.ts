@@ -7,6 +7,7 @@ import {
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
+import ChainHandler from '../handlers/chainHandler';
 import { TokenHandler } from '../handlers/tokenHandler';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import { DuplicateOrder, DuplicateTransaction } from '../utils/errors';
@@ -118,7 +119,14 @@ class DatabaseHandler {
             logger.info(
               `Replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`,
             );
-            await DatabaseAction.getInstance().replaceTx(tx.txId, newTx);
+            const currentHeight = await ChainHandler.getInstance()
+              .getChain(newTx.network)
+              .getHeight();
+            await DatabaseAction.getInstance().replaceTx(
+              tx.txId,
+              newTx,
+              currentHeight,
+            );
           } else
             logger.info(
               `Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`,
@@ -131,13 +139,18 @@ class DatabaseHandler {
           );
         }
       }
-    } else
+    } else {
+      const currentHeight = await ChainHandler.getInstance()
+        .getChain(newTx.network)
+        .getHeight();
       await DatabaseAction.getInstance().insertNewTx(
         newTx,
         event,
         requiredSign,
         order,
+        currentHeight,
       );
+    }
   };
 
   /**
@@ -159,13 +172,18 @@ class DatabaseHandler {
         `Reinsertion for cold storage tx [${newTx.txId}], 'failedInSign' updated to false`,
       );
       await DatabaseAction.getInstance().resetFailedInSign(newTx.txId);
-    } else
+    } else {
+      const currentHeight = await ChainHandler.getInstance()
+        .getChain(newTx.network)
+        .getHeight();
       await DatabaseAction.getInstance().insertNewTx(
         newTx,
         null,
         requiredSign,
         null,
+        currentHeight,
       );
+    }
   };
 
   /**
@@ -194,11 +212,15 @@ class DatabaseHandler {
         );
       }
     } else {
+      const currentHeight = await ChainHandler.getInstance()
+        .getChain(newTx.network)
+        .getHeight();
       await DatabaseAction.getInstance().insertNewTx(
         newTx,
         null,
         requiredSign,
         null,
+        currentHeight,
       );
     }
   };

@@ -1714,6 +1714,7 @@ describe('EventSynchronization', () => {
   describe(`setTxAsApproved`, () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
+      ChainHandlerMock.resetMock();
     });
 
     /**
@@ -1721,8 +1722,11 @@ describe('EventSynchronization', () => {
      * into database and update event status
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock event and transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - insert event into active sync
      * - run test
      * - check database
@@ -1744,6 +1748,16 @@ describe('EventSynchronization', () => {
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingPayment,
+      );
+
+      // mock ChainHandler `getChain`
+      const mockedCurrentHeight = 100;
+      ChainHandlerMock.mockChainName(mockedEvent.toChain);
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getHeight',
+        mockedCurrentHeight,
+        true,
       );
 
       // insert event into active sync
