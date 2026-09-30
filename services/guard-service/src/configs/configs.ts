@@ -151,9 +151,25 @@ class Configs {
     43200,
   );
 
+  // scanners
+  static scannersBlockCleanup = {
+    isActiveForErgoChain: getOptionalConfig<boolean>(
+      'scanners.blockCleanup.isActiveForErgoChain',
+      false,
+    ),
+    isActiveForNonErgoChains: getOptionalConfig<boolean>(
+      'scanners.blockCleanup.isActiveForNonErgoChains',
+      true,
+    ),
+  };
+
   // extractors
   static initializeEventTriggers = getOptionalConfig<boolean>(
     'extractors.initializeEventTriggers',
+    false,
+  );
+  static initializeCommitments = getOptionalConfig<boolean>(
+    'extractors.initializeCommitments',
     false,
   );
 

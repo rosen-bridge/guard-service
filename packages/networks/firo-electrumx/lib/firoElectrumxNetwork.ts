@@ -55,6 +55,7 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
     ) => Promise<PaymentTransaction | undefined>,
     reconnectDelay?: number,
     timeout?: number,
+    useTls?: boolean,
     logger?: AbstractLogger,
   ) {
     super(logger);
@@ -65,6 +66,7 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
       reconnectDelay,
       timeout,
       logger?.child('electrumXSocket'),
+      useTls,
     );
     this.client.setupSocket();
   }

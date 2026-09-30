@@ -14,6 +14,9 @@ class GuardsFiroConfigs {
     port: config.has('firo.electrumx.port')
       ? config.get<number>('firo.electrumx.port')
       : 50002,
+    useTls: config.has('firo.electrumx.useTls')
+      ? config.get<boolean>('firo.electrumx.useTls')
+      : true,
     reconnectDelay: config.has('firo.electrumx.reconnectDelay')
       ? config.get<number>('firo.electrumx.reconnectDelay')
       : 5,
