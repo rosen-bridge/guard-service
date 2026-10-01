@@ -9,6 +9,7 @@ import { NotFoundError } from '@rosen-chains/abstract-chain';
 import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
 import { DatabaseAction } from '../db/databaseAction';
+import EventSerializer from '../event/eventSerializer';
 import { EventStatus } from '../utils/constants';
 import GuardTurn from '../utils/guardTurn';
 import {
@@ -282,8 +283,8 @@ class EventReprocess extends Communicator {
     messageOnDenial?: string,
   ): Promise<boolean> => {
     const dbAction = DatabaseAction.getInstance();
-    const eventId = eventData.eventId;
-    const eventEntity = await dbAction.getEventById(eventData.eventId);
+    const eventId = EventSerializer.getId(eventData);
+    const eventEntity = await dbAction.getEventById(eventId);
     if (eventEntity) {
       // trigger is verified. checking it's status for update
       // check event status

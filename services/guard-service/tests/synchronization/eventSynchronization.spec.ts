@@ -918,89 +918,122 @@ describe('EventSynchronization', () => {
      * @expected
      * - returned value should be true
      */
-    it('should return true when all conditions are met', async () => {
-      // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger().event;
-      const eventId = EventSerializer.getId(mockedEvent);
-      const tx = mockPaymentTransaction(
-        TransactionType.payment,
-        mockedEvent.toChain,
-        eventId,
-      );
-      await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
-        EventStatus.pendingPayment,
-      );
+    it.each<[string, boolean]>([
+      ['bitcoin-cash', true],
+      ['bitcoin-cash', false],
+      ['ethereum', true],
+      ['doge', true],
+      ['firo', true],
+    ])(
+      'verifies synchronized identity for %s (matching: %s)',
+      async (network, matching) => {
+        // mock event and transaction and insert into db
+        const mockedEvent = EventTestData.mockEventTrigger().event;
+        mockedEvent.toChain = network;
+        const eventId = EventSerializer.getId(mockedEvent);
+        const tx = mockPaymentTransaction(
+          TransactionType.payment,
+          mockedEvent.toChain,
+          eventId,
+        );
+        await DatabaseActionMock.insertEventRecord(
+          mockedEvent,
+          EventStatus.pendingPayment,
+        );
 
-      // insert event into active sync
-      const eventSync = new TestEventSynchronization();
-      const responses = Array(guardsLen).fill(undefined);
-      eventSync.insertEventIntoActiveSync(eventId, {
-        timestamp: TestConfigs.currentTimeStamp / 1000 - 100,
-        responses: responses,
-      });
+        // insert event into active sync
+        const eventSync = new TestEventSynchronization();
+        const responses = Array(guardsLen).fill(undefined);
+        eventSync.insertEventIntoActiveSync(eventId, {
+          timestamp: TestConfigs.currentTimeStamp / 1000 - 100,
+          responses: responses,
+        });
 
-      // mock a PaymentOrder
-      const mockedOrder: PaymentOrder = [
-        {
-          address: 'address',
-          assets: {
-            nativeToken: 10n,
-            tokens: [],
+        // mock a PaymentOrder
+        const mockedOrder: PaymentOrder = [
+          {
+            address: 'address',
+            assets: {
+              nativeToken: 10n,
+              tokens: [],
+            },
           },
-        },
-      ];
+        ];
 
-      // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.toChain);
-      // mock `verifyPaymentTransaction`
-      ChainHandlerMock.mockChainFunction(
-        mockedEvent.toChain,
-        'verifyPaymentTransaction',
-        true,
-        true,
-      );
-      // mock `extractTransactionOrder`
-      ChainHandlerMock.mockChainFunction(
-        mockedEvent.toChain,
-        'extractTransactionOrder',
-        mockedOrder,
-        false,
-      );
-      // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockChainFunction(
-        mockedEvent.toChain,
-        'getTxConfirmationStatus',
-        ConfirmationStatus.ConfirmedEnough,
-        false,
-      );
-      // mock `verifyTransactionExtraConditions`
-      ChainHandlerMock.mockChainFunction(
-        mockedEvent.toChain,
-        'verifyTransactionExtraConditions',
-        true,
-        false,
-      );
-      // mock `getActualTxId`
-      ChainHandlerMock.mockChainFunction(
-        mockedEvent.toChain,
-        'getActualTxId',
-        tx.txId,
-        true,
-      );
+        // mock ChainHandler
+        ChainHandlerMock.mockChainName(mockedEvent.toChain);
+        // mock `verifyPaymentTransaction`
+        ChainHandlerMock.mockChainFunction(
+          mockedEvent.toChain,
+          'verifyPaymentTransaction',
+          true,
+          true,
+        );
+        // mock `extractTransactionOrder`
+        ChainHandlerMock.mockChainFunction(
+          mockedEvent.toChain,
+          'extractTransactionOrder',
+          mockedOrder,
+          false,
+        );
+        // mock `getTxConfirmationStatus`
+        ChainHandlerMock.mockChainFunction(
+          mockedEvent.toChain,
+          'getTxConfirmationStatus',
+          ConfirmationStatus.ConfirmedEnough,
+          false,
+        );
+        // mock `verifyTransactionExtraConditions`
+        ChainHandlerMock.mockChainFunction(
+          mockedEvent.toChain,
+          'verifyTransactionExtraConditions',
+          true,
+          false,
+        );
+        // mock `getActualTxId`
+        ChainHandlerMock.mockChainFunction(
+          mockedEvent.toChain,
+          'getActualTxId',
+          '11'.repeat(32),
+          true,
+        );
 
-      // mock EventOrder.createEventPaymentOrder to return mocked order
-      mockCreateEventPaymentOrder(mockedOrder);
+        // mock EventOrder.createEventPaymentOrder to return mocked order
+        mockCreateEventPaymentOrder(mockedOrder);
 
-      // run test
-      const result = await eventSync.callVerifySynchronizationResponse(
-        tx,
-        tx.txId,
-      );
+        // run test
+        const result = await eventSync.callVerifySynchronizationResponse(
+          tx,
+          matching ? '11'.repeat(32) : '22'.repeat(32),
+        );
 
-      // check returned value
-      expect(result).toEqual(true);
-    });
+        // check returned value
+        expect(result).toEqual(matching);
+        const identity = ChainHandlerMock.getChainMockedFunction(
+          mockedEvent.toChain,
+          'getActualTxId',
+        );
+        if (network === 'bitcoin-cash')
+          expect(identity).toHaveBeenCalledExactlyOnceWith(tx.txId, tx);
+        else expect(identity).not.toHaveBeenCalled();
+        const confirmation = ChainHandlerMock.getChainMockedFunction(
+          mockedEvent.toChain,
+          'getTxConfirmationStatus',
+        );
+        if (matching && network === 'bitcoin-cash')
+          expect(confirmation).toHaveBeenCalledExactlyOnceWith(
+            tx.txId,
+            tx.txType,
+            tx,
+          );
+        else if (matching)
+          expect(confirmation).toHaveBeenCalledExactlyOnceWith(
+            '11'.repeat(32),
+            tx.txType,
+          );
+        else expect(confirmation).not.toHaveBeenCalled();
+      },
+    );
 
     /**
      * @target EventSynchronization.verifySynchronizationResponse should return false
@@ -1481,6 +1514,12 @@ describe('EventSynchronization', () => {
         ConfirmationStatus.NotConfirmedEnough,
         false,
       );
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getActualTxId',
+        tx.txId,
+        true,
+      );
       // mock `verifyTransactionExtraConditions`
       ChainHandlerMock.mockChainFunction(
         mockedEvent.toChain,
@@ -1580,6 +1619,12 @@ describe('EventSynchronization', () => {
         'getTxConfirmationStatus',
         ConfirmationStatus.NotFound,
         false,
+      );
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getActualTxId',
+        tx.txId,
+        true,
       );
       // mock `verifyTransactionExtraConditions`
       ChainHandlerMock.mockChainFunction(

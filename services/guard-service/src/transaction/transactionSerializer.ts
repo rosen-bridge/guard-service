@@ -15,7 +15,9 @@ import {
  */
 export const fromJson = (
   jsonString: string,
-  getChain: (chain: string) => AbstractChain<unknown>,
+  getChain: (
+    chain: string,
+  ) => Pick<AbstractChain<unknown>, 'PaymentTransactionFromJson'>,
 ): PaymentTransaction => {
   const network = (JSON.parse(jsonString) as PaymentTransactionJsonModel)
     .network;

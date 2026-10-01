@@ -1,0 +1,38 @@
+{
+  "name": "@rosen-chains/bitcoin-cash",
+  "version": "0.1.0",
+  "description": "Native Bitcoin Cash P2PKH transaction primitives for Rosen Bridge",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosen-bridge/guard-service.git",
+    "directory": "packages/chains/bitcoin-cash"
+  },
+  "license": "MIT",
+  "author": "A. Shannon",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "clean": "rimraf dist && rimraf tsconfig.build.tsbuildinfo",
+    "test": "vitest",
+    "type-check": "tsc --noEmit",
+    "prettify": "prettier --write . --ignore-path ../../../.gitignore",
+    "prettify:check": "prettier --check . --ignore-path ../../../.gitignore"
+  },
+  "dependencies": {
+    "@bitauth/libauth": "3.0.0",
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/address-codec": "^2.1.0",
+    "@rosen-bridge/rosen-extractor": "^12.1.2",
+    "@rosen-bridge/tokens": "^6.0.2",
+    "@rosen-chains/abstract-chain": "17.0.0"
+  },
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": "11.6.2"
+  }
+}

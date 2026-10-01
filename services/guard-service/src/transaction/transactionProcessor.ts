@@ -25,6 +25,39 @@ import * as TransactionSerializer from './transactionSerializer';
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class TransactionProcessor {
+  private static persistRecoveredTransaction = async (
+    tx: TransactionEntity,
+    chain: Pick<
+      AbstractChain<unknown>,
+      'getRecoveredTransaction' | 'verifyTransactionExtraConditions'
+    >,
+    transaction: PaymentTransaction,
+  ): Promise<PaymentTransaction> => {
+    if (!chain.getRecoveredTransaction) return transaction;
+    const recovered = await chain.getRecoveredTransaction(transaction);
+    if (
+      !recovered ||
+      recovered.txId !== tx.txId ||
+      recovered.network !== tx.chain ||
+      recovered.eventId !== transaction.eventId ||
+      recovered.txType !== transaction.txType ||
+      !chain.verifyTransactionExtraConditions(recovered, SigningStatus.Signed)
+    )
+      throw new ImpossibleBehavior(
+        'Recovered transaction envelope is unavailable or inconsistent',
+      );
+    const json = recovered.toJson();
+    if (json !== tx.txJson) {
+      await DatabaseAction.getInstance().updateWithSignedTx(
+        tx.txId,
+        json,
+        tx.status,
+      );
+      tx.txJson = json;
+    }
+    return recovered;
+  };
+
   /**
    * processes all active transactions in the database
    */
@@ -143,6 +176,10 @@ class TransactionProcessor {
    */
   static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
+    const paymentTx = TransactionSerializer.fromJson(
+      tx.txJson,
+      ChainHandler.getInstance().getChain,
+    );
     // TODO: Remove this if and implement a general way to reduce confirmation check frequency
     // local:ergo/rosen-bridge/guard-service#447
     if (tx.chain === DOGE_CHAIN) {
@@ -163,11 +200,13 @@ class TransactionProcessor {
     const txConfirmation = await chain.getTxConfirmationStatus(
       tx.txId,
       tx.type as TransactionType,
+      paymentTx,
     );
     if (
       txConfirmation !== ConfirmationStatus.NotFound ||
-      (await chain.isTxInMempool(tx.txId))
+      (await chain.isTxInMempool(tx.txId, paymentTx))
     ) {
+      await this.persistRecoveredTransaction(tx, chain, paymentTx);
       // tx found in network. set status as sent
       logger.info(
         `Tx [${tx.txId}] found in blockchain. Updating status to 'sent'`,
@@ -178,10 +217,6 @@ class TransactionProcessor {
       );
     } else {
       // tx is not found, checking if tx is still valid
-      const paymentTx = TransactionSerializer.fromJson(
-        tx.txJson,
-        ChainHandler.getInstance().getChain,
-      );
       const validityStatus = await chain.isTxValid(
         paymentTx,
         SigningStatus.UnSigned,
@@ -222,6 +257,10 @@ class TransactionProcessor {
    */
   static processSentTx = async (tx: TransactionEntity): Promise<void> => {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
+    let paymentTx = TransactionSerializer.fromJson(
+      tx.txJson,
+      ChainHandler.getInstance().getChain,
+    );
     // TODO: Remove this if and implement a general way to reduce confirmation check frequency
     // local:ergo/rosen-bridge/guard-service#447
     if (tx.chain === DOGE_CHAIN) {
@@ -239,7 +278,10 @@ class TransactionProcessor {
     const txConfirmation = await chain.getTxConfirmationStatus(
       tx.txId,
       tx.type as TransactionType,
+      paymentTx,
     );
+    if (txConfirmation !== ConfirmationStatus.NotFound)
+      paymentTx = await this.persistRecoveredTransaction(tx, chain, paymentTx);
     switch (txConfirmation) {
       case ConfirmationStatus.ConfirmedEnough: {
         // tx confirmed enough, proceed to next process
@@ -308,17 +350,18 @@ class TransactionProcessor {
       }
       case ConfirmationStatus.NotFound: {
         // tx is not mined, checking mempool...
-        if (await chain.isTxInMempool(tx.txId)) {
+        if (await chain.isTxInMempool(tx.txId, paymentTx)) {
+          paymentTx = await this.persistRecoveredTransaction(
+            tx,
+            chain,
+            paymentTx,
+          );
           // tx is in mempool, updating last check...
           const height = await chain.getHeight();
           await DatabaseAction.getInstance().updateTxLastCheck(tx.txId, height);
           logger.info(`Tx [${tx.txId}] is in mempool`);
         } else {
           // tx is not in mempool, checking if tx is still valid
-          const paymentTx = TransactionSerializer.fromJson(
-            tx.txJson,
-            ChainHandler.getInstance().getChain,
-          );
           const validityStatus = await chain.isTxValid(
             paymentTx,
             SigningStatus.Signed,
