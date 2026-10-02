@@ -54,3 +54,95 @@ credentials. URL credentials and redirects are rejected; credentials and node
 error text do not enter adapter error messages. Submission accepts a verified
 signed envelope, rechecks every retained parent against current unspent state,
 and requires the node to return the exact signed transaction ID.
+
+## Read-only capability observations
+
+Use `probeBitcoinCashRpcCapabilities` to exercise the Guard provider against an
+operator-selected endpoint. It calls the actual provider through the exported
+HTTP transport and a fixed read-only RPC allowlist. It never imports an address,
+rescans a wallet, generates keys, signs, mines or broadcasts a transaction.
+
+Supply the wallet-specific URL, expected chain and credentials through your
+normal private configuration. Select a known transaction and its current-chain
+block, an authenticated native outpoint, the imported treasury address, and a
+transaction hash for a bounded mempool read. Recovery additionally needs the
+exact canonical unsigned body of an operator-selected transaction already
+retained in wallet history; indexed absence needs a separately selected hash
+expected to be absent. Keep those inputs with the operator.
+
+```typescript
+import {
+  BitcoinCashRpcProbeOptions,
+  probeBitcoinCashRpcCapabilities,
+} from '@rosen-chains/bitcoin-cash-rpc';
+
+// Values come from the operator's selected endpoint and sample inventory.
+const options: BitcoinCashRpcProbeOptions = {
+  config: {
+    url: rpcUrl,
+    expectedChain: 'regtest',
+    auth: { username: rpcUsername, password: rpcPassword },
+    timeoutMs: 5_000,
+    maxResponseBytes: 8_000_000,
+    maxUtxos: 25,
+    maxMempoolTransactions: 1_000,
+    maxBlockTransactions: 10_000,
+    walletHistoryPageSize: 50,
+    maxWalletHistoryPages: 2,
+  },
+  samples: {
+    treasuryAddress,
+    blockHash,
+    transactionId,
+    outpoint: `${parentTransactionId}.${outputIndex}`,
+    mempoolTransactionId,
+    unsignedRecoveryBody, // Uint8Array; omit if no selected recovery sample.
+    absentTransactionId, // Omit if no selected absence sample.
+  },
+  totalTimeoutMs: 30_000,
+  maxRequests: 200,
+};
+const report = await probeBitcoinCashRpcCapabilities(options);
+console.table(report.capabilities);
+```
+
+The endpoint, chain, work limits and supplied samples are validated before
+network calls. Probes run serially. The shared deadline defaults to 30 seconds
+(maximum 120 seconds), and
+the request ceiling defaults to 200 (maximum 500). Each request's timeout is the
+smaller of its configured timeout and the remaining deadline. Budget exhaustion
+stops subsequent dispatches; a pending HTTP request is aborted and awaited.
+Provider cardinality and response limits also apply. Raising the wallet scan
+limits cannot override the shared request or time budget.
+
+The report contains only fixed capability/status/reason codes and a request
+count. It excludes endpoint URLs, credentials, server error messages, sample
+identifiers and transaction bytes. Each capability has `passed`, `failed` or
+`unexercised` status; there is no aggregate readiness verdict.
+
+| Capability                                              | Evidence required for `passed`                                                         |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `identity`                                              | BCHN client identity, configured chain and valid height/tip.                           |
+| `block_info`, `block_transactions`, `known_transaction` | Provider-validated header, block membership and known transaction bytes, respectively. |
+| `treasury_address`                                      | Imported/owned address recognition and a valid bounded wallet read.                    |
+| `treasury_outputs`                                      | At least one authenticated, confirmed, mature native wallet output.                    |
+| `prevout`, `current_output`                             | Authenticated parent output; additionally a usable current output for the latter.      |
+| `mempool_read`                                          | A valid bounded mempool identifier response; the selected hash may be absent.          |
+| `wallet_recovery`                                       | Matching signed bytes returned for the supplied canonical unsigned body.               |
+| `indexed_absence`                                       | `getTxConfirmation` returns `-1` after validating a synced current index.              |
+
+Missing samples, empty wallet results, spent/immature outputs and a recovery
+scan without matching bytes leave the relevant capability `unexercised`.
+Identity failure skips all dependent groups. A failed block or prevout group
+skips its dependent reads, while independent groups may continue within budget.
+`unexpected_presence` means the selected absence hash exists; it does not
+establish the indexed-absence path.
+
+Treasury recognition cannot establish historical rescan coverage. A recovery
+observation covers the supplied body and the provider's witness-shape checks;
+the chain must still verify recovered signatures against retained parents.
+Repeat the procedure separately for each deployment and retain its private
+endpoint/sample inventory with the report. Agreement between URLs does not
+establish independent infrastructure. These Guard reads do not qualify the
+Scanner's verbosity-2 block-body path, production custody, release installation,
+or operational bridge activation.

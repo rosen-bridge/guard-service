@@ -78,6 +78,16 @@ manager pattern. Guard's wallet-backed RPC requires the treasury address to be
 imported and the required transaction lookup/history facilities to be available.
 These RPC credentials belong to server configuration.
 
+The provider exports `probeBitcoinCashRpcCapabilities` for bounded read-only
+qualification with operator-selected samples. Its fixed method allowlist refuses
+wallet imports, rescans, signing and broadcast before dispatch. A shared deadline
+and request ceiling limit the whole run. Eleven separate observations report
+`passed`, `failed` or `unexercised`; empty wallets and missing recovery samples
+cannot become successful capability evidence. The package README supplies the
+sample inventory and invocation. Scanner's separate verbosity-2 block-body path,
+historical rescan coverage and infrastructure independence require their own
+observations.
+
 The UI additionally needs bounded address-indexed reads for arbitrary connected
 wallet addresses. Treasury-only BCHN listunspent cannot supply that interface.
 A bounded server-side TLS Electrum provider authenticates raw parents and returns
@@ -158,7 +168,7 @@ pending item names the responsible contributor, maintainer or operator.
 | CHAIN-BASE / RCS-003 Abstract Chain Bases                          | E; BCH is UTXO based                                             | Guard chain/network use UTXO bases and native selection metadata after parent authentication.                                                                          | 126 tests and typecheck pass; independent review and 12 selector tests pass. Contributor/reviewer.                                                                                     |
 | EXTRACT-UNIVERSAL / RCS-003 Rosen Extractor Universal | E; Guard transaction JSON | String extractor reuses Utils BCH transaction type and performs amount wrapping once. Shared active destination registry preserves indices 0–9 and rejects unassigned 10. | Five universal and three registry regressions independently pass within the 73-case Utils closure; observation and Guard joins pass after rebuild. Contributor. |
 | CHAIN / RCS-003 Abstract Chain | E; payment/recovery/verification | Guard native BCH chain, transaction envelope and serialization utilities use UTXO bases. | Chain195, base126 and selector12 cases have scoped independent review. Four fresh current-source join cases reconstruct and recover the exact historical accepted bytes and reject reserved parents, changed value and changed signature. Historical signing evidence is reused only for identical bytes; a new threshold cycle remains pending. Contributor/operators. |
-| PROVIDER / RCS-003 Abstract Chain Network | E/C; BCHN API | Guard packages/networks/bitcoin-cash-rpc, rate-limited client, identity and raw-prevout checks. | 62 cases,32 probes, six mutants and four native observations are qualified. Current four provider source ASTs match the reviewed RPC freeze; build and current generator/recovery join pass. Released installation and independent operator endpoint qualification remain pending. Contributor/operators. |
+| PROVIDER / RCS-003 Abstract Chain Network | E/C; BCHN API | Guard packages/networks/bitcoin-cash-rpc, rate-limited client, identity and raw-prevout checks; bounded read-only capability API. | Existing62 cases,32 probes, six mutants and four native observations retain their scopes. Capability preparation adds29 tests,13 independent probes and three killed mutants for allowlist/request/deadline guards. Package build,20-file archive, nine unpacked TSX consumer assertions and declaration consumer pass. Plain Node import retains the existing extensionless-import limitation. Released installation and independent operator endpoint qualification remain pending. Contributor/operators. |
 | HEALTH / RCS-003 Asset Check                                       | E; native treasury balance                                       | Health Check asset-check/bitcoinCash extends AbstractAssetHealthCheckParam; Guard thin adapter.                                                                        | 27 shared and 25 consumer tests pass; independent review/replay passes. Released dependency still pending. Rosen.                                                                      |
 | WATCH-CONFIG / RCS-003 Watcher Service | E; config, defaults, secrets | BCH config/defaults, separate scanner/observation imports and username/password environment mappings. Node22.18/npm11.6.2 profile agrees across manifest, lock, CI and Docker declarations. | Previous declared185 legacy+89 Vitest run passes; actual environment mapping increases config36→40 and reruns40 green. The unchanged53 other cases give a composed93-case current Vitest closure. Typing and SQLite event/cursor/deduplication receipt are reviewed. Rollup build and unmodified test-mode smoke pass; SQLite loads with no network attempts or created DB. Snappy is emitted but unexercised. CI, Docker and released installation remain pending. Contributor/Rosen. |
 | WATCH-JOBS / RCS-003 Watcher Service | E; scanner, observation, jobs, sync health | Scanner factory, scheduled scanning, fee readiness and sync registration. | The rebuilt, unmodified compiled entry starts eleven timers after fee readiness. A held fee read expires at2008ms and starts only two scanners, with no downstream jobs. Three API routes return200 in both modes. Real SQLite executes43 migrations, persists BCH/Ergo block1 as PROCEED and completes both extractor cleanups without SQL errors. A recent synthetic BCH header reaches the actual scanner-health parameter as Healthy; WID, ERG balance and the deliberately stale Ergo block still report Broken. No proof-of-work or global health claim follows. Physical Axios cancellation, deployed health and operational commitment/redeem remain open. Contributor/operators. |
@@ -173,7 +183,7 @@ pending item names the responsible contributor, maintainer or operator.
 | UI-TRANSPORT / RCS-003 Network/App | D; bounded backend policy and submission | TLS read/submission, native cancellation and one trusted absolute HTTP deadline propagated through quote, authorization and final socket write. | 180 server, quote23/handler13 and browser15 cases independently pass. Real mocked whole join refuses late quote with zero socket/broadcast. Browser rejects post-settlement expiry. Five actual NextRequest/POST cases and compile-mode route build pass. Server RCS method-group delta independently closed with unchanged runtime. Contributor. |
 | UI-WALLET / RCS-003 Wallet, App wallet configuration | E; at least one wallet | Cashonize session/signing wire and actual BaseWallet adapter pinned to wallet/SDK sources; explicit first-account pairing confirmation. | 47 signing/session,25 adapter,18 pairing/startup/createEnv and six source-lease hook cases independently pass. Actual DOM pairing, App typing and full-graph compile pass. A source change or unmount invalidates old connect/restore/disconnect continuations. Full browser/relay interoperability remains pending. Contributor/operators. |
 | UI-FORM / RCS-001, RCS-003 App | E applicability; field validation consumes current wallet, asset and destination | Current upstream debounced form integration; context snapshots, input revisions and reset/unmount revocation prevent obsolete amount/address responses from publishing. | 29 mirrored cases independently pass with the declared Vitest configuration, including isolated balance/address/max/min boundaries, token identity/type, field changes and identical resets. A real React/React Hook Form replay confirms a late minimum rejection leaves the reset field clear and stops its spinner. Broader real-browser behavior remains pending. Contributor/operators. |
-| UI-BROWSER / RCS-003 Network/App | E applicability; client-side transaction and address APIs. D; browser dependency mapping | Shared Ergo/Cardano codec packages map matching exact Node/browser WASM versions; App uses Webpack async WASM and its existing Buffer provider. | Declared Next compile has19 routes, nonempty Bridge/POST bundles and two WASM assets, independently checked. Controlled web-target VM passes22 first-use checks: exact metadata, two observed synthetic signed bodies/signatures and seven mutants; entry waits for both WASM loads. Full browser, database prerendering and wallet relay remain pending. Contributor/operators. |
+| UI-BROWSER / RCS-003 Network/App | E applicability; client-side transaction and address APIs. D; browser dependency mapping | Shared Ergo/Cardano codec packages map matching exact Node/browser WASM versions; App uses Webpack async WASM and its existing Buffer provider. | Declared Next compile has19 routes, nonempty Bridge/POST bundles and two WASM assets, independently checked. Both controlled web-target VM and real Chromium execute22 first-use checks: exact metadata, two observed synthetic signed bodies/signatures and seven mutants. Independently held WASM replies verify the entry waits for both loads. Selected source/asset evidence has independent review; the browser replay is author-executed. Actual App rendering, database prerendering and wallet relay remain separate gates. Contributor/operators. |
 | CONTRACTS / RCS-003 Contracts                                      | E; Rosen-owned outputs                                           | Contracts, protocol chain index, token map, RWT/permit/fraud addresses and represented tokens.                                                                         | Pending Rosen team. Contributor supplies documented interfaces and fixtures.                                                                                                           |
 | CHAIN-INFO / RCS-003 recommended information                       | R; reviewer/operator context                                     | Address/decimal/confirmation policy described above; deployment profile must supply finality, derivation and node sizing.                                              | Partly supplied; operator profile pending. Operators.                                                                                                                                  |
 | RELEASE / RCS-003 Integration Notes, cross-repository dependencies | C/E applicability; reproducible installation | Package inventory and dependency order below; dedicated tss-api patch changeset covers the Go runtime, separately from npm TSS. | Release preparation supplied. Actual accepted versions, package/binary publication and private UI deployment remain Rosen-owned; dependent lock regeneration and clean-install qualification remain contributor work after those releases. |
@@ -336,10 +346,66 @@ release versions or authorize publishing.
 | PACKAGES, RELEASE, HEALTH, WATCH-RUNTIME, UI-BUILD | Inventory, package dry-runs and release order are supplied. Qualify real released installs and regenerate dependent locks once packages exist. | Accepted producer releases, registry versions/tags and UI build-script adaptation decision. Rosen. |
 | SCAN, OBSERVE, UI-DB, UI-SERVICE | Fresh-database and bounded populated upgrade/recovery qualification are supplied. Service runtime/ingestion preparation remains contributor work. | Actual database/deployment profile and released graph for activation. Operators/Rosen. |
 | GUARD-CONFIG, GUARD-JOINS, FEE | Mapping/mount preparation is supplied. Complete synthetic configuration/processor joins and prepare the final policy checks within their accepted scope. | Contract/token configuration, aggregate treasury key, fee/confirmation/health policy and deployed services. Rosen/operators. |
-| UI-BASE, UI-WALLET, UI-FORM, UI-BROWSER, LOCK, DAPP | Runtime/build/controlled-browser fixtures exist. A real-browser synthetic smoke and an operational acceptance procedure remain contributor work. | WalletConnect/Wallet approval, real wallet session and authorized operational deposit. Operators/user. |
-| ENDPOINTS, PROVIDER | Transport/parser fixtures and dated Electrum reads exist. Prepare read-only capability checks for the exact BCHN wallet/transaction-history interface. | Independent BCHN deployments, credentials and imported treasury/history; selected Electrum deployment. Operators. |
-| CONTRACTS, TOKENS, CHAIN-INFO | Retain parameterized interfaces and deterministic fixtures; list and validate supplied deployment outputs. Prepare the reviewed profile and acceptance checklist. | BCH chain index, represented Ergo token, contracts/RWT/permit/fraud addresses, aggregate-key derivation and production policy. Rosen/operators. |
-| CUSTODY, IDENTITY, WATCH-JOBS, ACCEPTANCE | Prepare the threshold/roundtrip acceptance sequence and recovery evidence without creating production keys or spending funds. | Threshold group/key ceremony, accepted TSS binary, coordinated PR acceptance/merge/release and authorized activation. Rosen/operators/user. |
+| UI-BASE, UI-WALLET, UI-FORM, UI-BROWSER, LOCK, DAPP | Real-browser crypto/metadata fixtures are supplied. Actual App smoke and the supplied operational acceptance procedure still need their respective execution. | WalletConnect/Wallet approval, real wallet session and authorized operational deposit. Operators/user. |
+| ENDPOINTS, PROVIDER | Bounded Guard read-only capability API, sample inventory and synthetic/package consumer validation are supplied. Prepare the separate Scanner block-body qualification path. | Independent BCHN deployments, credentials and imported treasury/history; selected Electrum deployment. Operators. |
+| CONTRACTS, TOKENS, CHAIN-INFO | Parameterized interfaces, deterministic fixtures and the input/acceptance checklist below are supplied. Apply existing startup validators to the actual accepted outputs when supplied. | BCH chain index, represented Ergo token, contracts/RWT/permit/fraud addresses, aggregate-key derivation and production policy. Rosen/operators. |
+| CUSTODY, IDENTITY, WATCH-JOBS, ACCEPTANCE | Threshold/roundtrip and recovery acceptance sequence supplied below; actual execution requires the named authority and inputs. | Threshold group/key ceremony, accepted TSS binary, coordinated PR acceptance/merge/release and authorized activation. Rosen/operators/user. |
+
+### Deployment inputs and acceptance procedure
+
+Record one versioned deployment profile before enabling BCH. Keep endpoint
+credentials and wallet material in private operator configuration. Publish only
+the accepted public parameters and sanitized acceptance results.
+
+| Required input | Producer and consuming check |
+| --- | --- |
+| Assigned BCH protocol index | Rosen; replace the unassigned registry value consistently across codecs, App and Service. Check existing indices remain unchanged and unavailable routes stay disabled until the assignment is present. |
+| Contract version, Ergo configuration box, RWT/permit/fraud addresses and token identifiers | Rosen; Watcher and Guard must consume the same contract configuration. Run the existing configuration validators, authenticate the configuration box and verify the required fee configuration loads before jobs start. |
+| Native and represented token map, decimal/amount conversion and destination routes | Rosen; retain native eight-decimal satoshi handling and verify exact Rosen amount conversion through extractor, calculator, quote and payout consumers. |
+| Aggregate public key, derivation policy and treasury CashAddr | Rosen threshold operators; derive the ordinary P2PKH script and match the configured treasury. Record the accepted TSS API binary separately from the npm mediator version. |
+| Endpoint deployment inventory and historical starting point | Operators; qualify each BCHN endpoint with selected wallet/history samples and the Scanner block-body path. Establish rescan/pruning coverage and infrastructure independence separately from URL agreement. |
+| Observation/payment/cold/manual/arbitrary confirmations, fee rate/cap and health thresholds | Operators; supply a reviewed chain/deployment policy, run positive and isolated invalid configuration cases, and retain the approved values. Fixture defaults are not production recommendations. |
+| Database, image/runtime, released package graph and browser wallet profile | Operators/Rosen; follow the release checklist, validate the real mounted configuration and run fresh/upgrade/restart checks on an isolated copy of the selected database. Supply the WalletConnect project and accepted Cashonize version. |
+
+Execute these steps on the explicitly selected network and deployment. A step
+requiring signatures, funds or publication must have the corresponding approval.
+
+1. Freeze the accepted commits, registry versions, lockfiles, binaries, images and
+   public deployment profile. Run startup validation with BCH disabled, then with
+   the accepted BCH configuration. Missing index, token, contract, fee data or
+   mismatched treasury must stop the affected enabled path.
+2. Qualify reads before authorizing any submission. Record endpoint identity,
+   selected block/transaction/outpoint samples, imported treasury/history status
+   and each capability result. An unexercised result needs a suitable sample;
+   it is not a passed operational check. Verify Scanner historical block bodies,
+   Electrum parent authentication and configured health consumers separately.
+3. Start Watcher, Guard and Rosen Service against the selected isolated database.
+   Observe fee readiness, scanner progress, extraction, deduplication and health.
+   Restart and verify cursor, observation and pending-payment retention before
+   accepting a deposit or payout. Preserve database recovery evidence.
+4. Qualify the approved threshold group on an exact retained unsigned BCH body.
+   Record participant admission, operation identity, returned signatures, the
+   final signed bytes and actual signed transaction ID. Check every signature
+   and authenticated parent, then apply BCHN non-broadcast policy validation.
+   Reuse local rejected-body/signature vectors; a noncryptographic TSS fixture
+   does not close this step.
+5. Exercise the actual App and Cashonize relay with the selected wallet profile.
+   Verify the approved first account, address, current quote, native amount and
+   destination payload. Check cancellation, account/context changes and rejected
+   signing leave no submission. Keep the signed body tied to the approved quote
+   and relisted authenticated UTXOs.
+6. After separate funds/broadcast authorization, follow one BCH-to-Ergo deposit
+   through confirmed source transaction, observation, commitment/event and the
+   represented asset. Follow the authorized return through its source event,
+   approval identity, signed BCH ID and confirmed payout. Match amounts and fees
+   in their respective raw/normalized units; record hashes, heights and statuses.
+   A returned transaction ID alone is not a confirmed roundtrip.
+7. Exercise the retained pending-payment restart/recovery path in the approved
+   test environment. Verify reserved inputs, recovered signed-body identity and
+   one payout for the accepted event, including an interrupted submission whose
+   outcome is uncertain. Stop new work on inconsistent state; reconcile the
+   recorded event/transaction/database state before retrying. Close acceptance
+   only with the operator and maintainer receipts for the exact deployed graph.
 
 An external production decision leaves its local fixtures, configuration checks,
 release plan and acceptance preparation with the contributor. Items still
