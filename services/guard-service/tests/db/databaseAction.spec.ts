@@ -3,6 +3,9 @@ import { TransactionType } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import { DatabaseAction } from '../../src/db/databaseAction';
+import { DatabaseAction as bchDbNamespace_DatabaseAction } from '../../src/db/databaseAction';
+import bchDbNamespace_EventSerializer from '../../src/event/eventSerializer';
+import BchDatabasePublicStatusHandler from '../../src/handlers/publicStatusHandler';
 import { SortRequest } from '../../src/types/api';
 import {
   EventStatus,
@@ -14,8 +17,14 @@ import Utils from '../../src/utils/utils';
 import * as TxTestData from '../agreement/testData';
 import * as EventTestData from '../event/testData';
 import PublicStatusHandlerMock from '../handlers/mocked/publicStatusHandler.mock';
+import { preserveBitcoinCashMocks } from '../testUtils/mocked/bitcoinCashMockScope.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TestUtils from '../testUtils/testUtils';
+import {
+  insertNamespaceCommitment as bchDbNamespace_insertNamespaceCommitment,
+  insertNamespaceEvent as bchDbNamespace_insertNamespaceEvent,
+  namespaceEvent as bchDbNamespace_namespaceEvent,
+} from './bitcoinCashNamespaceFixtures';
 import {
   insertCompletedEvent,
   insertEventsWithAmount,
@@ -24,6 +33,7 @@ import {
   insertRevenueDataWithTimestamps,
 } from './databaseTestUtils';
 import DatabaseActionMock from './mocked/databaseAction.mock';
+import bchDbNamespace_DatabaseActionMock from './mocked/databaseAction.mock';
 
 describe('DatabaseActions', () => {
   beforeEach(async () => {
@@ -1426,6 +1436,343 @@ describe('DatabaseActions', () => {
       expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
         mockTx.txId,
         TransactionStatus.completed,
+      );
+    });
+  });
+});
+
+describe('DatabaseAction', () => {
+  let restoreBchMocks: () => void;
+  beforeEach(() => {
+    restoreBchMocks = preserveBitcoinCashMocks([
+      [BchDatabasePublicStatusHandler, ['getInstance']],
+    ]);
+    vi.spyOn(BchDatabasePublicStatusHandler, 'getInstance').mockReturnValue({
+      updatePublicEventStatus: vi.fn(),
+      updatePublicTxStatus: vi.fn(),
+    } as unknown as BchDatabasePublicStatusHandler);
+  });
+  afterEach(() => restoreBchMocks());
+  describe('insertConfirmedEvent', () => {
+    describe('BCH RCS bitcoinCashEventNamespace', () => {
+      beforeEach(async () => bchDbNamespace_DatabaseActionMock.clearTables());
+      /**
+       * @target DatabaseAction.insertConfirmedEvent - persists BTC and BCH
+       * with the same wire request under distinct guard IDs
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario persists BTC and BCH with the same wire request under distinct
+       * guard IDs.
+       * @expected Select only commitments belonging to the registered source
+       * extractor and actual trigger; reject absent, malformed or legacy guard
+       * identities.
+       */
+      it('persists BTC and BCH with the same wire request under distinct guard IDs', async () => {
+        const bitcoin = await bchDbNamespace_insertNamespaceEvent(
+          bchDbNamespace_namespaceEvent('bitcoin'),
+          'btc-trigger',
+        );
+        const bch = await bchDbNamespace_insertNamespaceEvent(
+          bchDbNamespace_namespaceEvent(),
+          'bch-trigger',
+        );
+        const db = bchDbNamespace_DatabaseAction.getInstance();
+        expect(bitcoin.eventId).toEqual(bch.eventId);
+        expect(
+          (await db.getEventById(bchDbNamespace_EventSerializer.getId(bitcoin)))
+            ?.eventData.id,
+        ).toEqual(bitcoin.id);
+        expect(
+          (await db.getEventById(bchDbNamespace_EventSerializer.getId(bch)))
+            ?.eventData.id,
+        ).toEqual(bch.id);
+        await db.insertRejectedEvent(bch, 'test-reason');
+        expect(
+          (
+            await db.RejectedEventRepository.findOneByOrFail({
+              eventDataId: bch.id,
+            })
+          ).id,
+        ).toEqual(bchDbNamespace_EventSerializer.getId(bch));
+      });
+    });
+  });
+
+  describe('getEventCommitments', () => {
+    describe('BCH RCS bitcoinCashEventNamespace', () => {
+      beforeEach(async () => bchDbNamespace_DatabaseActionMock.clearTables());
+      /**
+       * @target DatabaseAction.getEventCommitments - selects only the source
+       * extractor and actual trigger, even with one request, WID, and spend
+       * transaction
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario selects only the source extractor and actual trigger, even
+       * with one request, WID, and spend transaction.
+       * @expected Select only commitments belonging to the registered source
+       * extractor and actual trigger; reject absent, malformed or legacy guard
+       * identities.
+       */
+      it('selects only the source extractor and actual trigger, even with one request, WID, and spend transaction', async () => {
+        const bitcoin = await bchDbNamespace_insertNamespaceEvent(
+          bchDbNamespace_namespaceEvent('bitcoin'),
+          'shared-trigger',
+        );
+        const bch = await bchDbNamespace_insertNamespaceEvent(
+          bchDbNamespace_namespaceEvent(),
+          'bch-trigger',
+        );
+        await bchDbNamespace_DatabaseAction
+          .getInstance()
+          .EventRepository.update(bch.id, {
+            txId: bitcoin.txId,
+          });
+        bch.txId = bitcoin.txId;
+        const btcCommitment =
+          await bchDbNamespace_insertNamespaceCommitment(bitcoin);
+        const bchCommitment =
+          await bchDbNamespace_insertNamespaceCommitment(bch);
+        expect(
+          (
+            await bchDbNamespace_DatabaseAction
+              .getInstance()
+              .getEventCommitments(
+                bchDbNamespace_EventSerializer.getId(bitcoin),
+              )
+          ).map((c) => c.id),
+        ).toEqual([btcCommitment.id]);
+        expect(
+          (
+            await bchDbNamespace_DatabaseAction
+              .getInstance()
+              .getEventCommitments(bchDbNamespace_EventSerializer.getId(bch))
+          ).map((c) => c.id),
+        ).toEqual([bchCommitment.id]);
+      });
+      /**
+       * @target DatabaseAction.getEventCommitments - keeps merged commitment
+       * spend order
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario keeps merged commitment spend order.
+       * @expected Select only commitments belonging to the registered source
+       * extractor and actual trigger; reject absent, malformed or legacy guard
+       * identities.
+       */
+      it('keeps merged commitment spend order', async () => {
+        const bch = await bchDbNamespace_insertNamespaceEvent(
+          bchDbNamespace_namespaceEvent(),
+          'bch-trigger',
+        );
+        const later = await bchDbNamespace_insertNamespaceCommitment(bch, {
+          spendIndex: 3,
+        });
+        const earlier = await bchDbNamespace_insertNamespaceCommitment(bch, {
+          spendIndex: 1,
+        });
+        expect(
+          (
+            await bchDbNamespace_DatabaseAction
+              .getInstance()
+              .getEventCommitments(bchDbNamespace_EventSerializer.getId(bch))
+          ).map((c) => c.id),
+        ).toEqual([earlier.id, later.id]);
+      });
+      /**
+       * @target DatabaseAction.getEventCommitments - excludes a single invalid
+       * merged commitment field: %j
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario excludes a single invalid merged commitment field: %j.
+       * @expected Select only commitments belonging to the registered source
+       * extractor and actual trigger; reject absent, malformed or legacy guard
+       * identities.
+       */
+      it.each([
+        { extractor: 'bitcoinCommitment' },
+        { eventId: 'wrong-request' },
+        { spendTxId: 'other-trigger' },
+      ])(
+        'excludes a single invalid merged commitment field: %j',
+        async (change) => {
+          const bch = await bchDbNamespace_insertNamespaceEvent(
+            bchDbNamespace_namespaceEvent(),
+            'bch-trigger',
+          );
+          const valid = await bchDbNamespace_insertNamespaceCommitment(bch);
+          await bchDbNamespace_insertNamespaceCommitment(bch, change);
+          expect(
+            (
+              await bchDbNamespace_DatabaseAction
+                .getInstance()
+                .getEventCommitments(bchDbNamespace_EventSerializer.getId(bch))
+            ).map((c) => c.id),
+          ).toEqual([valid.id]);
+        },
+      );
+      /**
+       * @target DatabaseAction.getEventCommitments - fails closed on absent
+       * guard identity rather than treating it as the wire ID
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario fails closed on absent guard identity rather than treating
+       * it as the wire ID.
+       * @expected Select only commitments belonging to the registered source
+       * extractor and actual trigger; reject absent, malformed or legacy guard
+       * identities.
+       */
+      it('fails closed on absent guard identity rather than treating it as the wire ID', async () => {
+        await expect(
+          bchDbNamespace_DatabaseAction
+            .getInstance()
+            .getEventCommitments('missing'),
+        ).rejects.toThrow('not found');
+        await expect(
+          bchDbNamespace_DatabaseAction
+            .getInstance()
+            .getValidCommitments('missing', 200),
+        ).rejects.toThrow('not found');
+      });
+      /**
+       * @target DatabaseAction.getEventCommitments - fails closed on
+       * unregistered source chain %s
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario fails closed on unregistered source chain %s.
+       * @expected Select only commitments belonging to the registered source
+       * extractor and actual trigger; reject absent, malformed or legacy guard
+       * identities.
+       */
+      it.each(['unregistered-source', '__proto__', 'constructor'])(
+        'fails closed on unregistered source chain %s',
+        async (source) => {
+          const raw = await bchDbNamespace_insertNamespaceEvent(
+            bchDbNamespace_namespaceEvent(source),
+            'unknown-trigger',
+          );
+          await expect(
+            bchDbNamespace_DatabaseAction
+              .getInstance()
+              .getEventCommitments(bchDbNamespace_EventSerializer.getId(raw)),
+          ).rejects.toThrow('source chain');
+          await expect(
+            bchDbNamespace_DatabaseAction
+              .getInstance()
+              .getValidCommitments(
+                bchDbNamespace_EventSerializer.getId(raw),
+                200,
+              ),
+          ).rejects.toThrow('source chain');
+        },
+      );
+      /**
+       * @target DatabaseAction.getEventCommitments - rejects inconsistent
+       * persisted wire request metadata
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario rejects inconsistent persisted wire request metadata.
+       * @expected Select only commitments belonging to the registered source
+       * extractor and actual trigger; reject absent, malformed or legacy guard
+       * identities.
+       */
+      it('rejects inconsistent persisted wire request metadata', async () => {
+        const raw = await bchDbNamespace_insertNamespaceEvent(
+          bchDbNamespace_namespaceEvent(),
+          'bch-trigger',
+        );
+        await bchDbNamespace_DatabaseAction
+          .getInstance()
+          .EventRepository.update(raw.id, {
+            eventId: 'wrong-request',
+          });
+        const id = bchDbNamespace_EventSerializer.getId(raw);
+        await expect(
+          bchDbNamespace_DatabaseAction.getInstance().getEventCommitments(id),
+        ).rejects.toThrow('inconsistent request identity');
+        await expect(
+          bchDbNamespace_DatabaseAction
+            .getInstance()
+            .getValidCommitments(id, raw.height),
+        ).rejects.toThrow('inconsistent request identity');
+      });
+      /**
+       * @target DatabaseAction.getEventCommitments - rejects legacy BCH
+       * confirmed aliases instead of migrating them silently
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario rejects legacy BCH confirmed aliases instead of migrating
+       * them silently.
+       * @expected Select only commitments belonging to the registered source
+       * extractor and actual trigger; reject absent, malformed or legacy guard
+       * identities.
+       */
+      it('rejects legacy BCH confirmed aliases instead of migrating them silently', async () => {
+        const raw = await bchDbNamespace_insertNamespaceEvent(
+          bchDbNamespace_namespaceEvent(),
+          'bch-trigger',
+        );
+        const db = bchDbNamespace_DatabaseAction.getInstance();
+        await db.ConfirmedEventRepository.update(
+          bchDbNamespace_EventSerializer.getId(raw),
+          {
+            id: raw.eventId,
+          },
+        );
+        await expect(db.getEventCommitments(raw.eventId)).rejects.toThrow(
+          'incompatible guard identity',
+        );
+        await expect(
+          db.getValidCommitments(raw.eventId, raw.height),
+        ).rejects.toThrow('incompatible guard identity');
+      });
+    });
+  });
+
+  describe('getValidCommitments', () => {
+    describe('BCH RCS bitcoinCashEventNamespace', () => {
+      beforeEach(async () => bchDbNamespace_DatabaseActionMock.clearTables());
+      /**
+       * @target DatabaseAction.getValidCommitments - excludes a single invalid
+       * unmerged commitment field: %j
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario excludes a single invalid unmerged commitment field: %j.
+       * @expected Select only commitments belonging to the registered source
+       * extractor and actual trigger; reject absent, malformed or legacy guard
+       * identities.
+       */
+      it.each([
+        { extractor: 'bitcoinCommitment' },
+        { eventId: 'wrong-request' },
+        { height: 200 },
+        { spendBlock: 'spent-block' },
+      ])(
+        'excludes a single invalid unmerged commitment field: %j',
+        async (change) => {
+          const bch = await bchDbNamespace_insertNamespaceEvent(
+            bchDbNamespace_namespaceEvent(),
+            'bch-trigger',
+          );
+          const valid = await bchDbNamespace_insertNamespaceCommitment(bch, {
+            spendBlock: null,
+            spendTxId: null,
+          });
+          await bchDbNamespace_insertNamespaceCommitment(bch, {
+            spendBlock: null,
+            spendTxId: null,
+            ...change,
+          });
+          expect(
+            (
+              await bchDbNamespace_DatabaseAction
+                .getInstance()
+                .getValidCommitments(
+                  bchDbNamespace_EventSerializer.getId(bch),
+                  bch.height,
+                )
+            ).map((c) => c.id),
+          ).toEqual([valid.id]);
+        },
       );
     });
   });

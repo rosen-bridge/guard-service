@@ -6,16 +6,32 @@ import {
   BCH_MAX_MONEY,
 } from '@rosen-chains/bitcoin-cash';
 
+/**
+ * Validate an RPC object, excluding null and arrays.
+ * @param value - Untrusted RPC field
+ * @returns The object for subsequent field validation
+ */
 export const record = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw Error('Invalid RPC object');
   return value as Record<string, unknown>;
 };
+/**
+ * Validate a canonical lowercase 32-byte hash.
+ * @param value - Untrusted RPC hash
+ * @returns The validated hexadecimal hash
+ */
 export const hash = (value: unknown): string => {
   if (typeof value !== 'string' || !/^[0-9a-f]{64}$/.test(value))
     throw Error('Invalid RPC hash');
   return value;
 };
+/**
+ * Validate a nonnegative safe integer within an inclusive bound.
+ * @param value - Untrusted RPC integer
+ * @param maximum - Inclusive upper bound; defaults to Number.MAX_SAFE_INTEGER
+ * @returns The validated integer
+ */
 export const uint = (
   value: unknown,
   maximum = Number.MAX_SAFE_INTEGER,
@@ -29,11 +45,24 @@ export const uint = (
     throw Error('Invalid RPC integer');
   return value;
 };
+/**
+ * Validate an RPC array before iterating over its bounded elements.
+ * @param value - Untrusted RPC collection
+ * @param maximum - Maximum permitted element count, inclusive
+ * @returns The array for subsequent element validation
+ */
 export const array = (value: unknown, maximum: number): unknown[] => {
   if (!Array.isArray(value) || value.length > maximum)
     throw Error('RPC cardinality limit exceeded');
   return value;
 };
+/**
+ * Validate canonical lowercase hexadecimal bytes within a byte limit.
+ * @param value - Untrusted RPC byte string
+ * @param maximum - Maximum decoded byte count, inclusive
+ * @param empty - Whether zero bytes are allowed; defaults to false
+ * @returns The validated hexadecimal string
+ */
 export const hex = (value: unknown, maximum: number, empty = false): string => {
   if (
     typeof value !== 'string' ||
@@ -44,6 +73,11 @@ export const hex = (value: unknown, maximum: number, empty = false): string => {
     throw Error('Invalid bounded RPC hex');
   return value;
 };
+/**
+ * Convert an RPC decimal BCH amount to exact nonnegative satoshis.
+ * @param value - Decimal number or string, optionally using bounded exponent notation
+ * @returns Exact satoshis within BCH_MAX_MONEY; fractional satoshis are rejected
+ */
 export const satoshis = (value: unknown): bigint => {
   if (
     (typeof value !== 'number' && typeof value !== 'string') ||
@@ -64,6 +98,12 @@ export const satoshis = (value: unknown): bigint => {
   if (result > BCH_MAX_MONEY) throw Error('RPC amount exceeds maximum money');
   return result;
 };
+/**
+ * Decode canonical transaction bytes and cross-check their RPC metadata.
+ * @param value - Untrusted verbose raw-transaction response
+ * @param expectedId - Hash requested from the RPC endpoint
+ * @returns Validated metadata, decoded transaction, bytes and coinbase status
+ */
 export const rawTransaction = (value: unknown, expectedId: string) => {
   const metadata = record(value);
   const rawHex = hex(metadata.hex, 1_000_000);

@@ -3,6 +3,10 @@ import { randomUUID } from 'node:crypto';
 import { BitcoinCashRpcConfig, RpcTransport } from './types';
 
 export class BitcoinCashRpcError extends Error {
+  /**
+   * Represent a validated RPC rejection without retaining its server message.
+   * @param code - Integer error code from the authenticated response envelope
+   */
   constructor(readonly code: number) {
     super(`BCH RPC rejected request (code ${code})`);
   }
@@ -10,6 +14,13 @@ export class BitcoinCashRpcError extends Error {
 
 class RpcResponseError extends Error {}
 
+/**
+ * Resolve and validate a positive, safe integer work limit.
+ * @param value - Configured limit; undefined selects fallback
+ * @param fallback - Default limit when value is absent
+ * @param maximum - Largest permitted limit, inclusive
+ * @returns The validated configured or default limit
+ */
 export const boundedInteger = (
   value: number | undefined,
   fallback: number,
@@ -21,7 +32,13 @@ export const boundedInteger = (
   return result;
 };
 
-/** Credentials remain in the request closure and never enter error messages. */
+/**
+ * Create a bounded JSON-RPC transport with sanitized transport errors.
+ * Credentials remain in the request closure and never enter error messages.
+ * @param config - Endpoint, optional authentication and response work limits
+ * @param fetcher - HTTP implementation; defaults to the platform fetch
+ * @returns A transport whose calls validate the response identity and envelope
+ */
 export const createBitcoinCashRpcTransport = (
   config: BitcoinCashRpcConfig,
   fetcher: typeof fetch = fetch,
@@ -51,6 +68,12 @@ export const createBitcoinCashRpcTransport = (
     ? `Basic ${Buffer.from(`${config.auth.username}:${config.auth.password}`).toString('base64')}`
     : undefined;
   return {
+    /**
+     * Send one request and validate its bounded response before returning data.
+     * @param method - BCHN RPC method name
+     * @param params - Positional method arguments
+     * @returns The result field of a matching successful response
+     */
     call: async (method, params) => {
       const id = randomUUID();
       const body = JSON.stringify({ jsonrpc: '2.0', id, method, params });

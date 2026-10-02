@@ -25,8 +25,20 @@ const phase = process.env.ROSEN_BCH_PERSIST_PHASE;
 const root = process.env.ROSEN_BCH_RUNTIME_ROOT;
 
 describe.skipIf(!receiptPath || !databasePath || !root || !phase)(
-  'native BCH persisted identity',
+  'DatabaseAction persistence integration',
   () => {
+    /**
+     * @target DatabaseAction.updateWithSignedTx - restores the approval and
+     * signed identity through the real migrated guard database
+     * @dependencies
+     * - Migrated SQLite fixture, signed native receipt and isolated BCHN
+     * regtest
+     * @scenario
+     * - Persist signed bytes, reopen the approval envelope and inspect regtest
+     * @expected
+     * - Preserve approval identity and restore the authenticated signed
+     * context
+     */
     it('restores the approval and signed identity through the real migrated guard database', async () => {
       const receipt = JSON.parse(readFileSync(receiptPath!, 'utf8'));
       const baseOptions = DatabaseActionMock.testDataSource.options;
@@ -59,12 +71,12 @@ describe.skipIf(!receiptPath || !databasePath || !root || !phase)(
             requiredSign: 1,
           });
           await action.updateWithSignedTx(unsigned.txId, receipt.signedJson);
-        } else expect(phase).toBe('read');
+        } else expect(phase).toEqual('read');
         const row = await action.getTxById(receipt.approvalId);
         expect(row).not.toBeNull();
-        expect(row!.status).toBe(TransactionStatus.signed);
-        expect(row!.txId).toBe(receipt.approvalId);
-        expect(row!.txJson).toBe(receipt.signedJson);
+        expect(row!.status).toEqual(TransactionStatus.signed);
+        expect(row!.txId).toEqual(receipt.approvalId);
+        expect(row!.txJson).toEqual(receipt.signedJson);
         const cookie = readFileSync(
           join(root!, 'runtime/regtest-node-v2910/regtest/.cookie'),
           'utf8',
@@ -121,7 +133,9 @@ describe.skipIf(!receiptPath || !databasePath || !root || !phase)(
           },
           tokens,
           {
+            /** The persistence probe never enters a signing operation. */
             isInSign: async () => false,
+            /** Reject any unintended attempt to sign during persistence. */
             sign: async () => {
               throw Error('Persistence check must not sign');
             },
@@ -131,11 +145,11 @@ describe.skipIf(!receiptPath || !databasePath || !root || !phase)(
           typeof import('../../src/transaction/transactionSerializer')
         >('../../src/transaction/transactionSerializer');
         const restored = serializer.fromJson(row!.txJson, (name) => {
-          expect(name).toBe('bitcoin-cash');
+          expect(name).toEqual('bitcoin-cash');
           return chain;
         });
-        expect(restored.txId).toBe(row!.txId);
-        expect(await chain.getActualTxId(row!.txId, restored)).toBe(
+        expect(restored.txId).toEqual(row!.txId);
+        expect(await chain.getActualTxId(row!.txId, restored)).toEqual(
           receipt.actualId,
         );
         expect(
@@ -144,8 +158,8 @@ describe.skipIf(!receiptPath || !databasePath || !root || !phase)(
             TransactionType.payment,
             restored,
           ),
-        ).toBe(ConfirmationStatus.ConfirmedEnough);
-        expect(await chain.isTxInMempool(row!.txId, restored)).toBe(false);
+        ).toEqual(ConfirmationStatus.ConfirmedEnough);
+        expect(await chain.isTxInMempool(row!.txId, restored)).toEqual(false);
         const dbEvidence = {
           schema: 'rosen-bch-guard-persistence-v1',
           phase,

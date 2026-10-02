@@ -12,11 +12,11 @@ import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { encodeAddress, decodeAddress } from '@rosen-bridge/address-codec';
 import {
   AbstractRosenDataExtractor,
-  BitcoinCashRpcRosenExtractor,
+  BitcoinCashRosenExtractor,
 } from '@rosen-bridge/rosen-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
-  AbstractChain,
+  AbstractUtxoChain,
   BlockInfo,
   ConfirmationStatus,
   EcdsaSignMediator,
@@ -30,6 +30,7 @@ import {
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
 
+import BitcoinCashBoxSelection from './bitcoinCashBoxSelection';
 import BitcoinCashTransaction from './bitcoinCashTransaction';
 import {
   assertBchHex,
@@ -59,6 +60,12 @@ import {
 import AbstractBitcoinCashNetwork from './network/abstractBitcoinCashNetwork';
 import { BitcoinCashPrevout } from './types';
 
+/**
+ * Decode an ordinary canonical mainnet CashAddr with a codec round-trip check.
+ * @param address - Prefixed lowercase native P2PKH or P2SH destination address
+ * @returns Canonical hexadecimal locking bytecode
+ * @throws When the address uses another network, token support or unsupported script form
+ */
 const outputScript = (address: string): string => {
   if (
     typeof address !== 'string' ||
@@ -89,28 +96,29 @@ const outputScript = (address: string): string => {
   return script;
 };
 
-// AbstractChain uses serialized transport, while the reviewed BCH extractor owns
-// interpretation and authentication of the complete RPC transaction object.
-class SerializedBitcoinCashExtractor extends AbstractRosenDataExtractor<string> {
-  readonly chain = BITCOIN_CASH_CHAIN;
-  private readonly rpc: BitcoinCashRpcRosenExtractor;
-  constructor(address: string, tokens: TokenMap, logger?: AbstractLogger) {
-    super(address, tokens, logger);
-    this.rpc = new BitcoinCashRpcRosenExtractor(address, tokens, logger);
-  }
-  extractData = (json: string) => this.rpc.extractData(JSON.parse(json));
-}
-
 /** Native BCH policy. Approval identity is deliberately distinct from chain identity. */
-class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
+class BitcoinCashChain extends AbstractUtxoChain<
+  BitcoinCashTx,
+  BitcoinCashUtxo
+> {
   readonly CHAIN = BITCOIN_CASH_CHAIN;
   readonly NATIVE_TOKEN_ID = BCH;
-  declare protected network: AbstractBitcoinCashNetwork;
+  declare network: AbstractBitcoinCashNetwork;
   declare protected configs: BitcoinCashConfigs;
   protected extractor: AbstractRosenDataExtractor<string> | undefined;
   protected readonly lockScript: string;
   protected readonly signMediator: EcdsaSignMediator;
+  protected readonly boxSelection: BitcoinCashBoxSelection;
 
+  /**
+   * Freeze and validate native treasury configuration before attaching provider/signing seams.
+   * @param network - BCH provider implementing bounded native output and recovery queries
+   * @param suppliedConfigs - Required fee, output, selection, confirmation and treasury policy
+   * @param tokens - Native BCH and destination asset mappings
+   * @param signMediator - ECDSA mediator for the aggregate treasury key
+   * @param logger - Optional diagnostics; omission uses the inherited DummyLogger
+   * @throws When policy fields or the treasury address/key relationship are invalid
+   */
   constructor(
     network: AbstractBitcoinCashNetwork,
     suppliedConfigs: BitcoinCashConfigs,
@@ -160,13 +168,22 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     if (outputScript(configs.addresses.lock) !== this.lockScript)
       throw Error('Treasury CashAddr does not match aggregate P2PKH key');
     this.signMediator = signMediator;
-    this.extractor = new SerializedBitcoinCashExtractor(
+    this.boxSelection = new BitcoinCashBoxSelection(
+      logger?.child('bitcoinCashBoxSelection'),
+    );
+    this.extractor = new BitcoinCashRosenExtractor(
       configs.addresses.lock,
       tokens,
       logger,
     );
   }
 
+  /**
+   * Revalidate a concrete BCH envelope against the configured aggregate key.
+   * @param transaction - Candidate Rosen payment envelope
+   * @returns The validated BCH envelope
+   * @throws When the envelope type, mutable fields or aggregate key are inconsistent
+   */
   private envelope = (
     transaction: PaymentTransaction,
   ): BitcoinCashTransaction => {
@@ -178,6 +195,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     return transaction;
   };
 
+  /**
+   * Convert a positive Rosen amount into bounded satoshis with an exact round trip.
+   * @param amount - Native asset amount in Rosen units
+   * @returns Exact positive raw BCH satoshis
+   * @throws When conversion is invalid, exceeds maximum money or changes the Rosen amount
+   */
   private unwrapExact = (amount: bigint): bigint => {
     if (typeof amount !== 'bigint' || amount <= 0n)
       throw Error('Invalid Rosen amount');
@@ -192,6 +215,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     return raw;
   };
 
+  /**
+   * Convert a raw payout into Rosen units only when native precision is preserved.
+   * @param raw - Payout value in satoshis
+   * @returns The exactly reversible Rosen native amount
+   * @throws When token-map conversion cannot restore the same satoshi value
+   */
   private wrapExact = (raw: bigint): bigint => {
     const amount = this.tokenMap.wrapAmount(BCH, raw, this.CHAIN).amount;
     if (
@@ -204,6 +233,13 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
 
   // Counts are <253, hence one-byte CompactSize. 149 bytes conservatively covers
   // the largest compressed-key legacy P2PKH input; no Segwit weight is involved.
+  /**
+   * Calculate the fixed fee policy using conservative legacy serialized byte counts.
+   * @param inputs - Selected input count within the bounded transaction policy
+   * @param scripts - Ordered hexadecimal output scripts, including treasury change
+   * @returns The configured satoshis-per-byte fee
+   * @throws When the computed fee is nonpositive or exceeds the configured cap
+   */
   private estimateFee = (
     inputs: number,
     scripts: readonly string[],
@@ -218,6 +254,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     return fee;
   };
 
+  /**
+   * Cross-check a treasury row against its exact parent output and coinbase bytes.
+   * @param utxo - Provider row with current status and retained parent transaction hex
+   * @returns The unchanged row after native parent/value/script checks succeed
+   * @throws When reported metadata conflicts with the canonical parent or treasury policy
+   */
   private authenticate = (utxo: BitcoinCashUtxo): BitcoinCashUtxo => {
     if (
       !utxo ||
@@ -266,9 +308,20 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     return utxo;
   };
 
+  /**
+   * Apply the ordinary confirmation or coinbase maturity selection boundary.
+   * @param utxo - Parent-checked row with validated confirmation and coinbase status
+   * @returns Whether confirmations are at least one, or at least 100 for coinbase
+   */
   private mature = (utxo: BitcoinCashUtxo): boolean =>
     utxo.confirmations >= (utxo.coinbase ? 100 : 1);
 
+  /**
+   * Recheck every retained input against its current confirmed native output context.
+   * @param transaction - Validated BCH envelope with ordered prevout context
+   * @returns Whether all inputs remain mature, unchanged and explicitly unspent/valid
+   * @throws When the provider or parent-validation seam fails
+   */
   private currentInputs = async (
     transaction: BitcoinCashTransaction,
   ): Promise<boolean> => {
@@ -291,6 +344,13 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     return true;
   };
 
+  /**
+   * Enforce native treasury body, payout, change, fee and optional signing-state policy.
+   * @param transaction - Candidate Rosen payment envelope
+   * @param status - Optional required signed/unsigned state; omission accepts either valid state
+   * @returns The envelope after all applicable fixed-body policy checks
+   * @throws When envelope identity, state, outputs, conversion or fee policy is invalid
+   */
   private policy = (
     transaction: PaymentTransaction,
     status?: SigningStatus,
@@ -346,6 +406,16 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     return envelope;
   };
 
+  /**
+   * Build one bounded unsigned native payment without using reserved or chained outputs.
+   * @param eventId - Rosen event identifier retained in the envelope
+   * @param txType - Supported Rosen transaction type
+   * @param order - Token-free ordinary native payments in Rosen units
+   * @param unsignedTransactions - Validated unsigned envelopes whose inputs are reserved
+   * @param serializedSignedTransactions - Signed raw transactions whose inputs are reserved
+   * @returns A one-element array containing the generated unsigned BCH envelope
+   * @throws When order/reservations are invalid or bounded confirmed funding is insufficient
+   */
   generateMultipleTransactions = async (
     eventId: string,
     txType: TransactionType,
@@ -394,6 +464,10 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     )
       throw Error('Invalid reservation sets');
     const forbidden = new Set<string>();
+    /**
+     * Reserve every input of an already policy-validated pending envelope.
+     * @param envelope - Pending unsigned or signed treasury transaction
+     */
     const reserve = (envelope: BitcoinCashTransaction) =>
       envelope.prevouts.forEach((input) =>
         forbidden.add(getBchOutpointId(input.txId, input.index)),
@@ -445,6 +519,7 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
         seen.add(id);
         if (forbidden.has(id)) continue;
         const authenticated = this.authenticate(box);
+        const assets = this.boxSelection.getBoxInfo(authenticated).assets;
         if (!this.mature(authenticated)) continue;
         if ((await this.network.isBoxUnspentAndValid(id)) !== true) continue;
         if (selected.length === BCH_MAX_INPUTS)
@@ -456,7 +531,7 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
           scriptPubKey: box.scriptPubKey,
           parentTransactionHex: box.parentTransactionHex,
         });
-        value += box.value;
+        value += assets.nativeToken;
         const fee = this.estimateFee(selected.length, scripts);
         if (value - required - fee >= this.configs.minimumUtxoValue) {
           const bytes = encodeTransactionBCH({
@@ -496,6 +571,11 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     );
   };
 
+  /**
+   * Map validated raw input/output totals to Rosen native asset units.
+   * @param transaction - BCH payment envelope under the configured treasury policy
+   * @returns Token-free input and output balances converted by the TokenMap
+   */
   getTransactionAssets = async (
     transaction: PaymentTransaction,
   ): Promise<TransactionAssetBalance> => {
@@ -521,6 +601,11 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     };
   };
 
+  /**
+   * Reconstruct native payment recipients while excluding the final treasury change.
+   * @param transaction - BCH payment envelope under the configured treasury policy
+   * @returns Ordered ordinary CashAddr payments with exactly reversible Rosen amounts
+   */
   extractTransactionOrder = (transaction: PaymentTransaction): PaymentOrder => {
     const tx = decodeBchTransaction(this.policy(transaction).txBytes);
     return tx.outputs.slice(0, -1).map((output) => {
@@ -538,9 +623,18 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     });
   };
 
+  /**
+   * Map the configured raw minimum output value into Rosen native units.
+   * @returns The minimum native amount represented by the configured TokenMap
+   */
   getMinimumNativeToken = (): bigint =>
     this.tokenMap.wrapAmount(BCH, this.configs.minimumUtxoValue, this.CHAIN)
       .amount;
+  /**
+   * Check the complete fixed native spending policy for a payment envelope.
+   * @param transaction - Candidate Rosen payment envelope
+   * @returns Whether envelope, body, payouts, change, conversion and fee checks all succeed
+   */
   verifyPaymentTransaction = async (
     transaction: PaymentTransaction,
   ): Promise<boolean> => {
@@ -551,7 +645,17 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       return false;
     }
   };
+  /**
+   * Check the fixed fee together with the complete native payment policy.
+   * @param transaction - Candidate Rosen payment envelope
+   * @returns The same policy result as verifyPaymentTransaction
+   */
   verifyTransactionFee = this.verifyPaymentTransaction;
+  /**
+   * Validate native parent/output context without accepting token-bearing spending.
+   * @param transaction - Candidate Rosen payment envelope
+   * @returns Whether concrete envelope and native-only transaction checks succeed
+   */
   verifyNoTokenBurned = async (
     transaction: PaymentTransaction,
   ): Promise<boolean> => {
@@ -567,6 +671,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       return false;
     }
   };
+  /**
+   * Check fixed native spending policy with a required signing state.
+   * @param transaction - Candidate Rosen payment envelope
+   * @param signingStatus - Required Signed or UnSigned state
+   * @returns Whether the complete policy and required state both hold
+   */
   verifyTransactionExtraConditions = (
     transaction: PaymentTransaction,
     signingStatus: SigningStatus,
@@ -578,6 +688,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       return false;
     }
   };
+  /**
+   * Validate spending policy and current input usability with diagnostic status.
+   * @param transaction - Candidate Rosen payment envelope
+   * @param status - Required signing state; defaults to SigningStatus.Signed
+   * @returns Validity and failure details distinguishing unavailable unsigned inputs
+   */
   isTxValid = async (
     transaction: PaymentTransaction,
     status = SigningStatus.Signed,
@@ -604,6 +720,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       };
     }
   };
+  /**
+   * Sign a retained approval snapshot and independently verify its completed witnesses.
+   * @param transaction - Policy-valid unsigned BCH envelope with currently usable inputs
+   * @returns A new signed envelope preserving the exact approved body and approval identity
+   * @throws When inputs, mediator results, signatures or caller snapshot consistency fail
+   */
   signTransaction = async (
     transaction: PaymentTransaction,
   ): Promise<BitcoinCashTransaction> => {
@@ -639,6 +761,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       throw Error('Signed approval body mismatch');
     return result;
   };
+  /**
+   * Query the mediator for active requests covering the approval's ordered input digests.
+   * @param transaction - Policy-valid unsigned BCH envelope
+   * @returns Whether any input digest has an active signing request
+   * @throws When mediator status is nonboolean or envelope policy is invalid
+   */
   isTransactionInSign = async (
     transaction: PaymentTransaction,
   ): Promise<boolean> => {
@@ -658,6 +786,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     }
     return false;
   };
+  /**
+   * Recheck a signed snapshot and current treasury inputs before provider submission.
+   * @param transaction - Policy-valid fully signed BCH envelope
+   * @returns Completion after the provider accepts submission
+   * @throws When signing state, inputs, signed identity or caller snapshot consistency fail
+   */
   submitTransaction = async (
     transaction: PaymentTransaction,
   ): Promise<void> => {
@@ -674,6 +808,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       throw Error('Signed envelope changed before submission');
     await this.network.submitTransaction(envelope);
   };
+  /**
+   * Resolve exact signed chain identity after full signed-envelope policy validation.
+   * @param transaction - Fully signed BCH payment envelope
+   * @returns The actual hash matching its exact signed bytes
+   * @throws When the envelope is unsigned or its reported signed identity is inconsistent
+   */
   getSignedTransactionId = (transaction: PaymentTransaction): string => {
     const envelope = this.policy(transaction, SigningStatus.Signed);
     const id = envelope.getActualTxId();
@@ -681,6 +821,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       throw Error('Invalid signed BCH chain identity');
     return id;
   };
+  /**
+   * Restore a signed envelope from retained approval context and bounded wallet history.
+   * @param transaction - Persisted unsigned or already signed BCH payment envelope
+   * @returns The signed envelope, or undefined after a complete scan finds no candidate
+   * @throws When history, approved body, caller snapshot or recovered signature checks fail
+   */
   getRecoveredTransaction = async (
     transaction: PaymentTransaction,
   ): Promise<BitcoinCashTransaction | undefined> => {
@@ -707,6 +853,14 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       SigningStatus.Signed,
     );
   };
+  /**
+   * Resolve signed identity using a persisted approval envelope and recovery when needed.
+   * @param approvalId - Exact unsigned-body approval hash
+   * @param transaction - Persisted approval envelope; omission is rejected despite the base signature
+   * @returns The verified actual signed transaction hash
+   * @throws NotFoundError when no signed body is found and the unsigned inputs remain usable
+   * @throws When context is absent/inconsistent, recovery fails or unmatched inputs are unavailable
+   */
   getActualTxId = async (
     approvalId: string,
     transaction?: PaymentTransaction,
@@ -727,6 +881,14 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       'No signed BCH transaction found for persisted approval body',
     );
   };
+  /**
+   * Compare an actual source or recovered signed transaction's confirmations with policy.
+   * @param approvalId - Actual hash for lock deposits, or approval hash for spending transactions
+   * @param txType - Transaction type selecting the confirmation threshold and identity route
+   * @param transaction - Required persisted spending envelope; must be omitted for lock deposits
+   * @returns NotFound, NotConfirmedEnough or ConfirmedEnough from validated confirmation data
+   * @throws When identity context, recovery or the provider confirmation count is malformed
+   */
   getTxConfirmationStatus = async (
     approvalId: string,
     txType: TransactionType,
@@ -759,6 +921,13 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       ? ConfirmationStatus.ConfirmedEnough
       : ConfirmationStatus.NotConfirmedEnough;
   };
+  /**
+   * Query mempool membership only after resolving a verified signed chain identity.
+   * @param approvalId - Exact unsigned-body approval hash
+   * @param transaction - Required persisted approval envelope; omission is rejected
+   * @returns Provider membership, or false after a complete lookup establishes no signed body
+   * @throws When context/recovery fails or provider membership is nonboolean
+   */
   isTxInMempool = async (
     approvalId: string,
     transaction?: PaymentTransaction,
@@ -775,8 +944,19 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       throw error;
     }
   };
+  /**
+   * Restore canonical persisted JSON and apply this treasury's spending policy.
+   * @param json - Bounded canonical BCH envelope JSON
+   * @returns The validated unsigned or signed payment envelope
+   */
   PaymentTransactionFromJson = (json: string): BitcoinCashTransaction =>
     this.policy(BitcoinCashTransaction.fromJson(json));
+  /**
+   * Import bounded raw bytes using currently usable parent context for every input.
+   * @param hex - Canonical unsigned or signed native transaction hexadecimal bytes
+   * @returns A validated manual-payment envelope for the configured treasury key
+   * @throws When bytes, spending policy or current parent availability/maturity fail
+   */
   rawTxToPaymentTransaction = async (
     hex: string,
   ): Promise<BitcoinCashTransaction> => {
@@ -819,6 +999,13 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       throw Error('Raw transaction input is spent');
     return envelope;
   };
+  /**
+   * Track spent outpoints from bounded current mempool transactions for the native treasury.
+   * @param address - Exact configured treasury address
+   * @param tokenId - Must be omitted; token-specific mempool tracking is unsupported
+   * @returns A map marking consumed outpoints with undefined; new outputs are not chained
+   * @throws When the target, transaction identity or mempool/cardinality bound is invalid
+   */
   getMempoolBoxMapping = async (
     address: string,
     tokenId?: string,
@@ -853,6 +1040,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
     }
     return result;
   };
+  /**
+   * Decode bounded source-deposit bytes and cross-check identity and RPC cardinalities.
+   * @param transaction - Verbose source transaction retaining exact raw hexadecimal bytes
+   * @returns Canonical decoded source fields under the independent 4096-element source limits
+   * @throws When bytes, identity or RPC input/output counts are inconsistent
+   */
   private sourceTransaction = (transaction: BitcoinCashTx) => {
     const bytes = hexToBin(
       assertBchHex(transaction.hex, BCH_MAX_PARENT_TRANSACTION_BYTES),
@@ -874,6 +1067,12 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       throw Error('Invalid source-deposit transaction');
     return tx;
   };
+  /**
+   * Validate and serialize source-deposit transport for the shared universal extractor.
+   * @param transaction - Verbose source transaction with canonical raw bytes
+   * @returns JSON within the 16000000-character metadata bound
+   * @throws When source validation or the serialized metadata size limit fails
+   */
   protected serializeTx = (transaction: BitcoinCashTx): string => {
     this.sourceTransaction(transaction);
     const json = JSON.stringify(transaction);
@@ -881,8 +1080,15 @@ class BitcoinCashChain extends AbstractChain<BitcoinCashTx> {
       throw Error('Source-deposit metadata size limit exceeded');
     return json;
   };
+  /**
+   * Require one positive token-free treasury output in validated source bytes.
+   * @param transaction - Verbose source-deposit transaction with exact raw bytes
+   * @param _block - Interface block context; membership checks belong to the provider
+   * @returns Whether source validation and the unique native lock-output condition hold
+   */
   verifyLockTransactionExtraConditions = async (
     transaction: BitcoinCashTx,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Preserve the abstract lock-verification signature.
     _block: BlockInfo,
   ): Promise<boolean> => {
     try {

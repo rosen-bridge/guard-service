@@ -1,9 +1,17 @@
+import { blake2b as bchDbNamespace_blake2b } from 'blakejs';
 import { cloneDeep } from 'lodash-es';
 
 import EventBoxes from '../../src/event/eventBoxes';
+import bchDbNamespace_EventBoxes from '../../src/event/eventBoxes';
 import EventSerializer from '../../src/event/eventSerializer';
 import { EventStatus } from '../../src/utils/constants';
+import {
+  insertNamespaceCommitment as bchDbNamespace_insertNamespaceCommitment,
+  insertNamespaceEvent as bchDbNamespace_insertNamespaceEvent,
+  namespaceEvent as bchDbNamespace_namespaceEvent,
+} from '../db/bitcoinCashNamespaceFixtures';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import bchDbNamespace_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import TestUtils from '../testUtils/testUtils';
 import { mockEventTrigger } from './testData';
 
@@ -638,6 +646,59 @@ describe('EventBoxes', () => {
       await expect(async () => {
         await EventBoxes.getEventWIDs(mockedEvent.event);
       }).rejects.toThrow(Error);
+    });
+
+    describe('BCH RCS bitcoinCashEventNamespace', () => {
+      beforeEach(async () => bchDbNamespace_DatabaseActionMock.clearTables());
+      /**
+       * @target EventBoxes.getEventValidCommitments / EventBoxes.getEventWIDs
+       * - bridges BCH guard ID to wire commitments for EventBoxes and isolates
+       * the BTC same-WID record
+       * @dependencies SQLite DatabaseActionMock, namespace event/commitment
+       * fixtures, EventSerializer and fixed commitment serialization.
+       * @scenario bridges BCH guard ID to wire commitments for EventBoxes and
+       * isolates the BTC same-WID record.
+       * @expected Return only BCH commitments/WIDs and reject WID count or
+       * hash mismatches despite the colliding BTC record.
+       */
+      it('bridges BCH guard ID to wire commitments for EventBoxes and isolates the BTC same-WID record', async () => {
+        const wid = 'ab'.repeat(32);
+        const hash = Buffer.from(
+          bchDbNamespace_blake2b(Buffer.from(wid, 'hex'), undefined, 32),
+        ).toString('hex');
+        const bitcoin = await bchDbNamespace_insertNamespaceEvent(
+          bchDbNamespace_namespaceEvent('bitcoin', { WIDsHash: hash }),
+          'btc-trigger',
+        );
+        const bch = await bchDbNamespace_insertNamespaceEvent(
+          bchDbNamespace_namespaceEvent('bitcoin-cash', { WIDsHash: hash }),
+          'bch-trigger',
+        );
+        await bchDbNamespace_insertNamespaceCommitment(bitcoin, {
+          spendBlock: null,
+          spendTxId: null,
+        });
+        await bchDbNamespace_insertNamespaceCommitment(bch, {
+          spendBlock: null,
+          spendTxId: null,
+        });
+        expect(
+          await bchDbNamespace_EventBoxes.getEventValidCommitments(bch, 2n, []),
+        ).toEqual([Buffer.from('commitment').toString('hex')]);
+        await bchDbNamespace_insertNamespaceCommitment(bch);
+        expect(await bchDbNamespace_EventBoxes.getEventWIDs(bch)).toEqual([
+          wid,
+        ]);
+        await expect(
+          bchDbNamespace_EventBoxes.getEventWIDs({ ...bch, WIDsCount: 2 }),
+        ).rejects.toThrow('WIDs info');
+        await expect(
+          bchDbNamespace_EventBoxes.getEventWIDs({
+            ...bch,
+            WIDsHash: '00'.repeat(32),
+          }),
+        ).rejects.toThrow('WIDs info');
+      });
     });
   });
 });

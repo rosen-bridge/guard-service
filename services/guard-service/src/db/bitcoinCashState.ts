@@ -16,6 +16,7 @@ export const assertBitcoinCashDatabaseCompatible = async (
   enabled: boolean,
 ): Promise<void> => {
   if (!enabled) return;
+  /** Reject incompatible persisted identities without exposing row contents. */
   const failure = () => {
     throw Error(
       'Incompatible BCH database state; authenticated remediation required',

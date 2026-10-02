@@ -1,9 +1,20 @@
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
+import { TokenMap as bchFee_TokenMap } from '@rosen-bridge/tokens';
 
 import GuardsCardanoConfigs from '../../src/configs/guardsCardanoConfigs';
 import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
 import EventOrder from '../../src/event/eventOrder';
+import bchFee_EventOrder from '../../src/event/eventOrder';
+import bchFee_MinimumFeeHandler from '../../src/handlers/minimumFeeHandler';
+import { TokenHandler as bchFee_TokenHandler } from '../../src/handlers/tokenHandler';
+import {
+  wrapped as bchFee_wrapped,
+  event as bchFee_event,
+  feeBox as bchFee_feeBox,
+} from '../bitcoinCashFeeTestUtils';
+import { bchTokenSet as bchFee_bchTokenSet } from '../configs/bitcoinCashFixtures';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
+import { preserveBitcoinCashMocks } from '../testUtils/mocked/bitcoinCashMockScope.mock';
 import TestUtils from '../testUtils/testUtils';
 import {
   feeRatioDivisor,
@@ -219,6 +230,100 @@ describe('EventOrder', () => {
       );
       expect(result.assets.tokens.length).toEqual(0);
       expect(result.extra).toBeUndefined();
+    });
+
+    describe('BCH RCS bitcoinCashFeeContract', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [bchFee_TokenHandler, ['getInstance']],
+          [bchFee_MinimumFeeHandler, ['getInstance']],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      let tokens: bchFee_TokenMap;
+
+      beforeEach(async () => {
+        tokens = new bchFee_TokenMap();
+        const config = bchFee_bchTokenSet();
+        config[0].ergo.decimals = 6;
+        await tokens.updateConfigByJson(config);
+        vi.spyOn(bchFee_TokenHandler, 'getInstance').mockReturnValue({
+          /** Return the mutable synthetic token map used by this scenario. */
+          getTokenMap: () => tokens,
+        } as bchFee_TokenHandler);
+        const fees = await bchFee_feeBox();
+        /** Record token lookup arguments while returning the selected synthetic mapping. */
+        const lookup = vi.fn((tokenId: string) => {
+          if (tokenId !== bchFee_wrapped)
+            throw Error('Wrong source token join');
+          return fees;
+        });
+        vi.spyOn(bchFee_MinimumFeeHandler, 'getInstance').mockReturnValue({
+          getMinimumFeeBoxObject: lookup,
+        } as unknown as bchFee_MinimumFeeHandler);
+      });
+      /**
+       * @target EventOrder.eventSinglePayment - subtracts declared and minimum
+       * fee values in Rosen units before native BCH8 conversion
+       * @dependencies Reusable synthetic fee box/trigger helper, real
+       * BCH8/wrapped6 TokenMap and mocked TokenHandler, fee provider, database
+       * and verification seams.
+       * @scenario subtracts declared and minimum fee values in Rosen units
+       * before native BCH8 conversion.
+       * @expected Subtract declared/minimum Rosen fees before BCH8 conversion
+       * and reject an unmapped payment target token.
+       */
+      it('subtracts declared and minimum fee values in Rosen units before native BCH8 conversion', () => {
+        const fees = bchFee_MinimumFeeHandler.getEventFeeConfig(
+          bchFee_event({
+            fromChain: 'ergo',
+            toChain: 'bitcoin-cash',
+            sourceChainTokenId: bchFee_wrapped,
+            targetChainTokenId: 'bch',
+            sourceChainHeight: 301,
+          }),
+        );
+        const payment = bchFee_EventOrder.eventSinglePayment(
+          bchFee_event({
+            toChain: 'bitcoin-cash',
+            targetChainTokenId: 'bch',
+            bridgeFee: '50',
+            networkFee: '60',
+          }),
+          6n,
+          fees,
+        );
+        expect(payment.assets).toEqual({ nativeToken: 999896n, tokens: [] });
+        expect(
+          tokens.unwrapAmount('bch', payment.assets.nativeToken, 'bitcoin-cash')
+            .amount,
+        ).toEqual(99989600n);
+      });
+      /**
+       * @target EventOrder.eventSinglePayment - fails closed when payment
+       * target token is not mapped
+       * @dependencies Reusable synthetic fee box/trigger helper, real
+       * BCH8/wrapped6 TokenMap and mocked TokenHandler, fee provider, database
+       * and verification seams.
+       * @scenario fails closed when payment target token is not mapped.
+       * @expected Subtract declared/minimum Rosen fees before BCH8 conversion
+       * and reject an unmapped payment target token.
+       */
+      it('fails closed when payment target token is not mapped', () => {
+        const fees = bchFee_MinimumFeeHandler.getEventFeeConfig(bchFee_event());
+        expect(() =>
+          bchFee_EventOrder.eventSinglePayment(
+            bchFee_event({
+              toChain: 'bitcoin-cash',
+              targetChainTokenId: 'missing',
+            }),
+            6n,
+            fees,
+          ),
+        ).toThrow();
+      });
     });
   });
 

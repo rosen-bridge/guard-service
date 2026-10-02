@@ -1,23 +1,42 @@
+import { ChainMinimumFee as BchConsumers_ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import {
   ConfirmationStatus,
   PaymentOrder,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import {
+  AbstractChain as BchConsumers_AbstractChain,
+  ConfirmationStatus as BchConsumers_ConfirmationStatus,
+  TransactionType as BchConsumers_TransactionType,
+} from '@rosen-chains/abstract-chain';
 
 import Configs from '../../src/configs/configs';
+import BchConsumers_EventOrder from '../../src/event/eventOrder';
 import EventSerializer from '../../src/event/eventSerializer';
+import BchConsumers_EventSerializer from '../../src/event/eventSerializer';
+import BchConsumers_ChainHandler from '../../src/handlers/chainHandler';
 import GuardPkHandler from '../../src/handlers/guardPkHandler';
+import BchConsumers_MinimumFeeHandler from '../../src/handlers/minimumFeeHandler';
 import { SynchronizationMessageTypes } from '../../src/synchronization/interfaces';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import { mockPaymentTransaction } from '../agreement/testData';
+import { mockPaymentTransaction as BchConsumers_mockPaymentTransaction } from '../agreement/testData';
+import {
+  insertNamespaceEvent as BchConsumers_insertNamespaceEvent,
+  namespaceEvent as BchConsumers_namespaceEvent,
+} from '../db/bitcoinCashNamespaceFixtures';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import BchConsumers_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { mockCreateEventPaymentOrder } from '../event/mocked/eventOrder.mock';
 import { mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
 import * as EventTestData from '../event/testData';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
+import { chainHandlerInstance as BchConsumers_chainHandlerInstance } from '../handlers/chainHandler.mock';
+import { preserveBitcoinCashMocks } from '../testUtils/mocked/bitcoinCashMockScope.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TestUtils from '../testUtils/testUtils';
 import TestEventSynchronization from './testEventSynchronization';
+import BchConsumers_TestEventSynchronization from './testEventSynchronization';
 
 describe('EventSynchronization', () => {
   describe('addEventToQueue', () => {
@@ -1753,6 +1772,100 @@ describe('EventSynchronization', () => {
 
       // check returned value
       expect(result).toEqual(false);
+    });
+
+    describe('BCH RCS bitcoinCashNamespaceConsumers', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [BchConsumers_ChainHandler, ['getInstance']],
+          [BchConsumers_chainHandlerInstance, ['getChain']],
+          [BchConsumers_MinimumFeeHandler, ['getEventFeeConfig']],
+          [BchConsumers_EventOrder, ['createEventPaymentOrder']],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      beforeEach(async () => {
+        await BchConsumers_DatabaseActionMock.clearTables();
+        vi.spyOn(BchConsumers_ChainHandler, 'getInstance').mockReturnValue(
+          BchConsumers_chainHandlerInstance as unknown as BchConsumers_ChainHandler,
+        );
+      });
+
+      /**
+       * @target EventSynchronization.verifySynchronizationResponse - uses BCH
+       * guard identity for sync activation and selected event verification
+       * @dependencies SQLite namespace fixtures,
+       * TestTxAgreement/TestEventSynchronization wrappers, mocked chain, fee,
+       * order, verification and active-sync seams.
+       * @scenario uses BCH guard identity for sync activation and selected
+       * event verification.
+       * @expected Reject inactive BCH sync despite active BTC state, then
+       * verify the BCH event with the selected source identity.
+       */
+      it('uses BCH guard identity for sync activation and selected event verification', async () => {
+        const bitcoin = await BchConsumers_insertNamespaceEvent(
+          BchConsumers_namespaceEvent('bitcoin', { toChain: 'cardano' }),
+          'btc-trigger',
+        );
+        const bch = await BchConsumers_insertNamespaceEvent(
+          BchConsumers_namespaceEvent('bitcoin-cash', { toChain: 'cardano' }),
+          'bch-trigger',
+        );
+        const sync = new BchConsumers_TestEventSynchronization();
+        sync.insertEventIntoActiveSync(
+          BchConsumers_EventSerializer.getId(bitcoin),
+          {
+            timestamp: 1,
+            responses: [],
+          },
+        );
+        const tx = BchConsumers_mockPaymentTransaction(
+          BchConsumers_TransactionType.payment,
+          'cardano',
+          BchConsumers_EventSerializer.getId(bch),
+        );
+        expect(
+          await sync.callVerifySynchronizationResponse(tx, 'actual-id'),
+        ).toEqual(false);
+        sync.insertEventIntoActiveSync(
+          BchConsumers_EventSerializer.getId(bch),
+          {
+            timestamp: 1,
+            responses: [],
+          },
+        );
+        vi.spyOn(BchConsumers_chainHandlerInstance, 'getChain').mockReturnValue(
+          {
+            /** Provide the verifyPaymentTransaction test seam for the current scenario without external requests. */
+            verifyPaymentTransaction: async () => true,
+            /** Provide the extractTransactionOrder test seam for the current scenario without external requests. */
+            extractTransactionOrder: () => [],
+            /** Provide the getTxConfirmationStatus test seam for the current scenario without external requests. */
+            getTxConfirmationStatus: async () =>
+              BchConsumers_ConfirmationStatus.ConfirmedEnough,
+            /** Provide the verifyTransactionExtraConditions test seam for the current scenario without external requests. */
+            verifyTransactionExtraConditions: () => true,
+          } as unknown as BchConsumers_AbstractChain<unknown>,
+        );
+        vi.spyOn(
+          BchConsumers_MinimumFeeHandler,
+          'getEventFeeConfig',
+        ).mockReturnValue({} as BchConsumers_ChainMinimumFee);
+        const order = vi
+          .spyOn(BchConsumers_EventOrder, 'createEventPaymentOrder')
+          .mockResolvedValue([]);
+        expect(
+          await sync.callVerifySynchronizationResponse(tx, 'actual-id'),
+        ).toEqual(true);
+        expect(order).toHaveBeenCalledWith(
+          expect.objectContaining({ fromChain: 'bitcoin-cash' }),
+          bch.txId,
+          {},
+          [],
+        );
+      });
     });
   });
 

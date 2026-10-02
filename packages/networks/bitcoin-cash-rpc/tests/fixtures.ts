@@ -25,16 +25,27 @@ const fixtureKey = Uint8Array.from({ length: 32 }, (_, i) =>
 );
 const key = secp256k1.derivePublicKeyCompressed(fixtureKey);
 if (typeof key === 'string') throw Error(key);
+/** Compressed public key corresponding to the deterministic scalar-1 fixture. */
 export const publicKey = binToHex(key);
+/** Ordinary native P2PKH script matching the fixed public key. */
 export const script = bchP2pkhScriptFromPublicKey(publicKey);
+/** Canonical mainnet CashAddr for the synthetic native treasury script. */
 export const address = encodeCashAddress({
   prefix: 'bitcoincash',
   type: CashAddressType.p2pkh,
   payload: hexToBin(script.slice(6, 46)),
 }).address;
+/** Synthetic block identifier returned by the mocked BCHN chain tip. */
 export const tip = 'ab'.repeat(32);
+/** Synthetic block identifier used for confirmed transaction fixtures. */
 export const block = 'cd'.repeat(32);
 
+/**
+ * Encode a synthetic parent with one native treasury output.
+ * @param coinbase - Use a coinbase input; defaults to false
+ * @param token - Attach a CashToken to the output; defaults to false
+ * @returns Canonical parent bytes used by the RPC fixtures
+ */
 export const parentBytes = (coinbase = false, token = false) =>
   encodeTransactionBCH({
     version: 2,
@@ -57,8 +68,11 @@ export const parentBytes = (coinbase = false, token = false) =>
       },
     ],
   });
+/** Canonical synthetic parent bytes with one native treasury output. */
 export const parent = parentBytes();
+/** Pinned double-SHA256 identifier of the independently serialized parent. */
 export const parentId = hashTransaction(parent);
+/** Authenticated parent output and exact raw context for the payment fixture. */
 export const prevout: BitcoinCashPrevout = {
   txId: parentId,
   index: 0,
@@ -66,6 +80,7 @@ export const prevout: BitcoinCashPrevout = {
   scriptPubKey: script,
   parentTransactionHex: binToHex(parent),
 };
+/** Canonical unsigned native payment spending the authenticated parent. */
 export const unsigned = encodeTransactionBCH({
   version: 2,
   locktime: 0,
@@ -84,6 +99,7 @@ const signature = secp256k1.signMessageHashCompact(
   getBchSigningDigest(unsigned, [prevout], script, 0),
 );
 if (typeof signature === 'string') throw Error(signature);
+/** Unsigned approval envelope carrying the exact parent context. */
 export const envelope = new BitcoinCashTransaction(
   'fixture-event',
   unsigned,
@@ -91,10 +107,19 @@ export const envelope = new BitcoinCashTransaction(
   [prevout],
   publicKey,
 );
+/** Signed fixture envelope generated from the known scalar-1 key. */
 export const signedEnvelope = envelope.withSignatures([binToHex(signature)]);
+/** Canonical signed bytes retained by the fixture recovery response. */
 export const signed = signedEnvelope.txBytes;
+/** Canonical transaction identifier of the signed fixture bytes. */
 export const signedId = hashTransaction(signed);
 
+/**
+ * Project verbose RPC metadata from decoded transaction bytes.
+ * @param bytes - Transaction bytes; defaults to the synthetic parent
+ * @param confirmed - Add fixed block and confirmation fields; defaults to false
+ * @returns Verbose metadata whose faults can be isolated by the caller
+ */
 export const metadata = (bytes = parent, confirmed = false) => {
   // Test metadata is projected from real libauth decoding, then faulted one field at a time.
   const tx = importDecoded(bytes);
@@ -128,9 +153,20 @@ export const metadata = (bytes = parent, confirmed = false) => {
   };
 };
 
+/**
+ * Decode synthetic bytes using the provider's one-million-byte raw limit.
+ * @param bytes - Canonical transaction bytes
+ * @returns Decoded BCH transaction fields
+ */
 const importDecoded = (bytes: Uint8Array) =>
   decodeBchTransaction(bytes, 1_000_000);
 
+/**
+ * Create deterministic BCHN replies and retain every requested method/argument.
+ * @param options - Defaults to ordinary parent, confirmed current output and one history row;
+ * parent/current/history replace those fixtures, while mutate faults a selected reply
+ * @returns Injected transport, recorded calls and the configured parent hash
+ */
 export const fixture = (
   options: {
     parent?: Uint8Array;
@@ -147,6 +183,12 @@ export const fixture = (
   const id = hashTransaction(raw);
   const calls: { method: string; params: readonly unknown[] }[] = [];
   const transport: RpcTransport = {
+    /**
+     * Return an isolated fixture reply, optionally faulted after recording the request.
+     * @param method - Method selecting a deterministic fixture response
+     * @param params - Positional arguments retained for assertions
+     * @returns A cloned response or the configured mutation result
+     */
     call: async (method, params) => {
       calls.push({ method, params });
       let value: unknown;

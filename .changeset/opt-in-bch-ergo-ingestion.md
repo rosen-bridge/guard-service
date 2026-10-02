@@ -1,5 +1,5 @@
 ---
-'guard-service': patch
+'guard-service': major
 ---
 
 Register Bitcoin Cash commitment and event-trigger extractors on the Ergo scanner

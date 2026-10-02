@@ -18,6 +18,7 @@ import { BitcoinCashRpcConfig } from '@rosen-chains/bitcoin-cash-rpc';
 import { ChainConfigs as ContractConfigs } from '../types/contract';
 import { rosenConfig } from './rosenConfig';
 
+/** Read an operator-configured safe integer within inclusive bounds. */
 const integer = (key: string, minimum: number, maximum: number): number => {
   const value = config.get<unknown>(key);
   if (
@@ -29,6 +30,7 @@ const integer = (key: string, minimum: number, maximum: number): number => {
     throw Error(`Invalid BCH integer config: ${key}`);
   return value;
 };
+/** Read nonempty bounded text without accepting surrounding whitespace. */
 const text = (key: string, maximum = 256): string => {
   const value = config.get<unknown>(key);
   if (
@@ -40,6 +42,7 @@ const text = (key: string, maximum = 256): string => {
     throw Error(`Invalid BCH text config: ${key}`);
   return value;
 };
+/** Read exact native satoshis and enforce the configured monetary bounds. */
 const satoshis = (key: string, minimum: bigint): bigint => {
   const raw = config.get<unknown>(key);
   if (
@@ -52,10 +55,12 @@ const satoshis = (key: string, minimum: bigint): bigint => {
     throw Error(`BCH satoshi config outside bounds: ${key}`);
   return value;
 };
+/** Recognize a nonzero canonical 32-byte asset identifier. */
 const assetId = (value: unknown): value is string =>
   typeof value === 'string' &&
   /^[0-9a-f]{64}$/.test(value) &&
   value !== '00'.repeat(32);
+/** Freeze the validated operator policy and all nested objects in place. */
 const freeze = <T>(value: T): T => {
   if (value && typeof value === 'object') {
     Object.values(value).forEach((item) => freeze(item));
@@ -63,6 +68,7 @@ const freeze = <T>(value: T): T => {
   }
   return value;
 };
+/** Resolve an ordinary canonical mainnet contract address to locking bytes. */
 const cashAddress = (value: unknown): string => {
   if (
     typeof value !== 'string' ||
@@ -96,6 +102,7 @@ export interface LoadedBitcoinCashConfigs {
 /** BCH policy is read only after explicit opt-in and initialized TokenMap. */
 class GuardsBitcoinCashConfigs {
   private static loaded?: LoadedBitcoinCashConfigs;
+  /** Read the explicit boolean opt-in without loading disabled-chain policy. */
   static get enabled(): boolean {
     if (!config.has('bitcoinCash.enabled')) return false;
     const enabled = config.get<unknown>('bitcoinCash.enabled');
@@ -103,6 +110,7 @@ class GuardsBitcoinCashConfigs {
       throw Error('bitcoinCash.enabled must be boolean');
     return enabled;
   }
+  /** Read the independent boolean opt-in for native asset health checks. */
   static get healthEnabled(): boolean {
     if (!config.has('bitcoinCash.health.enabled')) return false;
     const enabled = config.get<unknown>('bitcoinCash.health.enabled');
@@ -110,6 +118,7 @@ class GuardsBitcoinCashConfigs {
       throw Error('bitcoinCash.health.enabled must be boolean');
     return enabled;
   }
+  /** Validate and cache immutable contract, RPC, treasury and health policy. */
   static load = (tokens: TokenMap): LoadedBitcoinCashConfigs => {
     if (!this.enabled) throw Error('Bitcoin Cash is disabled');
     if (this.loaded) return this.loaded;
@@ -255,12 +264,7 @@ class GuardsBitcoinCashConfigs {
       minimumUtxoValue: satoshis('bitcoinCash.minimumUtxoValue', 546n),
       maxUtxoPages: integer('bitcoinCash.maxUtxoPages', 1, 100),
     };
-    const batching = integer(
-      'balanceHandler.bitcoinCash.tokensPerIteration.rpc',
-      1,
-      10_000,
-    );
-    if (batching !== 1) throw Error('Native BCH balance batching must be one');
+    integer('balanceHandler.bitcoinCash.tokensPerIteration.rpc', 1, 10_000);
     for (const key of ['updateInterval', 'updateBatchInterval']) {
       const path = config.has(`balanceHandler.bitcoinCash.${key}`)
         ? `balanceHandler.bitcoinCash.${key}`
@@ -269,6 +273,7 @@ class GuardsBitcoinCashConfigs {
     }
     let health: BitcoinCashHealthPolicy | undefined;
     if (this.healthEnabled) {
+      /** Read an exact nonnegative native balance health threshold. */
       const threshold = (name: string): bigint => {
         const key = `bitcoinCash.health.${name}`;
         const value = config.get<unknown>(key);
@@ -297,11 +302,13 @@ class GuardsBitcoinCashConfigs {
     });
     return this.loaded;
   };
+  /** Return the validated contract only after successful registration. */
   static get bitcoinCashContractConfig(): ContractConfigs {
     if (!this.loaded)
       throw Error('BCH configuration requires initialized registration');
     return this.loaded.bitcoinCashContractConfig;
   }
+  /** Return the immutable chain policy only after successful registration. */
   static get chainConfigs(): BitcoinCashConfigs {
     if (!this.loaded)
       throw Error('BCH configuration requires initialized registration');

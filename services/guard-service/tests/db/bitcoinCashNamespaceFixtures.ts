@@ -6,6 +6,7 @@ import EventSerializer from '../../src/event/eventSerializer';
 import { ChainConfigKey, EventStatus } from '../../src/utils/constants';
 import Utils from '../../src/utils/utils';
 
+/** Build a trigger whose source namespace and individual fields can be faulted. */
 export const namespaceEvent = (
   fromChain = 'bitcoin-cash',
   changes: Partial<EventTrigger> = {},
@@ -28,6 +29,7 @@ export const namespaceEvent = (
   ...changes,
 });
 
+/** Insert the raw trigger and its current source-scoped guard identity. */
 export const insertNamespaceEvent = async (
   event: EventTrigger,
   txId: string,
@@ -54,6 +56,7 @@ export const insertNamespaceEvent = async (
 };
 
 let commitmentSerial = 0;
+/** Insert a source-scoped commitment linked to the supplied trigger. */
 export const insertNamespaceCommitment = async (
   event: EventTriggerEntity,
   changes: Record<string, unknown> = {},

@@ -1,11 +1,22 @@
+import bchRegistration_originalConfig from 'config';
+
 import { TokenMap } from '@rosen-bridge/tokens';
+import { TokenMap as bchRegistration_TokenMap } from '@rosen-bridge/tokens';
 import { AssetBalance } from '@rosen-chains/abstract-chain';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { DOGE_CHAIN } from '@rosen-chains/doge';
 
+import { rosenConfig as bchRegistration_originalRosenConfig } from '../../src/configs/rosenConfig';
 import { TokenHandler } from '../../src/handlers/tokenHandler';
 import { SUPPORTED_CHAINS } from '../../src/utils/constants';
+import {
+  bchContract as bchRegistration_bchContract,
+  bchTokenMap as bchRegistration_bchTokenMap,
+  bchValues as bchRegistration_bchValues,
+  bchLock as bchRegistration_bchLock,
+} from '../configs/bitcoinCashFixtures';
+import { createBitcoinCashConfigMock } from '../configs/mocked/guardsBitcoinCashConfigs.mock';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import ChainHandlerMock from './chainHandler.mock';
 import TestBalanceHandler from './testBalanceHandler';
@@ -318,6 +329,319 @@ describe('BalanceHandler', () => {
         lastUpdate: expect.any(String),
         balance: 123n,
       });
+    });
+  });
+
+  describe('BCH RCS bitcoinCashRegistration', () => {
+    let values: Record<string, unknown>;
+    let tokens: bchRegistration_TokenMap;
+    /** Read the synthetic BCH contract and delegate other chain configurations. */
+    const contractReader = vi.fn((chain: string) =>
+      chain === 'bitcoin-cash'
+        ? bchRegistration_bchContract()
+        : bchRegistration_originalRosenConfig.contractReader(
+            chain as Parameters<
+              typeof bchRegistration_originalRosenConfig.contractReader
+            >[0],
+          ),
+    );
+    const networkConstructor = vi.fn();
+    /** Record the requested curve-signing path and return a signer mock. */
+    const wrapCurve = vi.fn(
+      // Retain typed arguments for assertions on recorded TSS calls.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      (_chainCode: string, _derivationPath: number[]) => ({
+        sign: vi.fn(),
+        isInSign: vi.fn(),
+      }),
+    );
+    const fakeNetwork = {
+      logger: undefined,
+      /** Return the mutable native-asset response without external requests. */
+      getAddressAssets: vi.fn(async () => ({
+        nativeToken: 123n,
+        tokens: [],
+      })),
+    };
+    const mocks: string[] = [];
+    beforeEach(async () => {
+      vi.resetModules();
+      values = bchRegistration_bchValues();
+      tokens = await bchRegistration_bchTokenMap();
+      contractReader.mockClear();
+      networkConstructor.mockClear();
+      wrapCurve.mockClear();
+      const { DefaultLogger, DummyLogger } = await import(
+        '@rosen-bridge/abstract-logger'
+      );
+      DefaultLogger.init(new DummyLogger());
+      fakeNetwork.getAddressAssets.mockClear();
+      vi.doMock('config', () =>
+        createBitcoinCashConfigMock(
+          () => ({
+            ...values,
+            balanceHandler: {
+              ...bchRegistration_originalConfig.get<Record<string, unknown>>(
+                'balanceHandler',
+              ),
+              bitcoinCash: {
+                tokensPerIteration: {
+                  rpc: values[
+                    'balanceHandler.bitcoinCash.tokensPerIteration.rpc'
+                  ],
+                },
+              },
+            },
+          }),
+          bchRegistration_originalConfig,
+        ),
+      );
+      vi.doMock('../../src/configs/rosenConfig', () => ({
+        rosenConfig: {
+          ...bchRegistration_originalRosenConfig,
+          contractReader,
+        },
+      }));
+      vi.doMock('../../src/handlers/tokenHandler', () => ({
+        TokenHandler: {
+          /** Return the test singleton without production initialization. */
+          getInstance: () => ({
+            /** Return the mutable synthetic token map used by this scenario. */
+            getTokenMap: () => tokens,
+          }),
+        },
+      }));
+      vi.doMock('../../src/handlers/tssHandler', () => ({
+        default: {
+          /** Return the test singleton without production initialization. */
+          getInstance: () => ({
+            wrapCurveSignMediator: wrapCurve,
+            /** Provide the wrapEdwardSignMediator test seam for the current scenario without external requests. */
+            wrapEdwardSignMediator: vi.fn(() => ({
+              sign: vi.fn(),
+              isInSign: vi.fn(),
+            })),
+          }),
+        },
+      }));
+      vi.doMock('../../src/handlers/multiSigHandler', () => ({
+        default: {
+          /** Return the test singleton without production initialization. */
+          getInstance: () => ({
+            /** Return a signer mock without signing any transaction. */
+            getErgoMultiSig: () => ({ sign: vi.fn(), isInSign: vi.fn() }),
+          }),
+        },
+      }));
+      vi.doMock('@rosen-chains/bitcoin-cash-rpc', () => ({
+        BitcoinCashRpcNetwork: class {
+          /** Record fixture constructor arguments without initializing external clients. */
+          constructor(config: unknown) {
+            networkConstructor(config);
+            return fakeNetwork;
+          }
+        },
+      }));
+      for (const [pkg, name] of [
+        ['binance', 'BinanceChain'],
+        ['bitcoin', 'BitcoinChain'],
+        ['bitcoin-runes', 'BitcoinRunesChain'],
+        ['cardano', 'CardanoChain'],
+        ['doge', 'DogeChain'],
+        ['ergo', 'ErgoChain'],
+        ['ethereum', 'EthereumChain'],
+        ['firo', 'FiroChain'],
+        ['handshake', 'HandshakeChain'],
+      ]) {
+        const id = `@rosen-chains/${pkg}`;
+        mocks.push(id);
+        vi.doMock(id, async () => ({
+          ...(await vi.importActual<Record<string, unknown>>(id)),
+          [name]: class {},
+          ...(pkg === 'doge' ? { CombinedDogeNetwork: class {} } : {}),
+        }));
+      }
+      for (const [pkg, name] of [
+        ['bitcoin-esplora', 'default'],
+        ['cardano-blockfrost-network', 'default'],
+        ['cardano-koios-network', 'default'],
+        ['doge-blockcypher', 'DogeBlockcypherNetwork'],
+        ['doge-esplora', 'DogeEsploraNetwork'],
+        ['doge-rpc', 'DogeRpcNetwork'],
+        ['ergo-explorer-network', 'default'],
+        ['ergo-node-network', 'default'],
+        ['evm-rpc', 'default'],
+        ['firo-electrumx', 'FiroElectrumXNetwork'],
+        ['handshake-rpc', 'HandshakeRpcNetwork'],
+        ['bitcoin-runes-rpc', 'BitcoinRunesRpcNetwork'],
+      ]) {
+        const id = `@rosen-chains/${pkg}`;
+        mocks.push(id);
+        vi.doMock(id, async () => ({
+          ...(await vi.importActual<Record<string, unknown>>(id)),
+          [name]: class {},
+        }));
+      }
+    });
+    afterEach(() => {
+      for (const id of [
+        ...mocks,
+        'config',
+        '@rosen-chains/bitcoin-cash-rpc',
+        '../../src/configs/rosenConfig',
+        '../../src/handlers/tokenHandler',
+        '../../src/handlers/tssHandler',
+        '../../src/handlers/multiSigHandler',
+        '../../src/handlers/chainHandler',
+        '../../src/db/databaseAction',
+        '../../src/utils/intervalTimer',
+      ])
+        vi.doUnmock(id);
+      vi.useRealTimers();
+      mocks.length = 0;
+    });
+    /** Import the chain registry after the scenario mocks are installed. */
+    const handler = async () => {
+      const { default: ChainHandler } = await vi.importActual<
+        typeof import('../../src/handlers/chainHandler')
+      >('../../src/handlers/chainHandler');
+      return ChainHandler.getInstance();
+    };
+    describe('updateChainBatchBalances', () => {
+      /**
+       * @target BalanceHandler.updateChainBatchBalances - native BCH balances
+       * use the rpc batch configuration and bch token id
+       * @dependencies Mocked operator config/contract, TokenHandler, TSS,
+       * network, legacy-chain and balance database readers; actual BCH chain
+       * and TokenMap.
+       * @scenario native BCH balances use the rpc batch configuration and bch
+       * token id.
+       * @expected Use the native bch asset and RPC batching of 9999, then
+       * persist the exact returned native balance with one network call.
+       */
+      it('native BCH balances use the rpc batch configuration and bch token id', async () => {
+        const chains = await handler();
+        vi.doMock('../../src/handlers/chainHandler', () => ({
+          default: {
+            /** Return the test singleton without production initialization. */
+            getInstance: () => chains,
+          },
+        }));
+        /** Record the exact balance row selected for persistence. */
+        const upsert = vi.fn(async () => undefined);
+        vi.doMock('../../src/db/databaseAction', () => ({
+          DatabaseAction: {
+            /** Return the test singleton without production initialization. */
+            getInstance: () => ({ upsertChainAddressBalances: upsert }),
+          },
+        }));
+        const { default: BalanceHandler } = await import(
+          '../../src/handlers/balanceHandler'
+        );
+        class InspectBalanceHandler extends BalanceHandler {
+          /** Record fixture constructor arguments without initializing external clients. */
+          constructor() {
+            super();
+          }
+          /** Read the configured BCH batch limit after real registration. */
+          bchBatch = () => this.chainsTokensPerIteration['bitcoin-cash'];
+        }
+        expect(new InspectBalanceHandler().bchBatch()).toEqual(9999);
+        BalanceHandler.init();
+        const balances =
+          await BalanceHandler.getInstance().updateChainBatchBalances(
+            'bitcoin-cash',
+            bchRegistration_bchLock,
+          );
+        expect(balances).toEqual([
+          expect.objectContaining({
+            chain: 'bitcoin-cash',
+            address: bchRegistration_bchLock,
+            tokenId: 'bch',
+            balance: 123n,
+          }),
+        ]);
+        expect(upsert).toHaveBeenCalledWith(balances);
+        expect(fakeNetwork.getAddressAssets).toHaveBeenCalledExactlyOnceWith(
+          bchRegistration_bchLock,
+        );
+        vi.doUnmock('../../src/handlers/chainHandler');
+        vi.doUnmock('../../src/db/databaseAction');
+      });
+    });
+
+    describe('updateChainBalances', () => {
+      /**
+       * @target BalanceHandler.updateChainBalances - preserves native-only
+       * network consumption with a batch limit of %s
+       * @dependencies Actual BalanceHandler, BCH chain, config and TokenMap;
+       * owned mocked network, database, legacy chains and signing mediators
+       * @scenario Configure one native BCH mapping and the selected batch
+       * limit, then refresh both treasury and cold-storage balances
+       * @expected Make exactly one asset request per address and persist two
+       * native-only batches for both the old limit1 and RCS default9999
+       */
+      it.each([1, 9999])(
+        'preserves native-only network consumption with a batch limit of %s',
+        async (batch) => {
+          values['balanceHandler.bitcoinCash.tokensPerIteration.rpc'] = batch;
+          const chains = await handler();
+          vi.doMock('../../src/handlers/chainHandler', () => ({
+            default: {
+              /** Return the initialized synthetic chain registry. */
+              getInstance: () => chains,
+            },
+          }));
+          /** Record native balance batches without accessing a database. */
+          const upsert = vi.fn(async () => undefined);
+          /** Record removal of stale balances without accessing a database. */
+          const remove = vi.fn(async () => undefined);
+          vi.doMock('../../src/db/databaseAction', () => ({
+            DatabaseAction: {
+              /** Return only the database operations owned by this fixture. */
+              getInstance: () => ({
+                /** Return an empty persisted-balance snapshot for this refresh. */
+                getChainAddressBalanceByChain: vi.fn(async () => []),
+                upsertChainAddressBalances: upsert,
+                removeChainAddressBalances: remove,
+              }),
+            },
+          }));
+          const { default: BalanceHandler } = await import(
+            '../../src/handlers/balanceHandler'
+          );
+          BalanceHandler.init();
+          expect(
+            BalanceHandler.getInstance()['chainsTokensPerIteration'][
+              'bitcoin-cash'
+            ],
+          ).toEqual(batch);
+          await BalanceHandler.getInstance().updateChainBalances(
+            'bitcoin-cash',
+          );
+          const cold = bchRegistration_bchContract().addresses.cold;
+          expect(fakeNetwork.getAddressAssets).toHaveBeenCalledTimes(2);
+          expect(fakeNetwork.getAddressAssets).toHaveBeenNthCalledWith(
+            1,
+            bchRegistration_bchLock,
+          );
+          expect(fakeNetwork.getAddressAssets).toHaveBeenNthCalledWith(2, cold);
+          expect(upsert).toHaveBeenCalledTimes(2);
+          for (const [index, address] of [
+            bchRegistration_bchLock,
+            cold,
+          ].entries())
+            expect(upsert).toHaveBeenNthCalledWith(index + 1, [
+              expect.objectContaining({
+                chain: 'bitcoin-cash',
+                address,
+                tokenId: 'bch',
+                balance: 123n,
+              }),
+            ]);
+          expect(remove).toHaveBeenCalledExactlyOnceWith([]);
+        },
+      );
     });
   });
 

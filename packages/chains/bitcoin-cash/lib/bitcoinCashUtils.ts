@@ -22,6 +22,13 @@ import {
 } from './constants';
 import { BitcoinCashPrevout, BitcoinCashRawTransaction } from './types';
 
+/**
+ * Validate nonempty canonical lowercase hexadecimal bytes within a size limit.
+ * @param value - Untrusted hexadecimal value
+ * @param maxBytes - Maximum decoded byte length, inclusive
+ * @returns The validated hexadecimal string
+ * @throws When the value is empty, noncanonical or exceeds the byte limit
+ */
 export const assertBchHex = (value: unknown, maxBytes: number): string => {
   if (
     typeof value !== 'string' ||
@@ -33,6 +40,12 @@ export const assertBchHex = (value: unknown, maxBytes: number): string => {
   return value;
 };
 
+/**
+ * Validate the native treasury's ordinary 25-byte P2PKH locking script.
+ * @param script - Untrusted hexadecimal locking bytecode
+ * @returns The validated treasury script
+ * @throws When the script is not canonical P2PKH bytecode
+ */
 export const assertBchP2pkhScript = (script: unknown): string => {
   const hex = assertBchHex(script, 25);
   if (!/^76a914[0-9a-f]{40}88ac$/.test(hex))
@@ -40,6 +53,12 @@ export const assertBchP2pkhScript = (script: unknown): string => {
   return hex;
 };
 
+/**
+ * Validate a compressed secp256k1 treasury public key.
+ * @param publicKey - Canonical hexadecimal compressed public key
+ * @returns The validated 33-byte public key
+ * @throws When the encoding or curve point is invalid
+ */
 export const assertBchPublicKey = (publicKey: unknown): Uint8Array => {
   const hex = assertBchHex(publicKey, 33);
   if (!/^(?:02|03)[0-9a-f]{64}$/.test(hex))
@@ -49,9 +68,21 @@ export const assertBchPublicKey = (publicKey: unknown): Uint8Array => {
   return bytes;
 };
 
+/**
+ * Derive ordinary P2PKH locking bytecode from a validated treasury key.
+ * @param publicKey - Canonical hexadecimal compressed secp256k1 key
+ * @returns Canonical hexadecimal P2PKH locking bytecode
+ */
 export const bchP2pkhScriptFromPublicKey = (publicKey: string): string =>
   `76a914${binToHex(ripemd160.hash(sha256.hash(assertBchPublicKey(publicKey))))}88ac`;
 
+/**
+ * Format an outpoint without changing its transaction hash byte order.
+ * @param txId - Canonical lowercase 32-byte transaction hash
+ * @param index - Output index between zero and uint32 maximum, inclusive
+ * @returns The transaction-hash.output-index identifier
+ * @throws When either outpoint component is invalid
+ */
 export const getBchOutpointId = (txId: string, index: number): string => {
   if (!/^[0-9a-f]{64}$/.test(txId))
     throw Error('Invalid outpoint transaction id');
@@ -60,7 +91,13 @@ export const getBchOutpointId = (txId: string, index: number): string => {
   return `${txId}.${index}`;
 };
 
-/** Parse untrusted bounded bytes, requiring their exact canonical encoding. */
+/**
+ * Parse bounded canonical BCH bytes without mutating caller-owned Buffer slices.
+ * @param bytes - Transaction bytes to decode
+ * @param maxBytes - Maximum byte length; defaults to BCH_MAX_TRANSACTION_BYTES (100000)
+ * @returns The decoded version-one or version-two transaction
+ * @throws When bytes are oversized, malformed, empty or noncanonical
+ */
 export const decodeBchTransaction = (
   bytes: Uint8Array,
   maxBytes = BCH_MAX_TRANSACTION_BYTES,
@@ -83,21 +120,41 @@ export const decodeBchTransaction = (
   return tx;
 };
 
+/**
+ * Serialize the canonical transaction body with every input witness cleared.
+ * @param bytes - Canonical signed or unsigned transaction bytes
+ * @returns Fresh unsigned bytes preserving all nonwitness fields
+ */
 export const getBchUnsignedBytes = (bytes: Uint8Array): Uint8Array => {
   const tx = decodeBchTransaction(bytes);
   tx.inputs.forEach((input) => (input.unlockingBytecode = new Uint8Array()));
   return encodeTransactionBCH(tx);
 };
 
+/**
+ * Hash the unsigned body used as the stable Rosen approval identity.
+ * @param bytes - Canonical signed or unsigned transaction bytes
+ * @returns The display-order hash of the witness-free body
+ */
 export const getBchApprovalTxId = (bytes: Uint8Array): string =>
   hashTransaction(getBchUnsignedBytes(bytes));
 
+/**
+ * Hash exact canonical bytes without removing input witnesses.
+ * @param bytes - Canonical transaction bytes; this helper does not establish signed status
+ * @returns The display-order hash of the supplied transaction
+ */
 export const getBchActualTxId = (bytes: Uint8Array): string => {
   decodeBchTransaction(bytes);
   return hashTransaction(bytes);
 };
 
-/** Recovery equality ignores witnesses only; every approved body field is exact. */
+/**
+ * Compare canonical transaction bodies while ignoring input witnesses only.
+ * @param expected - Approved transaction bytes
+ * @param candidate - Candidate recovery transaction bytes
+ * @returns Whether all nonwitness bytes match; malformed bytes return false
+ */
 export const isSameBchTransactionBody = (
   expected: Uint8Array,
   candidate: Uint8Array,
@@ -112,7 +169,14 @@ export const isSameBchTransactionBody = (
   }
 };
 
-/** Reject tokens and authenticate every ordered prevout before digest construction. */
+/**
+ * Validate bounded native treasury spending against each ordered parent output.
+ * @param bytes - Canonical spending transaction bytes
+ * @param prevouts - Ordered value, script and exact parent-byte context for every input
+ * @param treasuryScript - Canonical P2PKH script required for every input
+ * @returns The decoded transaction after native value, context and positive-fee checks
+ * @throws When a parent, outpoint, value, token or bounded spending-policy check fails
+ */
 export const validateBchNativeTransaction = (
   bytes: Uint8Array,
   prevouts: readonly BitcoinCashPrevout[],
@@ -190,6 +254,15 @@ export const validateBchNativeTransaction = (
   return tx;
 };
 
+/**
+ * Build the ALL|FORKID signing serialization for one validated treasury input.
+ * @param bytes - Canonical spending transaction bytes
+ * @param prevouts - Ordered parent-output context
+ * @param treasuryScript - Canonical P2PKH covered locking bytecode
+ * @param inputIndex - Index of the input whose signature is requested
+ * @returns The BCH ForkID signing preimage
+ * @throws When native validation fails or the input index is outside the transaction
+ */
 export const getBchSigningPreimage = (
   bytes: Uint8Array,
   prevouts: readonly BitcoinCashPrevout[],
@@ -219,6 +292,14 @@ export const getBchSigningPreimage = (
   );
 };
 
+/**
+ * Double-SHA256 the validated ALL|FORKID preimage for one treasury input.
+ * @param bytes - Canonical spending transaction bytes
+ * @param prevouts - Ordered parent-output context
+ * @param treasuryScript - Canonical P2PKH covered locking bytecode
+ * @param inputIndex - Input index in the approved transaction
+ * @returns The 32-byte ECDSA signing message hash
+ */
 export const getBchSigningDigest = (
   bytes: Uint8Array,
   prevouts: readonly BitcoinCashPrevout[],
@@ -227,6 +308,15 @@ export const getBchSigningDigest = (
 ): Uint8Array =>
   hash256(getBchSigningPreimage(bytes, prevouts, treasuryScript, inputIndex));
 
+/**
+ * Verify compact low-S signatures and encode minimal P2PKH ECDSA witnesses.
+ * @param bytes - Canonical fully unsigned native treasury transaction
+ * @param prevouts - Ordered parent-output context
+ * @param publicKey - Canonical compressed treasury key
+ * @param signatures - Ordered hexadecimal 64-byte compact signature for every input
+ * @returns Canonical signed bytes whose completed witnesses verify independently
+ * @throws When the body is already signed or any signature/count/final witness check fails
+ */
 export const buildBchSignedTransaction = (
   bytes: Uint8Array,
   prevouts: readonly BitcoinCashPrevout[],
@@ -267,7 +357,13 @@ export const buildBchSignedTransaction = (
   return signed;
 };
 
-/** A label never establishes signed status: verify all minimal P2PKH witnesses. */
+/**
+ * Verify every minimal P2PKH witness against its ALL|FORKID digest and treasury key.
+ * @param bytes - Candidate signed transaction bytes
+ * @param prevouts - Ordered parent-output context
+ * @param publicKey - Canonical compressed treasury key
+ * @returns Whether native policy, canonical DER, low-S and all signature checks succeed
+ */
 export const verifyBchSignedTransaction = (
   bytes: Uint8Array,
   prevouts: readonly BitcoinCashPrevout[],

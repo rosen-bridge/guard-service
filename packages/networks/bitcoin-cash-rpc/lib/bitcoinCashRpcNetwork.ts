@@ -51,6 +51,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
   private readonly historyPageSize: number;
   private readonly historyPages: number;
 
+  /**
+   * Configure a BCHN provider with explicit chain identity and bounded work.
+   * @param config - Endpoint, chain and optional limits; omitted limits use bounded defaults
+   * @param transport - Optional injected transport; defaults to the configured HTTP transport
+   */
   constructor(config: BitcoinCashRpcConfig, transport?: RpcTransport) {
     super();
     if (!['main', 'test', 'regtest'].includes(config.expectedChain))
@@ -76,6 +81,10 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     this.historyPages = boundedInteger(config.maxWalletHistoryPages, 20, 100);
   }
 
+  /**
+   * Check the reported BCHN implementation and configured chain identity.
+   * @returns The validated chain tip hash and height
+   */
   private identity = async (): Promise<{ tip: string; height: number }> => {
     const network = record(await this.rpc.call('getnetworkinfo', []));
     if (
@@ -91,6 +100,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     return { tip: hash(chain.bestblockhash), height: uint(chain.blocks) };
   };
 
+  /**
+   * Decode a native address and encode its payload for the configured RPC chain.
+   * @param address - Address accepted by the dedicated BCH codec
+   * @returns The chain-specific CashAddr and canonical locking script
+   */
   private address = (
     address: string,
   ): { rpcAddress: string; script: string } => {
@@ -115,12 +129,23 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     };
   };
 
+  /**
+   * Parse a canonical transaction-hash.output-index identifier.
+   * @param id - Lowercase hash and decimal uint32 output index separated by a dot
+   * @returns The transaction hash and output index
+   */
   private outpoint = (id: string): { txId: string; index: number } => {
     const match = /^([0-9a-f]{64})\.(0|[1-9][0-9]{0,9})$/.exec(id);
     if (!match) throw Error('Invalid BCH outpoint id');
     return { txId: match[1], index: uint(Number(match[2]), 0xffffffff) };
   };
 
+  /**
+   * Fetch transaction bytes and validate their identity and verbose metadata.
+   * @param txId - Canonical transaction hash
+   * @param blockHash - Optional required block; omission permits retained-wallet fallback
+   * @returns The validated raw transaction and decoded bytes
+   */
   private raw = async (txId: string, blockHash?: string) => {
     hash(txId);
     if (blockHash !== undefined) hash(blockHash);
@@ -159,6 +184,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     }
   };
 
+  /**
+   * Resolve a positive native prevout from validated parent transaction bytes.
+   * @param id - Canonical outpoint identifier
+   * @returns The exact prevout context and parent coinbase status
+   */
   private parent = async (
     id: string,
   ): Promise<{ prevout: BitcoinCashPrevout; coinbase: boolean }> => {
@@ -181,6 +211,12 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     };
   };
 
+  /**
+   * Compare current UTXO metadata with its validated parent at a specified tip.
+   * @param parent - Parent-derived prevout context and coinbase status
+   * @param tip - Expected current chain tip hash
+   * @returns A confirmed mature UTXO, or undefined when spent, unconfirmed or immature
+   */
   private current = async (
     parent: { prevout: BitcoinCashPrevout; coinbase: boolean },
     tip: string,
@@ -208,6 +244,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     return { ...prevout, confirmations, coinbase };
   };
 
+  /**
+   * Fetch a header and cross-check its reported current-chain membership.
+   * @param blockId - Canonical block hash
+   * @returns The validated header metadata and normalized block information
+   */
   private header = async (blockId: string) => {
     hash(blockId);
     const block = record(
@@ -227,6 +268,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     };
   };
 
+  /**
+   * Validate block metadata and its bounded, unique transaction identifiers.
+   * @param blockId - Canonical block hash
+   * @returns The validated header and ordered transaction identifiers
+   */
   private blockTransactions = async (blockId: string) => {
     const header = await this.header(blockId);
     const block = record(await this.rpc.call('getblock', [blockId, 1]));
@@ -242,6 +288,12 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     return { ...header, ids };
   };
 
+  /**
+   * Validate transaction identity, block membership and a stable confirmation view.
+   * @param txId - Canonical transaction hash
+   * @param blockId - Required containing block hash
+   * @returns The validated verbose transaction metadata
+   */
   private transaction = async (
     txId: string,
     blockId: string,
@@ -264,15 +316,35 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     return raw.metadata;
   };
 
+  /**
+   * Read the height after checking BCHN and chain identity.
+   * @returns The validated chain height
+   */
   getHeight = async (): Promise<number> => (await this.identity()).height;
+  /**
+   * Read block information after checking provider and block identity.
+   * @param blockId - Canonical block hash
+   * @returns Normalized current-chain block information
+   */
   getBlockInfo = async (blockId: string): Promise<BlockInfo> => {
     await this.identity();
     return (await this.header(blockId)).info;
   };
+  /**
+   * Read a bounded block transaction list after checking provider identity.
+   * @param blockId - Canonical block hash
+   * @returns The validated unique transaction identifiers in block order
+   */
   getBlockTransactionIds = async (blockId: string): Promise<string[]> => {
     await this.identity();
     return (await this.blockTransactions(blockId)).ids;
   };
+  /**
+   * Read a transaction bound to a validated current-chain block.
+   * @param txId - Canonical transaction hash
+   * @param blockId - Required containing block hash
+   * @returns Verbose metadata cross-checked against raw bytes and block membership
+   */
   getTransaction = async (
     txId: string,
     blockId: string,
@@ -280,21 +352,47 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     await this.identity();
     return this.transaction(txId, blockId);
   };
+  /**
+   * Read canonical transaction bytes with validated identity and metadata.
+   * @param txId - Canonical transaction hash
+   * @returns The validated raw hexadecimal transaction
+   */
   getTransactionHex = async (txId: string): Promise<string> => {
     await this.identity();
     return (await this.raw(txId)).metadata.hex;
   };
+  /**
+   * Read native parent-output context without requiring that it remains unspent.
+   * @param id - Canonical outpoint identifier
+   * @returns Exact value, script and parent transaction bytes
+   */
   getPrevout = async (id: string): Promise<BitcoinCashPrevout> => {
     await this.identity();
     return (await this.parent(id)).prevout;
   };
+  /**
+   * Read an unspent, confirmed and mature native output at the current tip.
+   * @param id - Canonical outpoint identifier
+   * @returns Validated current UTXO context, or undefined for an unusable output
+   */
   getUtxo = async (id: string): Promise<BitcoinCashUtxo | undefined> => {
     const { tip } = await this.identity();
     return this.current(await this.parent(id), tip);
   };
+  /**
+   * Check whether the current output is usable as a native treasury input.
+   * @param id - Canonical outpoint identifier
+   * @returns Whether getUtxo resolves a confirmed, mature output
+   */
   isBoxUnspentAndValid = async (id: string): Promise<boolean> =>
     (await this.getUtxo(id)) !== undefined;
 
+  /**
+   * Cross-check bounded imported-wallet outputs against parent and current data.
+   * @param address - Native BCH address whose payload is translated for RPC
+   * @param tip - Expected current chain tip hash
+   * @returns Usable native outputs sorted by transaction hash and output index
+   */
   private addressBoxes = async (
     address: string,
     tip: string,
@@ -347,6 +445,13 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     );
   };
 
+  /**
+   * Return a bounded slice of validated native outputs for an imported address.
+   * @param address - Native BCH address
+   * @param offset - Nonnegative starting index within the configured UTXO limit
+   * @param limit - Nonnegative result count within the configured UTXO limit
+   * @returns The requested slice of confirmed, mature native outputs
+   */
   getAddressBoxes = async (
     address: string,
     offset: number,
@@ -360,6 +465,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
       offset + limit,
     );
   };
+  /**
+   * Sum validated usable native outputs for an imported wallet address.
+   * @param address - Native BCH address
+   * @returns Exact native satoshis and an empty token balance list
+   */
   getAddressAssets = async (address: string): Promise<AssetBalance> => {
     const { tip } = await this.identity();
     const boxes = await this.addressBoxes(address, tip);
@@ -368,6 +478,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
       tokens: [],
     };
   };
+  /**
+   * Return the native BCH asset description after checking provider identity.
+   * @param tokenId - Native identifier bch; other identifiers are rejected
+   * @returns Native BCH metadata with eight decimals
+   */
   getTokenDetail = async (tokenId: string): Promise<TokenDetail> => {
     await this.identity();
     if (tokenId !== 'bch')
@@ -375,6 +490,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     return { tokenId: 'bch', name: 'BitcoinCash', decimals: 8 };
   };
 
+  /**
+   * Resolve signed transaction confirmations or authenticated index-backed absence.
+   * @param txId - Canonical actual transaction hash, not an unsigned approval ID
+   * @returns Confirmations, zero for current mempool presence, or -1 for validated absence
+   */
   getTxConfirmation = async (txId: string): Promise<number> => {
     const identity = await this.identity();
     hash(txId);
@@ -424,6 +544,10 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     return 0;
   };
 
+  /**
+   * Validate the bounded current mempool identifier list.
+   * @returns Unique canonical transaction hashes sorted lexicographically
+   */
   private mempoolIds = async (): Promise<string[]> => {
     const ids = array(
       await this.rpc.call('getrawmempool', [false]),
@@ -433,11 +557,20 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
       throw Error('Duplicate mempool transaction');
     return ids.sort();
   };
+  /**
+   * Check an actual transaction hash against the validated current mempool.
+   * @param txId - Canonical transaction hash
+   * @returns Whether the hash occurs in the bounded unique mempool list
+   */
   isTxInMempool = async (txId: string): Promise<boolean> => {
     await this.identity();
     hash(txId);
     return (await this.mempoolIds()).includes(txId);
   };
+  /**
+   * Read and validate signed noncoinbase bytes for each current mempool entry.
+   * @returns Validated unconfirmed verbose transaction metadata
+   */
   getMempoolTransactions = async (): Promise<BitcoinCashTx[]> => {
     await this.identity();
     const result: BitcoinCashTx[] = [];
@@ -456,6 +589,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     return result;
   };
 
+  /**
+   * Revalidate a signed envelope and its current inputs before sending exact bytes.
+   * @param transaction - Signed BCH envelope with retained parent context
+   * @returns Completion only when the RPC returns the envelope's actual signed ID
+   */
   submitTransaction = async (
     transaction: BitcoinCashTransaction,
   ): Promise<void> => {
@@ -491,6 +629,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
       throw Error('Submitted actual transaction ID mismatch');
   };
 
+  /**
+   * Check the canonical P2PKH ECDSA witness shape of recovery candidates.
+   * @param bytes - Canonical candidate transaction bytes
+   * @returns Whether every input has the expected DER ForkID and compressed-key shape
+   */
   private signedCandidate = (bytes: Uint8Array): boolean => {
     const tx = decodeBchTransaction(bytes);
     return tx.inputs.every((input) => {
@@ -515,6 +658,11 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     });
   };
 
+  /**
+   * Search bounded stable wallet history for signed bytes matching an approved body.
+   * @param unsignedBody - Canonical unsigned transaction bytes
+   * @returns Matching signed bytes, or undefined only after a complete bounded scan
+   */
   findSignedTransaction = async (
     unsignedBody: Uint8Array,
   ): Promise<Uint8Array | undefined> => {
@@ -532,6 +680,9 @@ class BitcoinCashRpcNetwork extends AbstractBitcoinCashNetwork {
     const walletCount = uint(
       record(await this.rpc.call('getwalletinfo', [])).txcount,
     );
+    /**
+     * Reject recovery when the observed chain tip or wallet transaction count changed.
+     */
     const stableHistory = async () => {
       if (
         (await this.rpc.call('getbestblockhash', [])) !== tip ||
