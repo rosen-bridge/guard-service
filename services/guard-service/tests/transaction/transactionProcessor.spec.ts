@@ -16,7 +16,11 @@ import {
   SigningStatus as bchRecovery_SigningStatus,
   TransactionType as bchRecovery_TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { BitcoinCashChain as bchRecovery_BitcoinCashChain } from '@rosen-chains/bitcoin-cash';
+import {
+  BitcoinCashChain as bchRecovery_BitcoinCashChain,
+  decodeBchTransaction as bchRecovery_decodeBchTransaction,
+} from '@rosen-chains/bitcoin-cash';
+import { BitcoinCashRpcNetwork as bchRecovery_BitcoinCashRpcNetwork } from '@rosen-chains/bitcoin-cash-rpc';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 import { DatabaseAction as bchRecovery_DatabaseAction } from '../../src/db/databaseAction';
@@ -901,6 +905,99 @@ describe('TransactionProcessor', () => {
           expect(row.txJson).toEqual(unsigned.toJson());
         },
       );
+    });
+
+    describe('BCH RCS bitcoinCashRecovery actual RPC provider', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [bchRecovery_ChainHandler, ['getInstance']],
+          [bchRecovery_chainHandlerInstance, ['getChain']],
+          [bchRecovery_TransactionSerializer, ['fromJson']],
+          [bchRecovery_DatabaseAction.getInstance(), ['setTxStatus']],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      /**
+       * @target TransactionProcessor.processTransactions - persists actual RPC recovery before sent status
+       * @dependencies
+       * - Real SQLite, serializer, BCH chain and RPC provider; deterministic read-only transport
+       * @scenario
+       * - Seed a sign-failed unsigned row and recover the published synthetic signed fixture
+       * - Inspect the database immediately before the call-through sent-status update
+       * @expected
+       * - Exact signed bytes are retained in sign-failed state before advancement to sent
+       * - No signing or broadcast is dispatched during recovery
+       */
+      it('persists actual RPC recovery before advancing the row to sent', async () => {
+        const { unsigned, signed, action, rpcCalls, forbiddenSign } =
+          await bchRecovery_setup('actual-rpc');
+        await bchRecovery_DatabaseActionMock.insertTxRecord(
+          unsigned,
+          bchRecovery_TransactionStatus.signFailed,
+        );
+        const writeStatus = action.setTxStatus.bind(action);
+        const statusObserver = vi
+          .spyOn(action, 'setTxStatus')
+          .mockImplementation(async (id, status) => {
+            const retained = (await action.getTxById(id))!;
+            expect(retained.status).toEqual(
+              bchRecovery_TransactionStatus.signFailed,
+            );
+            expect(retained.txJson).toEqual(signed.toJson());
+            await writeStatus(id, status);
+          });
+        await bchRecovery_TransactionProcessor.processTransactions();
+        const row = (await action.getTxById(unsigned.txId))!;
+        expect(statusObserver).toHaveBeenCalledExactlyOnceWith(
+          unsigned.txId,
+          bchRecovery_TransactionStatus.sent,
+        );
+        expect(row.status).toEqual(bchRecovery_TransactionStatus.sent);
+        expect(row.txJson).toEqual(signed.toJson());
+        expect(
+          rpcCalls.filter((call) => call.method === 'gettransaction'),
+        ).toHaveLength(2);
+        expect(forbiddenSign).not.toHaveBeenCalled();
+        expect(
+          rpcCalls.some((call) => call.method === 'sendrawtransaction'),
+        ).toEqual(false);
+      });
+
+      /**
+       * @target TransactionProcessor.processTransactions - rejects inconsistent wallet recovery raw identity
+       * @dependencies
+       * - Same real SQLite, serializer, BCH chain and RPC provider as the positive case
+       * @scenario
+       * - Change one raw locktime byte while retaining the advertised signed transaction ID
+       * - Run the processor with every other history and database field unchanged
+       * @expected
+       * - The actual provider rejects raw identity before any status write or signing request
+       * - The unsigned sign-failed row remains available for a later valid recovery
+       */
+      it('retains the unsigned row when wallet recovery raw bytes mismatch its advertised ID', async () => {
+        const { unsigned, action, rpcCalls, rpcErrors, forbiddenSign } =
+          await bchRecovery_setup('actual-rpc-raw-mismatch');
+        await bchRecovery_DatabaseActionMock.insertTxRecord(
+          unsigned,
+          bchRecovery_TransactionStatus.signFailed,
+        );
+        const statusObserver = vi.spyOn(action, 'setTxStatus');
+        await bchRecovery_TransactionProcessor.processTransactions();
+        const row = (await action.getTxById(unsigned.txId))!;
+        expect(rpcErrors).toEqual([
+          'Wallet recovery raw identity or cardinality mismatch',
+        ]);
+        expect(row.status).toEqual(bchRecovery_TransactionStatus.signFailed);
+        expect(row.txJson).toEqual(unsigned.toJson());
+        expect(statusObserver).not.toHaveBeenCalled();
+        expect(rpcCalls.at(-1)?.method).toEqual('gettransaction');
+        expect(forbiddenSign).not.toHaveBeenCalled();
+        expect(
+          rpcCalls.some((call) => call.method === 'sendrawtransaction'),
+        ).toEqual(false);
+      });
     });
 
     describe('BCH RCS bitcoinCashRecovery downstream materialization', () => {
@@ -2677,7 +2774,9 @@ describe('TransactionProcessor', () => {
 });
 
 /** Provide the bchRecovery_setup test seam for the current scenario without external requests. */
-const bchRecovery_setup = async () => {
+const bchRecovery_setup = async (
+  rpcMode?: 'actual-rpc' | 'actual-rpc-raw-mismatch',
+) => {
   await bchRecovery_DatabaseActionMock.clearTables();
   const event = bchRecovery_EventTestData.mockEventTrigger().event;
   event.toChain = 'bitcoin-cash';
@@ -2755,30 +2854,31 @@ const bchRecovery_setup = async () => {
       },
     },
   ]);
-  const chain = new bchRecovery_BitcoinCashChain(
-    network as never,
-    {
-      aggregatedPublicKey: bchRecovery_bchPublicKey,
-      feeRate: 1,
-      maxFee: 100000n,
-      minimumUtxoValue: 546n,
-      maxUtxoPages: 2,
-      fee: 0n,
-      confirmations: {
-        observation: 1,
-        payment: 1,
-        cold: 1,
-        manual: 1,
-        arbitrary: 1,
-      },
-      addresses: {
-        lock: bchRecovery_bchLock,
-        cold: bchRecovery_bchCold,
-        permit: '',
-        fraud: '',
-      },
-      rwtId: '',
+  const chainConfig = {
+    aggregatedPublicKey: bchRecovery_bchPublicKey,
+    feeRate: 1,
+    maxFee: 100000n,
+    minimumUtxoValue: 546n,
+    maxUtxoPages: 2,
+    fee: 0n,
+    confirmations: {
+      observation: 1,
+      payment: 1,
+      cold: 1,
+      manual: 1,
+      arbitrary: 1,
     },
+    addresses: {
+      lock: bchRecovery_bchLock,
+      cold: bchRecovery_bchCold,
+      permit: '',
+      fraud: '',
+    },
+    rwtId: '',
+  };
+  let chain = new bchRecovery_BitcoinCashChain(
+    network as never,
+    chainConfig,
     tokens,
     {
       /** Provide the isInSign test seam for the current scenario without external requests. */
@@ -2812,6 +2912,98 @@ const bchRecovery_setup = async () => {
     (await chain.signTransaction(unsigned)).toJson(),
   );
   network.findSignedTransaction.mockResolvedValue(signed.txBytes);
+  const rpcCalls: { method: string; params: readonly unknown[] }[] = [];
+  const rpcErrors: string[] = [];
+  const forbiddenSign = vi.fn(async () => {
+    throw Error('Recovery must not sign');
+  });
+  if (rpcMode) {
+    const actualId = signed.getActualTxId();
+    const raw = Uint8Array.from(signed.txBytes);
+    if (rpcMode === 'actual-rpc-raw-mismatch') raw[raw.length - 1] ^= 1;
+    const tx = bchRecovery_decodeBchTransaction(signed.txBytes);
+    const tip = 'ab'.repeat(32);
+    const rpc = new bchRecovery_BitcoinCashRpcNetwork(
+      {
+        url: 'http://offline.invalid',
+        expectedChain: 'regtest',
+        walletHistoryPageSize: 2,
+        maxWalletHistoryPages: 2,
+      },
+      {
+        call: async (method, params) => {
+          rpcCalls.push({ method, params });
+          switch (method) {
+            case 'getnetworkinfo':
+              return { subversion: '/Bitcoin Cash Node:28.0.1/' };
+            case 'getblockchaininfo':
+              return { chain: 'regtest', bestblockhash: tip, blocks: 100 };
+            case 'getbestblockhash':
+              return tip;
+            case 'getwalletinfo':
+              return { txcount: 1 };
+            case 'listtransactions':
+              return params[2] === 0
+                ? [{ txid: actualId, confirmations: 0 }]
+                : [];
+            case 'gettransaction':
+              expect(params[0]).toEqual(actualId);
+              return {
+                txid: actualId,
+                hex: bchRecovery_binToHex(raw),
+                confirmations: 0,
+                abandoned: false,
+              };
+            case 'getrawtransaction':
+              expect(params[0]).toEqual(actualId);
+              return {
+                hex: bchRecovery_binToHex(signed.txBytes),
+                txid: actualId,
+                hash: actualId,
+                size: signed.txBytes.length,
+                version: tx.version,
+                locktime: tx.locktime,
+                vin: tx.inputs.map((input) => ({
+                  txid: bchRecovery_binToHex(input.outpointTransactionHash),
+                  vout: input.outpointIndex,
+                  scriptSig: {
+                    hex: bchRecovery_binToHex(input.unlockingBytecode),
+                  },
+                  sequence: input.sequenceNumber,
+                })),
+                vout: tx.outputs.map((output, n) => ({
+                  n,
+                  value: (Number(output.valueSatoshis) / 1e8).toFixed(8),
+                  scriptPubKey: {
+                    hex: bchRecovery_binToHex(output.lockingBytecode),
+                  },
+                })),
+                confirmations: 0,
+              };
+            case 'getrawmempool':
+              return [actualId];
+            default:
+              throw Error(`Recovery fixture forbids RPC method ${method}`);
+          }
+        },
+      },
+    );
+    const recover = rpc.findSignedTransaction.bind(rpc);
+    vi.spyOn(rpc, 'findSignedTransaction').mockImplementation(
+      async (...args) => {
+        try {
+          return await recover(...args);
+        } catch (error) {
+          rpcErrors.push((error as Error).message);
+          throw error;
+        }
+      },
+    );
+    chain = new bchRecovery_BitcoinCashChain(rpc, chainConfig, tokens, {
+      isInSign: async () => false,
+      sign: forbiddenSign,
+    });
+  }
   vi.spyOn(bchRecovery_ChainHandler, 'getInstance').mockReturnValue(
     bchRecovery_chainHandlerInstance as unknown as bchRecovery_ChainHandler,
   );
@@ -2831,5 +3023,8 @@ const bchRecovery_setup = async () => {
     signed,
     eventId,
     action: bchRecovery_DatabaseAction.getInstance(),
+    rpcCalls,
+    rpcErrors,
+    forbiddenSign,
   };
 };
