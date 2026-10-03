@@ -1,4 +1,4 @@
-import { BitcoinCashRpcTransaction } from '@rosen-bridge/rosen-extractor';
+import { BitcoinCashRpcTransaction } from '@rosen-bridge/rosen-extractor/dist/bitcoinCash.js';
 import { ChainConfigs } from '@rosen-chains/abstract-chain';
 
 import { BitcoinCashPrevout } from './types';

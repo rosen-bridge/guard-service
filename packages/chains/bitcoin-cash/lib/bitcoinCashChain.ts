@@ -10,10 +10,8 @@ import {
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { encodeAddress, decodeAddress } from '@rosen-bridge/address-codec';
-import {
-  AbstractRosenDataExtractor,
-  BitcoinCashRosenExtractor,
-} from '@rosen-bridge/rosen-extractor';
+import { AbstractRosenDataExtractor } from '@rosen-bridge/rosen-extractor';
+import { BitcoinCashRosenExtractor } from '@rosen-bridge/rosen-extractor/dist/bitcoinCash.js';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
   AbstractUtxoChain,

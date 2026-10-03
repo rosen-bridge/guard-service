@@ -13,7 +13,7 @@ import {
 import { AddressManager as bchEventContract_AddressManager } from '@rosen-bridge/address-manager';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { ChainMinimumFee as bchEventContract_ChainMinimumFee } from '@rosen-bridge/minimum-fee';
-import { BitcoinCashRpcRosenExtractor as bchEventContract_BitcoinCashRpcRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { BitcoinCashRpcRosenExtractor as bchEventContract_BitcoinCashRpcRosenExtractor } from '@rosen-bridge/rosen-extractor/dist/bitcoinCash.js';
 import { TokenMap as bchEventContract_TokenMap } from '@rosen-bridge/tokens';
 import {
   ConfirmationStatus,
