@@ -1,5 +1,6 @@
 import {
   binToHex,
+  decodeTransactionBCH,
   encodeTransactionBCH,
   hashTransaction,
   hexToBin,
@@ -8,6 +9,7 @@ import {
 } from '@bitauth/libauth';
 import { describe, expect, it, vi } from 'vitest';
 
+import { encodeAddress } from '@rosen-bridge/address-codec';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
   ConfirmationStatus,
@@ -41,6 +43,68 @@ const cashAddress = (script: string): string => {
 };
 const destination = cashAddress('76a914' + '12'.repeat(20) + '88ac');
 const treasury = cashAddress(treasuryScript);
+/** Encode a complete native deposit for admission tests, without claiming script validity. */
+const boundedDeposit = (
+  inputCount: number,
+  outputCount: number,
+  byteLength?: number,
+) => {
+  const destinationScript = encodeAddress(
+    'ergo',
+    '9iMjQx8PzwBKXRvsFUJFJAPoy31znfEeBUGz8DRkcnJX4rJYjVd',
+  );
+  const payload = `0000000000000001230000000000000456${(destinationScript.length / 2).toString(16).padStart(2, '0')}${destinationScript}`;
+  const outputs = [
+    { lockingBytecode: hexToBin(treasuryScript), valueSatoshis: 123456789n },
+    {
+      lockingBytecode: hexToBin(
+        `6a${(payload.length / 2).toString(16)}${payload}`,
+      ),
+      valueSatoshis: 0n,
+    },
+    ...Array.from({ length: outputCount - 2 }, () => ({
+      lockingBytecode: hexToBin(`76a914${'02'.repeat(20)}88ac`),
+      valueSatoshis: 546n,
+    })),
+  ];
+  const inputs = Array.from({ length: inputCount }, (_, index) => ({
+    outpointTransactionHash: Uint8Array.from(
+      { length: 32 },
+      (_, byte) => byte + 1,
+    ),
+    outpointIndex: index + 7,
+    sequenceNumber: 0xffffffff,
+    unlockingBytecode: new Uint8Array(byteLength === undefined ? 1 : 256),
+  }));
+  const transaction = { version: 2, locktime: 0, inputs, outputs };
+  if (byteLength !== undefined) {
+    const padding = byteLength - encodeTransactionBCH(transaction).length;
+    if (padding < 0) throw Error('Fixture byte target is too small');
+    inputs.forEach((input, index) => {
+      input.unlockingBytecode = new Uint8Array(
+        256 +
+          Math.floor(padding / inputCount) +
+          (index < padding % inputCount ? 1 : 0),
+      );
+      if (input.unlockingBytecode.length > 10_000)
+        throw Error('Fixture input script exceeds its isolated script bound');
+    });
+  }
+  const bytes = encodeTransactionBCH(transaction);
+  return {
+    hex: binToHex(bytes),
+    txid: hashTransaction(bytes),
+    vin: inputs.map((input) => ({
+      txid: binToHex(input.outpointTransactionHash),
+      vout: input.outpointIndex,
+    })),
+    vout: outputs.map((output, n) => ({
+      n,
+      value: `${output.valueSatoshis / 100000000n}.${(output.valueSatoshis % 100000000n).toString().padStart(8, '0')}`,
+      scriptPubKey: { hex: binToHex(output.lockingBytecode) },
+    })),
+  };
+};
 /**
  * Build fresh valid bounded configuration for the synthetic treasury key.
  * @returns One-satoshi fee-rate policy, exact native thresholds and treasury addresses
@@ -1137,6 +1201,50 @@ describe('BitcoinCashChain', () => {
     });
   });
   describe('verifyLockTransactionExtraConditions', () => {
+    /**
+     * @target BitcoinCashChain.verifyLockTransactionExtraConditions should enforce source deposit admission bounds
+     * @dependencies Real chain source verification and canonical libauth deposits with matching raw/RPC identity
+     * @scenario Vary input count, output count or bytes at the exact bound and one above, preserving the native treasury and Rosen payload
+     * @expected Accept each inclusive bound and reject the isolated excess without network, signing or submission
+     */
+    it.each([
+      ['inputs at limit', 4096, 2, undefined, true],
+      ['inputs above limit', 4097, 2, undefined, false],
+      ['outputs at limit', 1, 4096, undefined, true],
+      ['outputs above limit', 1, 4097, undefined, false],
+      ['bytes at limit', 100, 2, 1_000_000, true],
+      ['bytes above limit', 100, 2, 1_000_001, false],
+    ] as const)(
+      'isolates canonical deposit %s',
+      async (_name, inputs, outputs, bytes, accepted) => {
+        const { chain, network, mediator } = setup();
+        const transaction = boundedDeposit(inputs, outputs, bytes);
+        const encoded = hexToBin(transaction.hex);
+        const decoded = decodeTransactionBCH(encoded);
+        if (typeof decoded === 'string') throw Error(decoded);
+        expect(decoded.inputs).toHaveLength(inputs);
+        expect(decoded.outputs).toHaveLength(outputs);
+        expect(transaction.vin).toHaveLength(inputs);
+        expect(transaction.vout).toHaveLength(outputs);
+        expect(binToHex(encodeTransactionBCH(decoded))).toEqual(
+          transaction.hex,
+        );
+        expect(hashTransaction(encoded)).toEqual(transaction.txid);
+        if (bytes !== undefined) expect(encoded.length).toEqual(bytes);
+        else expect(encoded.length).toBeLessThan(1_000_000);
+        expect(
+          await chain.verifyLockTransactionExtraConditions(transaction, {
+            hash: 'aa'.repeat(32),
+            parentHash: 'bb'.repeat(32),
+            height: 1,
+          }),
+        ).toEqual(accepted);
+        expect(mediator.sign).not.toHaveBeenCalled();
+        expect(network.submitTransaction).not.toHaveBeenCalled();
+        expect(network.getPrevout).not.toHaveBeenCalled();
+      },
+    );
+
     /**
      * @target BitcoinCashChain.verifyLockTransactionExtraConditions - accepts
      * source-deposit cardinality above spending limits and unrelated token

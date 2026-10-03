@@ -889,7 +889,10 @@ describe('ColdStorage', () => {
             }),
           },
         }));
-        vi.doMock('@rosen-chains/bitcoin-cash-rpc', () => ({
+        vi.doMock('@rosen-chains/bitcoin-cash-rpc', async (importOriginal) => ({
+          ...(await importOriginal<
+            typeof import('@rosen-chains/bitcoin-cash-rpc')
+          >()),
           BitcoinCashRpcNetwork: class {
             /** Record fixture constructor arguments without initializing external clients. */
             constructor(config: unknown) {

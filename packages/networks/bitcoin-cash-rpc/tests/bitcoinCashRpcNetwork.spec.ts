@@ -39,6 +39,31 @@ const setup = (options: Parameters<typeof fixture>[0] = {}, limits = {}) => {
   };
 };
 describe('BitcoinCashRpcNetwork', () => {
+  describe('constructor', () => {
+    /**
+     * @target BitcoinCashRpcNetwork.constructor - validates default transport
+     * @dependencies Actual network and transport; no injected RPC implementation
+     * @scenario Configure remote HTTP, then HTTPS or literal loopback HTTP
+     * @expected Reject remote plaintext and accept TLS and literal loopback
+     */
+    it('enforces endpoint policy without an injected transport', () => {
+      expect(
+        () =>
+          new BitcoinCashRpcNetwork({
+            ...config,
+            url: 'http://rpc.example.test',
+          }),
+      ).toThrow('HTTPS outside literal loopback');
+      expect(
+        () =>
+          new BitcoinCashRpcNetwork({
+            ...config,
+            url: 'https://rpc.example.test',
+          }),
+      ).not.toThrow();
+      expect(() => new BitcoinCashRpcNetwork(config)).not.toThrow();
+    });
+  });
   describe('getAddressBoxes', () => {
     /**
      * @target BitcoinCashRpcNetwork.getAddressBoxes - authenticates wallet

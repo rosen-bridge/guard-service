@@ -252,6 +252,23 @@ describe('GuardsBitcoinCashConfigs', () => {
         expect(reader).toHaveBeenCalledExactlyOnceWith('bitcoin-cash');
       });
       /**
+       * @target GuardsBitcoinCashConfigs.load - accepts TLS and literal loopback
+       * @dependencies Mocked config and contract readers, real BCH TokenMap
+       * @scenario Change only the RPC endpoint to each allowed transport form
+       * @expected Load the operator policy and preserve the configured URL
+       */
+      it.each([
+        'https://rpc.example.test/wallet/treasury',
+        'http://127.0.0.2:18443/wallet/treasury',
+        'http://[::1]:18443/wallet/treasury',
+      ])('accepts RPC endpoint %s', async (url) => {
+        values['bitcoinCash.rpc.url'] = url;
+        const configs = await load();
+        expect(configs.load(await bchConfig_bchTokenMap()).rpc.url).toEqual(
+          url,
+        );
+      });
+      /**
        * @target GuardsBitcoinCashConfigs.load - freezes the validated policy
        * and copies contract and derivation inputs
        * @dependencies
@@ -325,6 +342,12 @@ describe('GuardsBitcoinCashConfigs', () => {
       it.each([
         ['bitcoinCash.chainNetwork', 'esplora'],
         ['bitcoinCash.rpc.url', 'https://user:secret@example.com'],
+        ['bitcoinCash.rpc.url', 'http://rpc.example.test'],
+        ['bitcoinCash.rpc.url', 'http://localhost'],
+        ['bitcoinCash.rpc.url', 'http://127.1'],
+        ['bitcoinCash.rpc.url', 'http://[::ffff:127.0.0.1]'],
+        ['bitcoinCash.rpc.url', 'https://@rpc.example.test'],
+        ['bitcoinCash.rpc.url', 'https://rpc.example.test/#'],
         ['bitcoinCash.rpc.expectedChain', 'bitcoin'],
         ['bitcoinCash.rpc.timeoutMs', 0],
         ['bitcoinCash.feeRate', 1.1],
@@ -574,7 +597,10 @@ describe('GuardsBitcoinCashConfigs', () => {
             getInstance: () => ({ notify: vi.fn() }),
           },
         }));
-        vi.doMock('@rosen-chains/bitcoin-cash-rpc', () => ({
+        vi.doMock('@rosen-chains/bitcoin-cash-rpc', async (importOriginal) => ({
+          ...(await importOriginal<
+            typeof import('@rosen-chains/bitcoin-cash-rpc')
+          >()),
           BitcoinCashRpcNetwork: class {
             /** Record fixture constructor arguments without initializing external clients. */
             constructor(config: unknown) {

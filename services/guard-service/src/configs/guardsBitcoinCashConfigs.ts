@@ -13,7 +13,10 @@ import {
   BitcoinCashConfigs,
   bchP2pkhScriptFromPublicKey,
 } from '@rosen-chains/bitcoin-cash';
-import { BitcoinCashRpcConfig } from '@rosen-chains/bitcoin-cash-rpc';
+import {
+  BitcoinCashRpcConfig,
+  validateBitcoinCashRpcEndpoint,
+} from '@rosen-chains/bitcoin-cash-rpc';
 
 import { ChainConfigs as ContractConfigs } from '../types/contract';
 import { rosenConfig } from './rosenConfig';
@@ -125,14 +128,7 @@ class GuardsBitcoinCashConfigs {
     if (text('bitcoinCash.chainNetwork') !== 'rpc')
       throw Error('Only BCHN RPC is supported');
     const url = text('bitcoinCash.rpc.url', 2048);
-    const endpoint = new URL(url);
-    if (
-      !['http:', 'https:'].includes(endpoint.protocol) ||
-      endpoint.username ||
-      endpoint.password ||
-      endpoint.hash
-    )
-      throw Error('Invalid BCH RPC endpoint');
+    validateBitcoinCashRpcEndpoint(url);
     const expectedChain = text('bitcoinCash.rpc.expectedChain');
     if (!['main', 'test', 'regtest'].includes(expectedChain))
       throw Error('Explicit BCH RPC chain identity required');

@@ -50,9 +50,19 @@ An exceeded limit throws instead of truncating a result. Wallet UTXOs are sorted
 by transaction ID and output index before pagination.
 
 Use `BitcoinCashRpcConfig` to set `url`, `expectedChain`, and optional basic-auth
-credentials. URL credentials and redirects are rejected; credentials and node
-error text do not enter adapter error messages. Submission accepts a verified
-signed envelope, rechecks every retained parent against current unspent state,
+credentials. HTTPS is required except for literal IPv4 addresses in `127.0.0.0/8`
+or IPv6 `::1`. HTTP DNS names, including `localhost`, are rejected; use a literal
+loopback address for local BCHN or HTTPS for a remote endpoint. Shortened, octal,
+hexadecimal and integer IPv4 spellings and IPv4-mapped IPv6 addresses do not
+qualify for the HTTP exception. Equivalent expanded IPv6 loopback notation is
+accepted. TLS certificate verification uses the platform defaults.
+
+Supply both `auth.username` and `auth.password` or omit `auth`. Each credential
+must be nonempty, at most 1024 characters, and contain no control characters or
+surrounding whitespace; usernames cannot contain a colon. URL credentials,
+fragments, ambiguous authority syntax and all redirects are rejected. Credentials
+and node error text do not enter adapter error messages. Submission accepts a
+verified signed envelope, rechecks every retained parent against current unspent state,
 and requires the node to return the exact signed transaction ID.
 
 ## Read-only capability observations

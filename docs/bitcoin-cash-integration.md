@@ -1,6 +1,6 @@
 # Bitcoin Cash integration
 
-Status: contributor implementation prepared; upstream review and operational qualification pending. Updated: 2026-10-02.
+Status: draft upstream contribution; operator-review corrections and qualification in progress. Updated: 2026-10-03.
 
 This is the coordinating document for native BCH support across Rosen Utils,
 Scanner, Guard, Watcher, Health Check, UI and Sign Protocols. The contribution
@@ -18,6 +18,14 @@ verified on 2026-10-02:
 
 The Bitcoin Fork chapter has no implementation instructions at this revision.
 The general new-chain requirements therefore govern this contribution.
+
+Coordinated draft submissions: [Utils #11](https://github.com/rosen-bridge/utils/pull/11),
+[Scanner #16](https://github.com/rosen-bridge/scanner/pull/16),
+[Guard #29](https://github.com/rosen-bridge/guard-service/pull/29),
+[Watcher #17](https://github.com/rosen-bridge/watcher/pull/17),
+[Health Check #5](https://github.com/rosen-bridge/health-check/pull/5),
+[UI #33](https://github.com/rosen-bridge/ui/pull/33) and
+[Sign Protocols #9](https://github.com/rosen-bridge/sign-protocols/pull/9).
 
 ## Design and boundaries
 
@@ -77,6 +85,100 @@ deployments. Watcher connector configuration supports its existing connector
 manager pattern. Guard's wallet-backed RPC requires the treasury address to be
 imported and the required transaction lookup/history facilities to be available.
 These RPC credentials belong to server configuration.
+
+Remote BCHN connections require HTTPS. HTTP is allowed only on literal IPv4
+loopback addresses in `127.0.0.0/8` or IPv6 `::1`. Use a separate credential pair;
+URL userinfo and redirects are rejected. A private network or the name
+`localhost` does not bypass this rule.
+
+Watcher BCH startup fetches the fee histories for TokenMap entries that include
+`bitcoin-cash` before opening the API or starting scanners and jobs. A failed or
+empty applicable fee set reaches the entry point and terminates startup with
+exit status 1. The service supervisor can then restart it. Fees for entries
+that do not include BCH are outside this startup gate.
+
+### Observation eligibility and recovery
+
+The proposed BCH policy requires the recorded source block to belong to the
+active finalized ancestry reported by both the scanner RPC and a separately
+configured witness. Watcher checks this before commitment and trigger signing,
+and repeats it before queue broadcast, including retries after restart. Configure
+`bitcoinCash.finalityRpc.url` and `timeout`; optional credentials use
+`BITCOIN_CASH_FINALITY_RPC_USERNAME` and `BITCOIN_CASH_FINALITY_RPC_PASSWORD`.
+The witness uses the scanner's explicit chain selection. Its origin must differ
+from the scanner RPC, and operators must qualify independent administration.
+
+Each check requires synchronized BCHN metadata, the exact persisted block hash
+at its height, finalized coverage, coherent confirmation counts and a stable
+tip and finalized hash across the reads. A parked branch blocks that event when
+its common ancestor is below the event height. A common ancestor at or above
+the event height already includes the event. Missing finalization, malformed
+responses, an unavailable endpoint or a check exceeding 30 seconds holds work.
+An eligible result is never cached. Queue height updates write only their owned
+column so a stale queue object cannot undo newer validity or removal flags.
+
+This policy remains subject to Rosen review. BCHN finalization is a local node
+decision; separate RPC reads are not an atomic snapshot and matching endpoints
+do not prove consensus irreversibility. The implementation does not establish
+the deployed fraud-cleanup contract policy. The operator review's account of
+that policy must be checked against Rosen's accepted contracts before activation.
+
+Watcher exposes the scanner's bounded budgets under `bitcoinCash.rpc.limits`;
+Rosen Service accepts the same keys under its BCH `rpc.limits` configuration
+and forwards the resolved policy to the scanner. Service configuration retains
+its 120-second request-timeout ceiling; Watcher permits up to 300 seconds.
+Defaults are 1,000,000 raw bytes per transaction, 4,096 inputs or outputs,
+10,000 transactions per block, 32,000,000 aggregate raw bytes per block and
+64,000,000 response bytes. The scanner README lists configurable ceilings.
+`BCH_RPC_RESOURCE_LIMIT` identifies a budget stop: retain the checkpoint,
+qualify a larger budget and process memory on the same block, then restart.
+Do not skip the block. An isolated BCHN 29.2.0 block with 4,097 outputs was
+accepted by the node, rejected at the default input/output budget and read
+successfully with a budget of 8,192, preserving its hash and transaction bytes.
+
+Scanner work budgets and deposit admission are separate. The shared extractor
+and Guard source-deposit path currently cap each transaction at 1,000,000 bytes
+and 4,096 inputs or outputs; Guard payout construction has smaller bounds.
+Increasing scanner budgets permits reading larger unrelated chain transactions
+but does not expand accepted deposit envelopes. Any expansion of that envelope
+must update the extractor and Guard together and preserve identical acceptance
+rules. The deployment review must accept the supported deposit profile.
+Matched raw/RPC fixtures exercise both consumers at 4,096 and 4,097 inputs and
+outputs, and at 1,000,000 and 1,000,001 bytes. Each exact bound accepts and each
+isolated excess rejects. These are serialization/admission tests with coherent
+transaction IDs and payloads; they do not prove script or consensus validity.
+
+### BCHN version and historical reads
+
+Local RPC qualification used BCHN 29.2.0 at source
+[`07576013c91ff4a3a74acd85f189c69121cdad1b`](https://github.com/bitcoin-cash-node/bitcoin-cash-node/tree/07576013c91ff4a3a74acd85f189c69121cdad1b),
+with no wallet, no `txindex` and no peers. Verbosity-2 blocks included raw
+transaction hex. Block-qualified `getrawtransaction` worked without `txindex`,
+including the scanner's fallback path. A P2S output reported as
+`{asm: "1", hex: "51", type: "script"}` without an address was ingested.
+This covers reading that output; configured treasury and payout address types
+remain ordinary P2PKH20/P2SH20 CashAddr.
+
+Twelve native checks exercise both scanner source and built output against that
+node: a covered event succeeds; missing finalization, the wrong block hash and
+an event above the checkpoint reject. Parking a branch initially leaves an
+unsynchronized view, which rejects. Extending the surviving branch to a
+synchronized tip permits an event below the parked branch's common ancestor.
+These tests use explicit regtest finalization and disabled automatic unparking;
+they do not qualify production depth/time policy or independent operators.
+
+A real pruning test made a historical block unavailable through both block and
+raw-transaction reads. A pruned node is usable only where every block body
+required by the selected start, reorganization recovery and rescan range remains
+available. `initial.height` is the last processed height; `-1` starts at genesis.
+Choose it from verified history and deployment policy. The configurable request
+timeout is 1–300 seconds; its default is 10 seconds. Qualify full-block latency
+and memory under the intended deployment limits. Do not copy the obsolete
+`excessiveblocksize` option into a 29.2.0 node profile.
+
+RPC `test` and `regtest` profiles support isolated qualification. Bridge metadata
+uses the mainnet CashAddr codec and its exact locking scripts; these RPC profiles
+do not introduce testnet CashAddr into the shared wire format.
 
 The provider exports `probeBitcoinCashRpcCapabilities` for bounded read-only
 qualification with operator-selected samples. Its fixed method allowlist refuses
@@ -191,8 +293,15 @@ pending item names the responsible contributor, maintainer or operator.
 | UI-BROWSER / RCS-003 Network/App | E applicability; client-side transaction and address APIs. D; browser dependency mapping | Shared Ergo/Cardano codec packages map matching exact Node/browser WASM versions; App uses Webpack async WASM and its existing Buffer provider. | Controlled web-target VM and real Chromium execute22 first-use metadata/signature checks, including seven mutants and independently held WASM replies. The normal production App build additionally completes page-data/static generation against genuine empty PostgreSQL. Actual Chromium renders disabled Bridge controls, loads both WASM assets and receives200 from the empty Events API with no current console errors. Selected inputs are pinned; browser execution is author-run. Private dependency deduplication and a native pg resolution link are part of this installed graph. Clean released installation, enabled BCH interaction and wallet relay remain separate gates. Contributor/operators. |
 | CONTRACTS / RCS-003 Contracts                                      | E; Rosen-owned outputs                                           | Contracts, protocol chain index, token map, RWT/permit/fraud addresses and represented tokens.                                                                         | Pending Rosen team. Contributor supplies documented interfaces and fixtures.                                                                                                           |
 | CHAIN-INFO / RCS-003 recommended information                       | R; reviewer/operator context                                     | Address/decimal/confirmation policy described above; deployment profile must supply finality, derivation and node sizing.                                              | Partly supplied; operator profile pending. Operators.                                                                                                                                  |
-| RELEASE / RCS-003 Integration Notes, cross-repository dependencies | C/E applicability; reproducible installation | Package inventory and dependency order below; dedicated tss-api patch changeset covers the Go runtime, separately from npm TSS. | Release preparation supplied. Actual accepted versions, package/binary publication and private UI deployment remain Rosen-owned; dependent lock regeneration and clean-install qualification remain contributor work after those releases. |
-| ACCEPTANCE / external state                                        | E before acceptance/activation claims                            | Coordinated upstream PRs, maintainer decisions, merge/release and deployment receipts.                                                                                 | This task has submitted no BCH upstream PR and records no maintainer acceptance. Rosen/operators.                                                                                       |
+| RELEASE / RCS-003 Integration Notes, cross-repository dependencies | C/E applicability; reproducible installation | Package inventory and dependency order below; dedicated tss-api patch changeset covers the Go runtime, separately from npm TSS. | A clean local-tarball installation rehearsal and release preparation are supplied. Actual accepted versions, package/binary publication and private UI deployment remain Rosen-owned; published-version lock regeneration and native/full-application installation qualification remain contributor work after those releases. |
+| OP-START / operator review on Watcher #17 | D; BCH startup lifecycle | Await BCH-applicable fee histories before service exposure; propagate failure to exit status 1. | Actual entry/init child-process failures and positive ordering pass. Current Watcher BCH suite passes 249 cases; the legacy suite passes 185. A deployed supervisor remains operator-owned. |
+| OP-TRANSPORT / operator review on Watcher #17 | D; Watcher and Guard RPC | Shared configuration/connector validation, literal loopback HTTP or HTTPS, paired credentials, no redirects. | Endpoint negatives and actual local HTTP redirect tests pass. Local HTTP cases supplement mocked unit tests; production TLS/authentication remains endpoint-specific. |
+| OP-SCAN / operator review on Watcher #17 | D; bounded scanning and recovery | Configurable scanner budgets, distinct resource failure and unchanged checkpoint recovery; Watcher and Rosen Service forward the shared limits. | Scanner suite passes 168 cases. Actual BCHN 4,097-output block confirms the default-limit failure and same-block retry. SQLite restart preserves block/extractor rows and advances once after increasing the budget. Rosen Service's affected suite passes 141 cases, with 128 configuration/factory cases independently replayed. Deployment memory and selected history remain to qualify. |
+| OP-DEPOSIT / current native deposit profile | D; matched extractor/Guard admission | Keep the deposit envelope distinct from scanner work budgets and payout construction limits. | Twelve canonical boundary cases cover the inclusive input/output/byte limits and one above each across the two consumers. Rosen must accept the supported profile; these fixtures establish no consensus/script validity. |
+| OP-FINALITY / operator review on Watcher #17 | D; proposed pre-sign and pre-broadcast policy | Recorded block identity, two endpoint views, finalized active ancestry, parked-fork checks, coherent snapshots and deadlines. | RPC negatives and actual consumer tests pass; persisted queue readback/retry passes with SQLite migrations and reopen. Twelve native source/build checks pass under explicit regtest controls. Rosen must accept the proposed policy and verify deployed cleanup contracts; production delay and operator endpoint independence remain to qualify. |
+| OP-QUEUE / persisted retry fixture | D; shared transaction bookkeeping invariant | Update the height column without saving stale validity/removal fields. | Actual SQLite tests isolate stale invalid, deleted and combined state. Historic Watcher suite passes 185 cases on the corrected source. |
+| OP-IMPORTS / operator review on Watcher #17 | D; shared module evaluation | CashAddr imports the pure address module from exact-pinned libauth 3.0.0. | 70 codec cases and five shared-dispatch cases pass, including fresh synchronous loading that rejects crypto imports. The eager transaction extractor and flattened service bundles still need an agreed package/API isolation design. |
+| ACCEPTANCE / external state | E before acceptance/activation claims | Coordinated upstream PRs, maintainer decisions, merge/release and deployment receipts. | Seven linked PRs are open as drafts, verified on 2026-10-03. No merge, integration acceptance or activation is established. Rosen/operators. |
 
 ## Validation and release dependencies
 
@@ -393,12 +502,80 @@ dependency closure and split mixed changesets; blindly excluding the new
 packages is insufficient. Calculated version bumps do not select Rosen's
 release versions or authorize publishing.
 
+A disposable consumer graph also passes offline `npm ci` under Node 22.18.0
+and npm 11.6.2 using nine local producer tarballs and 458 registry package
+identities pinned from the existing locks. It contains no filesystem links;
+283 installed dist files match the packed payloads. Twelve runtime checks
+exercise installed codecs, scanner budgets/finality, Guard transport and the
+unchanged Rosen Service configuration source. Install scripts are disabled,
+the crypto backend is JavaScript and TypeScript loads through installed `tsx`.
+This qualifies the local package-consumer joins; published package resolution,
+native-module rebuilds, full application startup and container deployment still
+require their own accepted release graph.
+
+### Shared module isolation decision
+
+The codec now loads CashAddr functions through the pure address module of the
+exact-pinned `@bitauth/libauth` 3.0.0 package. A fresh synchronous import test
+rejects any libauth crypto initialization. This removes that dependency from
+address-only consumers.
+
+The shared Rosen extractor barrel still exports the BCH extractor eagerly.
+Transaction decoding reaches libauth crypto initialization and top-level await.
+Watcher flattens dynamic imports in its Rollup output, and Guard constructs its
+chain registry synchronously. Adding a dynamic import alone would not establish
+isolation for those consumers.
+
+The proposed package boundary is a dedicated BCH extractor entry or package
+that preserves synchronous extractor methods. Its migration would remove the
+new BCH exports from the legacy root, move BCH observation/Guard imports to the
+dedicated entry and verify both source and emitted consumer graphs. Rosen must
+choose that boundary and the shared release scope before this API migration.
+Keeping the current eager entry instead requires explicit acceptance of the
+shared Node/runtime impact. Neither option is presented as accepted.
+
+### Fleet rollout and rollback procedure
+
+Record a deployment inventory before rollout: service role, chain, accepted
+package/binary/image identity, database version and operator. Include existing
+chain watchers that will encode BCH as a destination. Match the assigned index,
+contracts, token map and supported deposit envelope across every producer and
+consumer before exposing the route. Operators supply the fleet topology,
+threshold membership and maintenance-window authority.
+
+1. Hold new BCH route intake and signing/broadcast work using the deployment's
+   operator controls. Record already submitted transaction identities. Drain or
+   explicitly retain pending work; an uncertain broadcast outcome must be
+   reconciled against chain and persisted state before retry. No universal
+   application pause switch is supplied by this contribution.
+2. After writers stop, take a consistent database backup and record scanner
+   checkpoints, pending observations/payments, reserved inputs, queue rows and
+   the exact prior software/configuration profile. Prove restoration on an
+   isolated copy. A file copy of a running database is insufficient.
+3. Install the accepted producer/consumer versions without development links.
+   Check the fleet version inventory, dependency locks and TSS API binary
+   separately. Apply migrations to the isolated copy first; use the supported
+   startup/read checks with submission disabled by operator controls.
+4. Qualify source and witness history, identity and administrative independence;
+   check fee readiness, scanner progress, health and retained queue state.
+   Confirm every destination encoder has the assigned BCH index and matching
+   metadata rules. Do not enable the route during a mixed-version interval.
+5. Enable the approved operator subset and execute the authorized acceptance
+   sequence below. Expand only after exact amounts, transaction identities,
+   finality checks and pending-work recovery agree across the deployed graph.
+6. On inconsistent history, configuration, fees, queue state or signing results,
+   hold new work and preserve evidence. Reconcile possible broadcasts before
+   resuming. Roll back software only if the retained database/configuration is
+   compatible; otherwise restore the qualified backup under an approved recovery
+   plan. A database restore must not erase knowledge of a transaction already
+   submitted to a chain. Never restart old code against an unqualified new schema.
+
 ### Remaining work and deployment inputs
 
 | Matrix items | Contributor work before external input | Missing external input/action and owner |
 | --- | --- | --- |
 | DOC, CHANGESETS, TESTS, CODE | Compare the exact final candidate, changed metadata and remaining joins with this matrix. Reuse unchanged validated scopes. | Maintainer review of accepted contribution scope. Rosen. |
-| PACKAGES, RELEASE, HEALTH, WATCH-RUNTIME, UI-BUILD | Inventory, package dry-runs and release order are supplied. Qualify real released installs and regenerate dependent locks once packages exist. | Accepted producer releases, registry versions/tags and UI build-script adaptation decision. Rosen. |
+| PACKAGES, RELEASE, HEALTH, WATCH-RUNTIME, UI-BUILD | Inventory, package dry-runs, clean local-tarball consumer rehearsal and release order are supplied. Qualify published-version/native/full-application installs and regenerate dependent locks once packages exist. | Accepted producer releases, registry versions/tags and UI build-script adaptation decision. Rosen. |
 | SCAN, OBSERVE, UI-DB, UI-SERVICE | Maintained Scanner/PostgreSQL cleanup and populated UI upgrade commands, plus actual Service ingestion/accounting/health joins, are supplied. The Service entry's startup assembly has source/test review; its full operational run also starts eight existing chain services without disable switches and needs the accepted whole-service profile. | Actual database/deployment profile, whole-service legacy-chain configuration and released graph for activation. Operators/Rosen. |
 | GUARD-CONFIG, GUARD-JOINS, FEE | Mapping/mount checks, synthetic initialization/health and maintained nonempty provider/processor/SQLite recovery tests are supplied. Three private recovery/order cases have independent selected-source and saved-database review. Apply retained validators and negatives to accepted production inputs. | Contract/token configuration, aggregate treasury key, fee/confirmation/health policy and deployed services. Rosen/operators. |
 | UI-BASE, UI-WALLET, UI-FORM, UI-BROWSER, LOCK, DAPP | Real-browser crypto/metadata fixtures, normal production App build and disabled-state App smoke are supplied. Execute the enabled wallet/operational acceptance procedure once its inputs and authority exist. | WalletConnect/Wallet approval, real wallet session and authorized operational deposit. Operators/user. |
@@ -542,6 +719,6 @@ An external production decision leaves its local fixtures, configuration checks,
 release plan and acceptance preparation with the contributor. Items still
 described as contributor work above are open preparation, not completed gates.
 
-Upstream submission, maintainer acceptance, merge, release and operational
-activation remain pending. Complete compliance depends on every applicable
+The coordinated draft PRs are submitted. Maintainer acceptance, merge, release
+and operational activation remain pending. Complete compliance depends on every applicable
 mandatory matrix item closing or receiving an evidenced accepted exception.

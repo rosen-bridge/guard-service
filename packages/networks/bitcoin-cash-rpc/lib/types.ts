@@ -1,6 +1,6 @@
 export type BitcoinCashRpcChain = 'main' | 'test' | 'regtest';
 export interface BitcoinCashRpcConfig {
-  /** HTTP(S) endpoint without embedded credentials or a URL fragment. */
+  /** HTTPS endpoint, or HTTP on literal 127/8 or ::1; no userinfo or fragment. */
   url: string;
   /** Required reported BCHN chain identity; no chain is inferred from the URL. */
   expectedChain: BitcoinCashRpcChain;

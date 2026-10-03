@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { isIP } from 'node:net';
 
 import { BitcoinCashRpcConfig, RpcTransport } from './types';
 
@@ -13,6 +14,54 @@ export class BitcoinCashRpcError extends Error {
 }
 
 class RpcResponseError extends Error {}
+
+/**
+ * Detect ASCII control characters without normalizing the configured value.
+ * @param value - Endpoint or credential text
+ * @returns Whether the text contains an ASCII control character
+ */
+const hasControlCharacter = (value: string): boolean =>
+  [...value].some((character) => {
+    const code = character.charCodeAt(0);
+    return code < 32 || code === 127;
+  });
+
+/**
+ * Validate RPC endpoint syntax and require TLS outside literal loopback hosts.
+ * @param url - Operator endpoint without URL credentials or a fragment
+ * @returns The parsed endpoint used by the HTTP client
+ */
+export const validateBitcoinCashRpcEndpoint = (url: string): URL => {
+  // Check raw syntax before WHATWG normalization can hide ambiguous authority.
+  const authority =
+    typeof url === 'string'
+      ? /^https?:\/\/([^/?#]+)/i.exec(url)?.[1]
+      : undefined;
+  if (
+    !authority ||
+    /[\s\\#]/.test(url) ||
+    hasControlCharacter(url) ||
+    authority.includes('@')
+  )
+    throw Error('Invalid RPC endpoint');
+  let endpoint: URL;
+  try {
+    endpoint = new URL(url);
+  } catch {
+    throw Error('Invalid RPC endpoint');
+  }
+  if (endpoint.username || endpoint.password || endpoint.hash)
+    throw Error('Invalid RPC endpoint');
+  const rawHost = authority.startsWith('[')
+    ? authority.slice(1, authority.indexOf(']'))
+    : authority.split(':')[0];
+  const loopback =
+    (isIP(rawHost) === 4 && endpoint.hostname.startsWith('127.')) ||
+    (isIP(rawHost) === 6 && endpoint.hostname === '[::1]');
+  if (endpoint.protocol === 'http:' && !loopback)
+    throw Error('RPC endpoint requires HTTPS outside literal loopback');
+  return endpoint;
+};
 
 /**
  * Resolve and validate a positive, safe integer work limit.
@@ -43,20 +92,22 @@ export const createBitcoinCashRpcTransport = (
   config: BitcoinCashRpcConfig,
   fetcher: typeof fetch = fetch,
 ): RpcTransport => {
-  let endpoint: URL;
-  try {
-    endpoint = new URL(config.url);
-  } catch {
-    throw Error('Invalid RPC endpoint');
-  }
+  const endpoint = validateBitcoinCashRpcEndpoint(config.url);
   if (
-    !['http:', 'https:'].includes(endpoint.protocol) ||
-    endpoint.username ||
-    endpoint.password ||
-    endpoint.hash
+    config.auth !== undefined &&
+    (!config.auth ||
+      [config.auth.username, config.auth.password].some(
+        (value) =>
+          typeof value !== 'string' ||
+          !value.length ||
+          value.length > 1024 ||
+          value !== value.trim() ||
+          hasControlCharacter(value),
+      ) ||
+      config.auth.username.includes(':'))
   )
     throw Error(
-      'RPC endpoint must be HTTP(S) without URL credentials or fragment',
+      'RPC credentials must be a valid separate username/password pair',
     );
   const timeoutMs = boundedInteger(config.timeoutMs, 10_000, 60_000);
   const maxBytes = boundedInteger(
