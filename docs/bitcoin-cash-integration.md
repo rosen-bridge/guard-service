@@ -1,9 +1,9 @@
 # Bitcoin Cash integration
 
-Status: draft upstream contribution; operator-review corrections and qualification in progress. Updated: 2026-10-03.
+Status: draft contribution; further BCH implementation paused pending Rosen's document review and agreement on scope. Updated: 2026-10-03.
 
 This is the coordinating document for native BCH support across Rosen Utils,
-Scanner, Guard, Watcher, Health Check, UI and Sign Protocols. The contribution
+Scanner, Guard, Watcher, Health Check and UI. The contribution
 includes ordinary native BCH deposits and payouts. CashTokens, arbitrary scripts
 and token-aware CashAddr are outside this scope. Wrapped representations and
 Ergo-side deployment outputs require Rosen's contract and token work.
@@ -23,9 +23,18 @@ Coordinated draft submissions: [Utils #11](https://github.com/rosen-bridge/utils
 [Scanner #16](https://github.com/rosen-bridge/scanner/pull/16),
 [Guard #29](https://github.com/rosen-bridge/guard-service/pull/29),
 [Watcher #17](https://github.com/rosen-bridge/watcher/pull/17),
-[Health Check #5](https://github.com/rosen-bridge/health-check/pull/5),
-[UI #33](https://github.com/rosen-bridge/ui/pull/33) and
-[Sign Protocols #9](https://github.com/rosen-bridge/sign-protocols/pull/9).
+[Health Check #5](https://github.com/rosen-bridge/health-check/pull/5) and
+[UI #33](https://github.com/rosen-bridge/ui/pull/33).
+
+[Sign Protocols #9](https://github.com/rosen-bridge/sign-protocols/pull/9)
+is a separate, protocol-generic TSS admission fix. It follows its own review
+and binary release process and is not part of the BCH integration series.
+The TSS consumer and deployment requirements below remain relevant to BCH.
+
+Rosen has requested revisions to the integration documents and will provide
+detailed feedback. Further BCH implementation is paused until that feedback
+has been addressed and the next scope agreed. The six integration PRs remain
+drafts; retained test results do not establish acceptance of the documents.
 
 ## Design and boundaries
 
@@ -301,7 +310,7 @@ pending item names the responsible contributor, maintainer or operator.
 | OP-FINALITY / operator review on Watcher #17 | D; proposed pre-sign and pre-broadcast policy | Recorded block identity, two endpoint views, finalized active ancestry, parked-fork checks, coherent snapshots and deadlines. | RPC negatives and actual consumer tests pass; persisted queue readback/retry passes with SQLite migrations and reopen. Twelve native source/build checks pass under explicit regtest controls. Rosen must accept the proposed policy and verify deployed cleanup contracts; production delay and operator endpoint independence remain to qualify. |
 | OP-QUEUE / persisted retry fixture | D; shared transaction bookkeeping invariant | Update the height column without saving stale validity/removal fields. | Actual SQLite tests isolate stale invalid, deleted and combined state. Historic Watcher suite passes 185 cases on the corrected source. |
 | OP-IMPORTS / operator review on Watcher #17 | D; shared module evaluation | CashAddr imports the pure address module from exact-pinned libauth 3.0.0. | 70 codec cases and five shared-dispatch cases pass, including fresh synchronous loading that rejects crypto imports. The eager transaction extractor and flattened service bundles still need an agreed package/API isolation design. |
-| ACCEPTANCE / external state | E before acceptance/activation claims | Coordinated upstream PRs, maintainer decisions, merge/release and deployment receipts. | Seven linked PRs are open as drafts, verified on 2026-10-03. No merge, integration acceptance or activation is established. Rosen/operators. |
+| ACCEPTANCE / external state | E before acceptance/activation claims | Six coordinated BCH PRs, maintainer decisions, merge/release and deployment receipts. | The six BCH PRs remain drafts; further implementation is paused pending document feedback and agreement on scope. Sign Protocols #9 is reviewed separately as a generic fix. No merge, integration acceptance or activation is established. Rosen/operators. |
 
 ## Validation and release dependencies
 
