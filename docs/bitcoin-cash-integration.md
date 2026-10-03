@@ -513,6 +513,17 @@ This qualifies the local package-consumer joins; published package resolution,
 native-module rebuilds, full application startup and container deployment still
 require their own accepted release graph.
 
+A second Windows rehearsal uses the same lock and tarballs with normal install
+scripts and no forced crypto backend. The `sqlite3` 5.1.7 package's default installer selection
+requests an unavailable ABI artifact on Node 22.18.0. Selecting its declared
+N-API 6 build with the process-local `npm_config_target=6` setting permits the
+installation. The cached prebuild matches a fresh download of the official
+release artifact. All twelve smoke checks then pass, together with native
+SQLite 3.44.2 create/insert/read/close and esbuild 0.27.3 transformation checks.
+This setting is qualified for that exact Windows dependency graph; it is not a
+fleet-wide default. Release qualification must resolve the installer selection
+for each accepted target, alongside full application and container checks.
+
 ### Shared module isolation decision
 
 The codec now loads CashAddr functions through the pure address module of the
