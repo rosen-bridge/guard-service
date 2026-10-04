@@ -1,6 +1,6 @@
 # Bitcoin Cash integration
 
-Status: draft contribution with operator-review follow-up in progress; integration scope and deployment policy remain under Rosen review. Updated: 2026-10-03.
+Status: draft contribution; RCS review, UI interaction and published dependency closure remain pending. Updated: 2026-10-04.
 
 This is the coordinating document for native BCH support across Rosen Utils,
 Scanner, Guard, Watcher, Health Check and UI. The contribution
@@ -10,7 +10,7 @@ Ergo-side deployment outputs require Rosen's contract and token work.
 
 The authoritative contribution baseline is
 [`rosen-bridge/rcs@7b9784dae9d8d5b66b80de7a6043d1ba36a3a4bf`](https://github.com/rosen-bridge/rcs/tree/7b9784dae9d8d5b66b80de7a6043d1ba36a3a4bf),
-verified on 2026-10-03:
+verified on 2026-10-04:
 
 - [RCS-001: TypeScript testing](https://github.com/rosen-bridge/rcs/blob/7b9784dae9d8d5b66b80de7a6043d1ba36a3a4bf/rcs-001.md).
 - [RCS-002: contribution conventions](https://github.com/rosen-bridge/rcs/blob/7b9784dae9d8d5b66b80de7a6043d1ba36a3a4bf/rcs-002.md).
@@ -37,6 +37,64 @@ detailed feedback. The six integration PRs remain drafts. The follow-up to the
 addresses Guard compatibility, witness deployment, diagnostics and dependency
 isolation. These proposed changes and their test results do not establish
 maintainer acceptance of the integration design.
+
+## UI review decisions and current scope
+
+The UI correction follows the existing Doge/MyDoge and Firo network/wallet
+extension points at UI commit
+[`289d6d7bd1f09f8a6b1e3c5d88286e3d8e5f454d`](https://github.com/rosen-bridge/ui/tree/289d6d7bd1f09f8a6b1e3c5d88286e3d8e5f454d).
+Network reads, fee/transaction algorithms and bounded submission now belong to
+`networks/bitcoin-cash`; Cashonize session, pairing and signing belong to
+`wallets/cashonize`. The app connects these packages and uses its existing
+`wrap`/`unwrapFromObject` server-action convention.
+
+| Rosen UI expectation | Current correction and remaining condition |
+| --- | --- |
+| Chain-only scope | Generic form/wallet fixes, data-source API extension, icon-type refactor and Webpack changes are excluded. The scanner API prerequisite below is separate work. |
+| Remove equivalent rewrites | Unrelated assertion rewrites and shared configuration/generator edits are reverted. |
+| Network/wallet ownership | Algorithms and lifecycle moved to their packages; app actions, configuration and route delegate. Shared hooks only import the operational registries. |
+| Team-owned new UI | Custom pairing dialog removed; Cashonize excluded from the active wallet registry. An accepted connection interaction is required before activation. |
+| Reuse existing interfaces | Existing base classes, components and action wrapper reused. The SDK and bounded submission differences below still require direction. |
+| Published dependencies first | External BCH scanner/extractor/codec releases and normal clean installation remain pending. Private UI workspaces use the repository build process. |
+| Package/test conventions | Package build/type checks and affected tests pass in the local preparation graph. Complete RCS convention review remains a separate check. |
+| No integration documentation in UI | The added UI `docs/` folder is removed; this document is the integration entry point. |
+
+Three decisions affect the next UI version:
+
+- **Connection interaction.** Cashonize needs an approved pairing presentation.
+  Firo's payment-URI QR flow does not provide this contract. At Cashonize
+  [`75e50ae3ee786622868d84cdfdfbb51644e4f288`](https://github.com/cashonize/cashonize-wallet/tree/75e50ae3ee786622868d84cdfdfbb51644e4f288),
+  `src/utils/payments/bip21.ts` parses address/amount parameters, while
+  `src/components/bchWallet.vue` sends an address/value output without Rosen's
+  OP_RETURN. This is a source comparison, not a wallet execution test. The
+  WalletConnect Sign Client 2.25.0 adapter remains prepared and inactive; the
+  existing EVM adapter does not expose its BCH signing methods.
+- **Submission contract.** The existing action wrapper handles safe values and
+  errors. The proposed dedicated submission port additionally bounds the
+  streamed signed body, propagates request cancellation and carries one trusted
+  deadline through the final write. It is network-owned; its fit with Rosen's
+  expected interface remains to agree. Fee, balance and preparation queries
+  already use the existing action wrapper.
+- **Scanner prerequisite.** Service uses abstract scanner 2.0.3; the BCH producer
+  uses 4.x. Their private `scannerName` fields prevent passing BCH to the shared
+  nominal scheduler type. A separate type-only prerequisite limits that argument
+  to its actual `update()`/`name()` contract. Seven local contract checks compile
+  the real v2/v4 APIs, reject four isolated wrong interfaces and verify unchanged
+  executable scheduler output. It is excluded from the BCH diff. The current
+  Service retains this one type error until the prerequisite is integrated.
+
+The current network package passes 458 tests; the wallet passes 86 tests in six
+suites. App configuration/registration/actions pass 22 cases, constants pass
+two and the actual Next submission route passes five. The actual environment
+module passes three cases and the prepared wallet factory two. Biome 2.5.4
+passes for the 124 supported UI candidate files. Service storage passes
+11 cases, including a populated PostgreSQL upgrade and reconnect. These are
+local preparation results, with overlapping earlier scopes counted separately.
+They do not establish released installation or enabled wallet operation.
+The restored default Next/Turbopack build fails with 293 errors in the current
+linked dependency graph. Earlier Webpack/browser receipts belong to the prior
+candidate and do not validate this correction. RCS document review, producer
+releases and the accepted UI contract remain open before review readiness.
 
 ## Design and boundaries
 
@@ -277,28 +335,25 @@ A bounded server-side TLS Electrum provider authenticates raw parents and return
 a stable confirmed native UTXO snapshot. Public reads on 2026-10-01 qualified
 cashnode.bch.ninja:50002 and electron.jochen-hoenicke.de:51002 for certified TLS,
 protocol1.6, the BCH Axion checkpoint and a consistent observed tip. The UI
-endpoint notes record the exact scope and rejected self-signed endpoint. These
+observations are limited to that date and those methods. These
 Electrum methods do not supply Watcher/Guard BCHN RPC or wallet-history APIs;
 independent operator deployment and RPC qualification remain open.
 
 ### Wallet and chain information
 
-The wallet adapter uses Cashonize through WalletConnect. Its source exposes
+The prepared, inactive wallet adapter uses Cashonize through WalletConnect. Its source exposes
 address discovery and transaction signing, while balances and UTXOs require
 the separate read provider. Signing uses the first approved HD account, ordinary
 P2PKH addresses and Schnorr SIGHASH_ALL/ForkID0x41. The adapter independently
 validates the signed body and every input signature; the server separately
 checks policy and relists authenticated UTXOs before one submission attempt.
-Trusted App quote and min/max producers have independent local review. They
-snapshot mutable token metadata before asynchronous reads. Actual App
-registration, browser/HTTP cancellation and bounded submission wiring pass
-their local tests. The declared normal Next Webpack production build completes
-compilation, typing, page-data collection and static generation against an empty
-migrated PostgreSQL fixture. Chromium renders the Bridge with disabled controls
-under an empty token map and BCH disabled; Events reads the database and displays
-zero entries. Both browser WASM assets load and the current browser run records
-no console errors. This installed development graph does not qualify released
-installation, an enabled BCH wallet session or relay interoperability.
+Network quote and min/max producers snapshot mutable token metadata before
+asynchronous reads. Their ownership move preserves those predicates, together
+with signature validation, cancellation and submission deadlines. Focused app
+joins pass, but Cashonize is not registered. The previous Webpack production
+build and disabled-state Chromium observations are historical evidence for the
+earlier candidate. Current default-build failure and connection prerequisites
+are recorded above; enabled wallet and relay interoperability remain pending.
 
 The implementation uses prefixed ordinary mainnet CashAddr for configured
 treasury and destinations. Native BCH has eight decimal places. Confirmation
@@ -319,8 +374,8 @@ Paths below are relative to the named Rosen repository.
 | Health Check / Guard Service | Shared balance health: Health Check `packages/asset-check/lib/bitcoinCash/rpc.ts`; Guard adapter: `services/guard-service/src/guard/bitcoinCashHealthCheck.ts`. |
 | Watcher | Configuration: `src/config/config.ts`, `src/config/rosenConfig.ts` and `docker/custom-environment-variables.yaml`; scanner factory: `src/utils/scanner.ts`; jobs/init: `src/jobs/initScanner.ts`, `src/init.ts`; fee readiness: `src/utils/MinimumFeeHandler.ts`; runtime profile: `.nvmrc`, `package.json`, `Dockerfile` and `.github/workflows/ci.yml`. |
 | UI | Chain data: `packages/constants/src/index.ts` and `packages/icons/src/networks/bitcoin-cash.svg`; network/metadata/signature validation and server provider: `networks/bitcoin-cash/src/`; wallet: `wallets/cashonize/src/`. |
-| UI App | Server policy/config: `apps/rosen/src/networks/bitcoin-cash/`; HTTP submit: `apps/rosen/src/app/api/bitcoin-cash/submit/route.ts`; wallet authority: `apps/rosen/src/hooks/useWallet.tsx`; browser build: `apps/rosen/next.config.ts`. |
-| UI Service | Scanner integration: `apps/rosen-service/src/scanner/chains/bitcoin-cash.ts`; calculator: `packages/asset-calculator/lib/calculator/chains/bitcoin-cash-calculator.ts`; entity/history compatibility: `packages/data-source/src/dataSource.ts` and `migrations.ts`. |
+| UI App | Thin configuration/actions: `apps/rosen/src/networks/bitcoin-cash/`; HTTP route: `apps/rosen/src/app/api/bitcoin-cash/submit/route.ts`; prepared wallet factory: `apps/rosen/src/wallets/cashonize.ts`. |
+| UI Service | Scanner integration: `apps/rosen-service/src/scanner/chains/bitcoin-cash.ts`; calculator: `packages/asset-calculator/lib/calculator/chains/bitcoin-cash-calculator.ts`; gated entity/history registration: `apps/rosen-service/src/bitcoin-cash/data-source.ts`. |
 | Sign Protocols | ECDSA mediator: `packages/tss/lib/tss/ecdsaSigner.ts`; request admission and message digest: `services/tss-api/api/controller.go` and `services/tss-api/app/rosenTss.go`. |
 
 ## Requirements and evidence matrix
@@ -337,7 +392,7 @@ pending item names the responsible contributor, maintainer or operator.
 | LOCK / RCS-003 Requirements | E; deposits | Canonical UI unsigned/signed transactions and RPC/universal extractors. Current-source BCHN regtest accepts two signed candidates, rejects seven mutations and decodes the same bytes into two matching extractor events. | Dated node observation and independent offline byte/signature/extractor replay pass. No candidate broadcast; wallet relay and operational deposit flow pending. Contributor/operators. |
 | ENDPOINTS / RCS-003 Requirements | E; Watcher, Guard and UI | BCHN RPC connector; certified TLS Electrum address-indexed provider and dated public endpoint notes. | Two public Electrum services pass protocol/checkpoint/tip reads; no spendable fixture outputs. Watcher/Guard independent BCHN RPC and wallet-history qualification pending. Operators/contributor. |
 | TOKENS / RCS-003 Requirements                                      | Conditional; native BCH scope                                    | Token-aware addresses and CashTokens rejected. No foreign asset representation on BCH is proposed.                                                                     | BCH token support N/A for this native-only contribution; Ergo representation pending Rosen.                                                                                            |
-| DAPP / RCS-003 Requirements, Wallet package | Conditional convenience at base; explicit wallet surface for UI | Cashonize signing/session adapter and native read provider; actual BaseWallet adapter. | 47 signing/session and 25 adapter cases independently pass, including disconnect cancellation. App registration, typing, normal production build and disabled-state browser rendering pass; operational relay pending. Contributor/operators. |
+| DAPP / RCS-003 Requirements, Wallet package | Conditional convenience at base; explicit wallet surface for UI | Prepared Cashonize signing/session adapter and native read provider; BaseWallet adapter. | Wallet package 86 cases pass locally. Active app registration, accepted connection interaction and real relay remain pending. Prior app/browser receipts describe the superseded candidate. Contributor/Rosen/operators. |
 | CHAINING / RCS-003 Requirements                                    | D; excluded initially                                            | Confirmed input selection and reservation sets; no spending unconfirmed change.                                                                                        | Implemented policy; document throughput tradeoff. Contributor.                                                                                                                         |
 | IDENTITY / RCS-003 Requirements | E; concurrent/restarted payouts | Approval envelopes, signed-ID derivation and persisted recovery. Current chain/provider reconstruct exact previously observed unsigned/signed bytes and recover their envelope through bounded RPC history. | Four current-source join cases and 47 maintained transaction-processor tests pass. Two maintained cases join the actual processor, RPC provider and SQLite persistence, including an isolated recovered-body mismatch. Three private recovery/order cases pass with 2,913 stable selected pins and independent source/evidence/read-only database review. Operational custody and configured roundtrip remain pending. Contributor/operators. |
 | FEE / RCS-003 Requirements | Applicable design concern | Integer miner byte rate/cap, exact signed body, normalized metadata and trusted current server quote/ratio. | Builder/validator, 40 Network, trusted quote23 and min/max29 cases independently pass, including token refresh and absolute quote deadlines. Actual App/config compilation passes; operator monitoring pending. Contributor/operators. |
@@ -360,16 +415,16 @@ pending item names the responsible contributor, maintainer or operator.
 | WATCH-JOBS / RCS-003 Watcher Service | E; scanner, observation, jobs, sync health | Scanner factory, scheduled scanning, fee readiness and sync registration; bounded BCH fee-read adapter. | The fee adapter/handler passes 81 focused cases and seven isolated guard mutants with independent execution, including native HTTP-body abort and expired queued-request suppression. The rebuilt entry loads actual fee boxes and reaches job readiness. Its 12 timer observations include the batch watchdog. A held read expires at 2001 ms, installs no fee handler and starts only two scanner timers, with no downstream jobs. Three API routes return 200 in both modes. SQLite executes 43 migrations, retains BCH/Ergo PROCEED blocks and completes both cleanups. Independent source/evidence review verifies both 64-pin startup closures without replaying startup. Synthetic scanner health retains its earlier scoped result; deployed health and operational commitment/redeem remain open. Contributor/operators. |
 | GUARD-CONFIG / RCS-003 Guard Service | E; chain, addresses, confirmations, networks, secrets and batching | GuardsBitcoinCashConfigs, chain/network registration, readiness checks and username/password mappings. RPC batch default9999 follows RCS; the validated integer1..10000 range is a contributor design choice. | 55 config and14 balance-consumer cases independently pass. Native batches1/9999 both make exactly two asset RPC reads and two persistence calls. Types/lint pass. Nine fresh node-config processes qualify configuration/environment loading with synthetic inputs and exact mapping files; container execution and released installation remain pending. The mount arrangement below supplies the files excluded by the Docker build context. Contributor/operators. |
 | GUARD-JOINS / RCS-003 Guard Service | E; source/target processing, balance/health | Event ingestion, transaction verification, amount boundary, persistence/recovery, mediator and shared health. | Guard 455 official/321 mixed cases and four generator/recovery cases retain their reviewed scopes. Two bootstrap/init fixtures decode real WASM synthetic Guard membership and eight fee boxes, persist BCH balances, invoke empty processors and observe health Healthy→Broken→Healthy. Their 44 selected pins and eight boundary negatives have independent review. The maintained 47-case processor file adds two nonempty actual-provider/SQLite recovery cases. Three private cases prove signed persistence before sent status, reject a recovered raw-body mismatch and kill a no-op persistence mutant; independent review checks 2,913 selected pins and saved SQLite rows. Index-wrapper execution, public-IP discovery, production threshold custody and deployed roundtrip remain open. Contributor/operators. |
-| UI-BASE / RCS-003 Icons, Constants, Utils, Bases, App | E/C; one base-data contribution | Monochrome icon, registry index -1, explorer URLs, metadata workspace and unavailable-route filtering. | 32 base tests and icon declaration/build pass. Actual registration/config, production App build and disabled-state Chromium rendering pass. One actual PairingDialog DOM fixture passes. Enabled wallet/deployment qualification remains pending. Contributor/operators. |
-| UI-BUILD / RCS-003 Network and Wallet build instructions | E; named build.sh instructions at this RCS revision | This UI baseline has no build.sh. Existing root workspace discovery includes networks/* and wallets/*; Turbo/workspace builds consume these packages. | Workspace builds and the normal production App build pass locally. Using this repository's current build procedure is a proposed deviation from the named script; maintainer agreement remains pending. Contributor/Rosen. |
+| UI-BASE / RCS-003 Icons, Constants, Utils, Bases, App | E/C; one base-data contribution | BCH icon, registry index -1, explorer data and BCH-local availability gates; shared generic behavior restored. | Constants two and app registration three cases pass. Custom dialog removed, Cashonize inactive. No current browser/build closure; assigned index and accepted wallet interaction pending. Contributor/Rosen. |
+| UI-BUILD / RCS-003 Network and Wallet build instructions | E; named build.sh instructions at this RCS revision | This UI baseline has no build.sh. Existing workspace discovery includes networks/* and wallets/*; standard workspace builds consume these private packages. | Network/wallet builds and type checks pass in the preparation graph. Default Next/Turbopack fails with 293 errors in that linked graph. Normal clean install/build after producer releases and acceptance of the current repository build mechanism remain pending. Contributor/Rosen. |
 | UI-CALC / RCS-003 Asset Calculator | E; native balances | Native BCH calculator and optional constructor config; explicit server-only TLS Electrum read provider factory. | Final37 mixed cases and four Service factory tests retain independent review. Two actual Service calculator/provider/session/TokenMap/PostgreSQL fixtures store100001 satoshis as2 normalized units and the synthetic represented-token supply as1000. Repetition preserves rows; an isolated parent-value mismatch produces exactly one expected rejection warning and preserves existing amounts. TLS is substituted; live accounting and atomic failure handling are not established. Contributor/operators. |
-| UI-SERVICE / RCS-003 Rosen Service | E; scanner, observation, events, calculator, sync health | Optional scanner, observations, commitments, event triggers, accounting and sync-health joins; explicit configuration. | Prior 79 tests retain their scope. Two enabled/disabled health-registration cases pass with independent execution and a killed registration mutant; current TypeScript check passes. Five fresh-process ingestion/config fixtures and two accounting/health fixtures join actual consumers to PostgreSQL, including identity, persistence and threshold negatives. Independent source/evidence review passes within those scopes. Operational full-entry startup needs the accepted whole-service profile; released installation and deployed operation remain pending. Contributor/operators. |
-| UI-DB / RCS-003 Rosen Service/Scanner | D; retain legacy persistence while adding BCH package identities | Optional data-source entity/history extension; scanner2.0.3/4.0.0 and exact-lock observation1.0.10/2.0.0 histories. | Seven tests, three offline probes and exact-version review pass. Genuine factory/native pg runs35 migrations/21 entity identities disabled and36/24 enabled. A populated upgrade preserves three legacy records, alias CRUD and three duplicate-row rejections; added-migration DOWN is rolled back and reconnect adds no migrations. Actual Service ingestion/accounting and App Events additionally consume PostgreSQL. Review inspects source and author evidence without independent PG replay. Wider legacy-data coverage and deployment remain separate gates. Contributor/operators. |
-| UI-NETWORK / RCS-003 Network Package | E; height, fee, min/max and complete lock transaction | Canonical metadata, authenticated unsigned deposit/fee estimator, signed Schnorr validator and typed client ports. | Frozen builder/validator and40 client cases independently pass; the consolidated metadata mirror passes22. App quote23/min-max29 and registry3 cases pass. Actual App wiring, typing and normal production build pass. Contributor. |
-| UI-TRANSPORT / RCS-003 Network/App | D; bounded backend policy and submission | TLS read/submission, native cancellation and one trusted absolute HTTP deadline propagated through quote, authorization and final socket write. | 180 server, quote23/handler13 and browser15 cases independently pass. Real mocked whole join refuses late quote with zero socket/broadcast. Browser rejects post-settlement expiry. Five actual NextRequest/POST cases and normal production route build pass. Server RCS method-group delta independently closed with unchanged runtime. Contributor. |
-| UI-WALLET / RCS-003 Wallet, App wallet configuration | E; at least one wallet | Cashonize session/signing wire and actual BaseWallet adapter pinned to wallet/SDK sources; explicit first-account pairing confirmation. | 47 signing/session,25 adapter,18 pairing/startup/createEnv and six source-lease hook cases independently pass. Actual DOM pairing, App typing and full-graph compile pass. A source change or unmount invalidates old connect/restore/disconnect continuations. Full browser/relay interoperability remains pending. Contributor/operators. |
-| UI-FORM / RCS-001, RCS-003 App | E applicability; field validation consumes current wallet, asset and destination | Current upstream debounced form integration; context snapshots, input revisions and reset/unmount revocation prevent obsolete amount/address responses from publishing. | 29 mirrored cases independently pass with the declared Vitest configuration, including isolated balance/address/max/min boundaries, token identity/type, field changes and identical resets. A real React/React Hook Form replay confirms a late minimum rejection leaves the reset field clear and stops its spinner. Broader real-browser behavior remains pending. Contributor/operators. |
-| UI-BROWSER / RCS-003 Network/App | E applicability; client-side transaction and address APIs. D; browser dependency mapping | Shared Ergo/Cardano codec packages map matching exact Node/browser WASM versions; App uses Webpack async WASM and its existing Buffer provider. | Controlled web-target VM and real Chromium execute22 first-use metadata/signature checks, including seven mutants and independently held WASM replies. The normal production App build additionally completes page-data/static generation against genuine empty PostgreSQL. Actual Chromium renders disabled Bridge controls, loads both WASM assets and receives200 from the empty Events API with no current console errors. Selected inputs are pinned; browser execution is author-run. Private dependency deduplication and a native pg resolution link are part of this installed graph. Clean released installation, enabled BCH interaction and wallet relay remain separate gates. Contributor/operators. |
+| UI-SERVICE / RCS-003 Rosen Service | E; scanner, observation, events, calculator, sync health | Optional BCH scanner/observations/accounting/health and explicit configuration; unchanged shared scheduler. | Prior ingestion/accounting/health fixtures remain evidence for their unchanged inputs. Current Service typing has one scanner-v2/v4 nominal error; the separate scheduler prerequisite compiles with zero diagnostics. Whole-entry startup, normal released installation and deployed operation remain pending. Contributor/Rosen/operators. |
+| UI-DB / RCS-003 Rosen Service/Scanner | D; preserve legacy persistence while adding BCH identities | Service-local pre-initialization registration; unchanged shared data-source API. | 11 local cases pass: legacy constructor/migration preservation, enabled/disabled wiring, ownership guards and actual populated PostgreSQL upgrade. Legacy rows, alias CRUD, uniqueness, rollback-only DOWN and reconnect checked. Independent source review does not replay PostgreSQL; wider deployment data and released graph remain pending. Contributor/operators. |
+| UI-NETWORK / RCS-003 Network Package | E; height, fee, min/max and complete lock transaction | Network-owned metadata, native construction/signature validation, quote/limits, provider and typed client ports. | 458 package cases and type/build checks pass locally; app actions/configuration/registration 22 cases pass. Ownership review finds no relaxed predicates in the moved bodies. Default app build and released consumer closure remain pending. Contributor/Rosen. |
+| UI-TRANSPORT / RCS-003 Network/App | D; bounded backend submission contract | Network-owned client/codec/streamed body/handler; thin app route and standard wrapped query actions. | Retained boundary tests are part of the 458-case package suite. Five actual NextRequest/POST cases pass after using the dedicated package entry. Deadline, cancellation and byte bounds retained. Agreement on the dedicated submission contract and normal production build remain pending. Contributor/Rosen. |
+| UI-WALLET / RCS-003 Wallet, App wallet configuration | E; at least one wallet | Wallet-owned Cashonize config, session, pairing and signing; prepared app factory excluded from active registry. | 86 cases in six suites and package typing pass. No team-owned connection component consumed. Accepted pairing interaction, SDK direction, actual app activation and relay qualification remain pending; the old custom dialog is excluded. Contributor/Rosen/operators. |
+| UI-FORM / RCS-001, RCS-003 App | E applicability; reuse current form behavior | Existing upstream form/wallet hooks retained; only registry imports change. | Generic stale-response fixes and their tests are preserved as separate work, outside this contribution. Their earlier receipts do not describe current BCH behavior. Enabled wallet/form qualification follows the accepted interaction. Contributor/Rosen. |
+| UI-BROWSER / RCS-003 Network/App | E applicability; client-side transaction/address APIs | Standard app build configuration restored; no BCH-specific shared Webpack adaptation. | Earlier Webpack/WASM/Chromium receipts apply to the prior candidate only. Current default build fails in the private linked graph. Normal released install/build and enabled browser/relay checks remain open. Contributor/Rosen/operators. |
 | CONTRACTS / RCS-003 Contracts                                      | E; Rosen-owned outputs                                           | Contracts, protocol chain index, token map, RWT/permit/fraud addresses and represented tokens.                                                                         | Pending Rosen team. Contributor supplies documented interfaces and fixtures.                                                                                                           |
 | CHAIN-INFO / RCS-003 recommended information                       | R; reviewer/operator context                                     | Address/decimal/confirmation policy described above; deployment profile must supply finality, derivation and node sizing.                                              | Partly supplied; operator profile pending. Operators.                                                                                                                                  |
 | RELEASE / RCS-003 Integration Notes, cross-repository dependencies | C/E applicability; reproducible installation | Package inventory and dependency order below; dedicated tss-api patch changeset covers the Go runtime, separately from npm TSS. | A clean local-tarball installation rehearsal and release preparation are supplied. Actual accepted versions, package/binary publication and private UI deployment remain Rosen-owned; published-version lock regeneration and native/full-application installation qualification remain contributor work after those releases. |
@@ -448,15 +503,15 @@ the eight database cases when that URL is absent. All 12 maintained cases have
 independent execution on PostgreSQL 17.11; they use synthetic extractor-reference
 queries and do not establish deployment compatibility or a clean released install.
 
-UI's data-source package supplies a maintained populated-upgrade test and four
-isolated ownership/URL guards. Its five cases pass with independent source and
-evidence review; the ordinary suite passes 11 cases and skips the database case
+UI's Rosen Service supplies a maintained populated-upgrade test and four
+isolated ownership/URL guards. Together with registration/wiring checks,
+11 cases pass locally with independent source review; the ordinary suite skips the database case
 without a URL. After building the UI workspace and Service-declared BCH packages,
 set `ROSEN_UI_TEST_POSTGRES_URL` privately to a dedicated test-server connection
 whose role can create and drop databases, then run in the UI repository:
 
 ```sh
-npm run test:postgres --workspace=@rosen-ui/data-source
+npm run test:postgres --workspace=@rosen-bridge/rosen-service
 ```
 
 The command rejects a missing URL. A random database is required because the
@@ -567,7 +622,7 @@ private workspaces deployed with their consumers.
    Existing `0.0.0` ranges are source-workspace placeholders, not registry releases.
 6. Recheck the affected installed joins: Watcher build/types/tests and startup;
    Guard chain/config/shared-health; UI Service factory/bootstrap/types/tests;
-   App typing and its declared Webpack build. Record package metadata, lockfile
+   App typing and its standard declared build. Record package metadata, lockfile
    digest, clean-install evidence and binary/image identities.
 7. Publish the TSS API binary containing the Go admission/registry fixes using
    the repository's `tss-api-*` tag workflow. Its private package has a dedicated
@@ -575,13 +630,13 @@ private workspaces deployed with their consumers.
    Watcher's release script produces a host binary; private Guard/UI deployment
    and TSS API binary publication are separate from npm package publication.
 
-Read-only release-plan assembly succeeds for the coordinated UI candidate.
+Read-only release-plan assembly succeeded for the preceding UI candidate.
 Its selective `version:rosen-service`, `version:guard` and `version:watcher`
-scripts currently reject ignored dependency edges and mixed changesets.
+scripts rejected ignored dependency edges and mixed changesets in that rehearsal.
 Ignoring BCH network would also conflict with Rosen Service, which consumes
 its server provider. A separate application release therefore needs an accepted
-dependency closure and split mixed changesets; blindly excluding the new
-packages is insufficient. Calculated version bumps do not select Rosen's
+dependency closure. The plan must be recalculated for the corrected scope;
+excluding required packages is insufficient. Calculated version bumps do not select Rosen's
 release versions or authorize publishing.
 
 A disposable consumer graph also passes offline `npm ci` under Node 22.18.0
@@ -722,7 +777,7 @@ threshold membership and maintenance-window authority.
 | PACKAGES, RELEASE, HEALTH, WATCH-RUNTIME, UI-BUILD | Inventory, package dry-runs, clean local-tarball consumer rehearsal and release order are supplied. Qualify published-version/native/full-application installs and regenerate dependent locks once packages exist. | Accepted producer releases, registry versions/tags and UI build-script adaptation decision. Rosen. |
 | SCAN, OBSERVE, UI-DB, UI-SERVICE | Maintained Scanner/PostgreSQL cleanup and populated UI upgrade commands, plus actual Service ingestion/accounting/health joins, are supplied. The Service entry's startup assembly has source/test review; its full operational run also starts eight existing chain services without disable switches and needs the accepted whole-service profile. | Actual database/deployment profile, whole-service legacy-chain configuration and released graph for activation. Operators/Rosen. |
 | GUARD-CONFIG, GUARD-JOINS, FEE | Mapping/mount checks, synthetic initialization/health and maintained nonempty provider/processor/SQLite recovery tests are supplied. Three private recovery/order cases have independent selected-source and saved-database review. Apply retained validators and negatives to accepted production inputs. | Contract/token configuration, aggregate treasury key, fee/confirmation/health policy and deployed services. Rosen/operators. |
-| UI-BASE, UI-WALLET, UI-FORM, UI-BROWSER, LOCK, DAPP | Real-browser crypto/metadata fixtures, normal production App build and disabled-state App smoke are supplied. Execute the enabled wallet/operational acceptance procedure once its inputs and authority exist. | WalletConnect/Wallet approval, real wallet session and authorized operational deposit. Operators/user. |
+| UI-BASE, UI-WALLET, UI-FORM, UI-BROWSER, LOCK, DAPP | Package algorithms, validators and thin app joins prepared; custom UI and generic fixes excluded. Qualify standard released build, then enabled wallet/operational acceptance on the accepted interaction. | RCS/design review, producer releases, scanner prerequisite, accepted pairing/SDK/submission contracts and authorized operational deposit. Rosen/operators/user. |
 | ENDPOINTS, PROVIDER | Bounded Guard read-only capability API, sample inventory and synthetic/package consumer validation are supplied. Scanner's separate read-only block-body example includes sample checks, limits and supervision guidance. | Independent BCHN deployments, credentials and imported treasury/history; selected Electrum deployment. Operators. |
 | CONTRACTS, TOKENS, CHAIN-INFO | Parameterized interfaces, deterministic fixtures and the input/acceptance checklist below are supplied. Apply existing startup validators to the actual accepted outputs when supplied. | BCH chain index, represented Ergo token, contracts/RWT/permit/fraud addresses, aggregate-key derivation and production policy. Rosen/operators. |
 | CUSTODY, IDENTITY, WATCH-JOBS, ACCEPTANCE | Current TSS source reuse, synthetic threshold fixtures, maintained recovery tests, bounded fee-read tests and rebuilt Watcher startup review are supplied. The operational threshold/roundtrip acceptance sequence is supplied below. | Threshold group/key ceremony, accepted TSS binary, coordinated PR acceptance/merge/release and authorized activation. Rosen/operators/user. |
@@ -788,10 +843,10 @@ only the BCH registration call makes the enabled case fail while its disabled
 control passes. Both cases have independent execution and exact mutant-evidence
 review. They execute no periodic report job or full Service entry.
 
-The App uses the declared `npm run build --workspace @rosen-bridge/rosen-app`
-production command and actual `next start`. The extended TypeORM wrapper is
-bundled because its installed ESM entry uses extensionless imports; `typeorm`
-itself remains external. Build43 and server45 selected inputs, seven build
+The preceding App fixture used `npm run build --workspace @rosen-bridge/rosen-app`
+with the former Webpack adaptation and actual `next start`. Its extended TypeORM
+wrapper was bundled because its installed ESM entry used extensionless imports;
+`typeorm` itself remained external. Build43 and server45 selected inputs, seven build
 outputs, HTTP logs, screenshots and accessibility snapshots have independent
 source/evidence review. Browser execution is author-run. The empty fixture
 database and disabled BCH configuration qualify startup/rendering only. Both
@@ -801,7 +856,8 @@ are closed after capture; unrelated local services are preserved.
 These selected pins do not cover every transitive installed dependency. Private
 development links unify duplicate native modules, AddressManager identity and
 the declared pg dependency. The release checklist's clean installation remains
-necessary once accepted producer packages exist.
+necessary once accepted producer packages exist. These historical App results
+do not close the corrected candidate's default-build or browser gates.
 
 ### Deployment inputs and acceptance procedure
 
