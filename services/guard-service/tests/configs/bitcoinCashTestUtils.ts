@@ -2,11 +2,9 @@ import { decodeAddress } from '@rosen-bridge/address-codec';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 
 import { ChainConfigs } from '../../src/types/contract';
+import { bchPublicKey, ergoAddress } from './bitcoinCashTestData';
 
 // Synthetic public-key/asset fixtures; never operator deployment values.
-/** Compressed public key of the fixed synthetic BCH fixture signer. */
-export const bchPublicKey =
-  '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798';
 /** Mainnet P2PKH address derived from the synthetic treasury public key. */
 export const bchLock = decodeAddress(
   'bitcoin-cash',
@@ -17,9 +15,6 @@ export const bchCold = decodeAddress(
   'bitcoin-cash',
   '76a914' + '12'.repeat(20) + '88ac',
 );
-/** Valid Ergo address used by synthetic Watcher contract fields. */
-export const ergoAddress =
-  '9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD';
 /** Return a fresh synthetic BCH contract configuration. */
 export const bchContract = (): ChainConfigs => ({
   addresses: {

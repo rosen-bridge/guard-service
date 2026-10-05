@@ -4,7 +4,7 @@ import { HealthCheck, HealthStatusLevel } from '@rosen-bridge/health-check';
 import type { BitcoinCashRpcNetwork } from '@rosen-chains/bitcoin-cash-rpc';
 
 import { BitcoinCashHealthCheckParam } from '../../src/guard/bitcoinCashHealthCheck';
-import { bchLock } from '../configs/bitcoinCashFixtures';
+import { bchLock } from '../configs/bitcoinCashTestUtils';
 
 describe('BitcoinCashHealthCheckParam', () => {
   /**

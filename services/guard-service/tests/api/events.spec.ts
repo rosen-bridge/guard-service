@@ -11,7 +11,7 @@ import { mockPaymentTransaction as bchApi_mockPaymentTransaction } from '../agre
 import {
   insertNamespaceEvent as bchApi_insertNamespaceEvent,
   namespaceEvent as bchApi_namespaceEvent,
-} from '../db/bitcoinCashNamespaceFixtures';
+} from '../db/bitcoinCashNamespaceTestUtils';
 import bchApi_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 
 describe('eventRoutes', () => {

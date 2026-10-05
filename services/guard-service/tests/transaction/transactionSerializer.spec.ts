@@ -3,7 +3,7 @@ import { ErgoTransaction as bchGuardNamespace_ErgoTransaction } from '@rosen-cha
 
 import bchGuardNamespace_EventSerializer from '../../src/event/eventSerializer';
 import { getTxDataHash as bchGuardNamespace_getTxDataHash } from '../../src/transaction/transactionSerializer';
-import { namespaceEvent as bchGuardNamespace_namespaceEvent } from '../db/bitcoinCashNamespaceFixtures';
+import { namespaceEvent as bchGuardNamespace_namespaceEvent } from '../db/bitcoinCashNamespaceTestUtils';
 import bchGuardNamespace_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 
 describe('getTxDataHash', () => {

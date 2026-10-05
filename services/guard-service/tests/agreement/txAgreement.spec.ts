@@ -26,7 +26,7 @@ import BchConsumers_TransactionVerifier from '../../src/verification/transaction
 import {
   insertNamespaceEvent as BchConsumers_insertNamespaceEvent,
   namespaceEvent as BchConsumers_namespaceEvent,
-} from '../db/bitcoinCashNamespaceFixtures';
+} from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import BchConsumers_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import * as EventTestData from '../event/testData';

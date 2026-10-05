@@ -1,18 +1,27 @@
-import { binToHex, encodeTransactionBCH, secp256k1 } from '@bitauth/libauth';
+import {
+  binToHex,
+  encodeTransactionBCH,
+  hexToBin,
+  secp256k1,
+} from '@bitauth/libauth';
 
 import {
   buildBchSignedTransaction,
   decodeBchTransaction,
   getBchSigningDigest,
 } from '../lib/bitcoinCashUtils';
-import { BitcoinCashRawTransaction } from '../lib/types';
+import { BitcoinCashPrevout, BitcoinCashRawTransaction } from '../lib/types';
 import {
-  unsigned,
-  prevouts,
-  privateKey,
+  privateKeyHex,
   publicKey,
   treasuryScript,
-} from './fixtures';
+  unsignedHex,
+  parentId,
+  parentHex,
+} from './bitcoinCashTestData';
+
+/** Synthetic scalar-1 key bytes for deterministic signing. */
+export const privateKey = hexToBin(privateKeyHex);
 
 /**
  * Apply an isolated body fault to the fixed unsigned vector.
@@ -47,3 +56,21 @@ export const signatures = () =>
  */
 export const signed = () =>
   buildBchSignedTransaction(unsigned(), prevouts(), publicKey, signatures());
+
+/**
+ * Read a fresh copy of the fixed independently serialized unsigned vector.
+ * @returns Canonical two-input transaction bytes
+ */
+export const unsigned = () => hexToBin(unsignedHex);
+/**
+ * Build fresh prevout context for the two ordered fixed-vector inputs.
+ * @returns Native values, treasury scripts and independently serialized parent bytes
+ */
+export const prevouts = (): BitcoinCashPrevout[] =>
+  [50_000n, 40_000n].map((value, index) => ({
+    txId: parentId,
+    index,
+    value,
+    scriptPubKey: treasuryScript,
+    parentTransactionHex: parentHex,
+  }));

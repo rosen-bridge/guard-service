@@ -17,16 +17,14 @@ import {
   getBchSigningDigest,
 } from '../lib/bitcoinCashUtils';
 import { BCH_MAX_ENVELOPE_CHARACTERS } from '../lib/constants';
-import { mutate, signatures, signed } from './bitcoinCashTestUtils';
 import {
   approvalId,
   parentHex,
-  prevouts,
-  privateKey,
   publicKey,
   treasuryScript,
-  unsigned,
-} from './fixtures';
+} from './bitcoinCashTestData';
+import { mutate, signatures, signed } from './bitcoinCashTestUtils';
+import { prevouts, privateKey, unsigned } from './bitcoinCashTestUtils';
 
 /**
  * Wrap a fresh fixed unsigned vector with its native parent context.

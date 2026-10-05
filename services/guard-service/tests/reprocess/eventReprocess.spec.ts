@@ -17,7 +17,7 @@ import RosenDialerMock from '../communication/mocked/rosenDialer.mock';
 import {
   insertNamespaceEvent as BchReprocess_insertNamespaceEvent,
   namespaceEvent as BchReprocess_namespaceEvent,
-} from '../db/bitcoinCashNamespaceFixtures';
+} from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import BchReprocess_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import * as EventTestData from '../event/testData';

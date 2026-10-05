@@ -73,7 +73,8 @@ describe('EventProcessor', () => {
     });
 
     /**
-     * @target EventProcessor.processScannedEvents - retries branch disagreement and recovers
+     * @target EventProcessor.processScannedEvents retries branch disagreement
+     * after %i compatible reads and recovers
      * @dependencies Actual BCH RPC/chain/extractor, EventVerifier and migrated SQLite;
      * deterministic RPC transport and registry/Ergo-height/fee/box lookup seams.
      * @scenario Return a different active hash at the source height, either during

@@ -24,7 +24,7 @@ import {
   insertNamespaceCommitment as bchDbNamespace_insertNamespaceCommitment,
   insertNamespaceEvent as bchDbNamespace_insertNamespaceEvent,
   namespaceEvent as bchDbNamespace_namespaceEvent,
-} from './bitcoinCashNamespaceFixtures';
+} from './bitcoinCashNamespaceTestUtils';
 import {
   insertCompletedEvent,
   insertEventsWithAmount,

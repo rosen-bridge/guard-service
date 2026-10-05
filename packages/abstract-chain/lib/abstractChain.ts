@@ -309,16 +309,6 @@ abstract class AbstractChain<TxType> {
   ) => Promise<boolean>;
 
   /**
-   * Materializes a verified signed envelope recovered from the network.
-   * Chains whose persisted identity already carries signed bytes need no hook.
-   * A present hook must return the existing signed envelope unchanged, or the
-   * matching signed body; absence or unavailable recovery must not advance state.
-   */
-  getRecoveredTransaction?: (
-    transaction: PaymentTransaction,
-  ) => Promise<PaymentTransaction | undefined>;
-
-  /**
    * @param transactionType type of the transaction
    * @returns required number of confirmation
    */
@@ -350,15 +340,9 @@ abstract class AbstractChain<TxType> {
   getTxConfirmationStatus = async (
     transactionId: string,
     transactionType: TransactionType,
-    transaction?: PaymentTransaction,
   ): Promise<ConfirmationStatus> => {
     const requiredConfirmation =
       this.getTxRequiredConfirmation(transactionType);
-    if (
-      transaction &&
-      (transaction.txId !== transactionId || transaction.network !== this.CHAIN)
-    )
-      throw Error('Transaction identity context does not match');
     const confirmation = await this.network.getTxConfirmation(transactionId);
     if (confirmation >= requiredConfirmation)
       return ConfirmationStatus.ConfirmedEnough;
@@ -435,10 +419,7 @@ abstract class AbstractChain<TxType> {
    * @param transactionId the transaction id
    * @returns true if the transaction is in mempool
    */
-  abstract isTxInMempool: (
-    transactionId: string,
-    transaction?: PaymentTransaction,
-  ) => Promise<boolean>;
+  abstract isTxInMempool: (transactionId: string) => Promise<boolean>;
 
   /**
    * checks if lock address assets are more than required assets or not
@@ -524,14 +505,7 @@ abstract class AbstractChain<TxType> {
    * gets the actual id of a transaction by its txId
    * @param txId
    */
-  getActualTxId = (txId: string, transaction?: PaymentTransaction) => {
-    if (
-      transaction &&
-      (transaction.txId !== txId || transaction.network !== this.CHAIN)
-    )
-      throw Error('Transaction identity context does not match');
-    return this.network.getActualTxId(txId);
-  };
+  getActualTxId = (txId: string) => this.network.getActualTxId(txId);
 }
 
 export default AbstractChain;

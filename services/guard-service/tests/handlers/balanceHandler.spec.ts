@@ -15,7 +15,7 @@ import {
   bchTokenMap as bchRegistration_bchTokenMap,
   bchValues as bchRegistration_bchValues,
   bchLock as bchRegistration_bchLock,
-} from '../configs/bitcoinCashFixtures';
+} from '../configs/bitcoinCashTestUtils';
 import { createBitcoinCashConfigMock } from '../configs/mocked/guardsBitcoinCashConfigs.mock';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import ChainHandlerMock from './chainHandler.mock';

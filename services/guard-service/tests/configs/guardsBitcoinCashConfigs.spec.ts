@@ -12,12 +12,12 @@ import {
   bchTokenSet as bchConfig_bchTokenSet,
   bchValues as bchConfig_bchValues,
   bchCold as bchConfig_bchCold,
-} from './bitcoinCashFixtures';
+} from './bitcoinCashTestUtils';
 import {
   bchContract as bchConfigHealth_bchHealthRegistration_bchContract,
   bchTokenSet as bchConfigHealth_bchHealthRegistration_bchTokenSet,
   bchValues as bchConfigHealth_bchHealthRegistration_bchValues,
-} from './bitcoinCashFixtures';
+} from './bitcoinCashTestUtils';
 import { createBitcoinCashConfigMock } from './mocked/guardsBitcoinCashConfigs.mock';
 
 describe('GuardsBitcoinCashConfigs', () => {
@@ -252,7 +252,7 @@ describe('GuardsBitcoinCashConfigs', () => {
         expect(reader).toHaveBeenCalledExactlyOnceWith('bitcoin-cash');
       });
       /**
-       * @target GuardsBitcoinCashConfigs.load - accepts TLS and literal loopback
+       * @target GuardsBitcoinCashConfigs.load accepts RPC endpoint %s
        * @dependencies Mocked config and contract readers, real BCH TokenMap
        * @scenario Change only the RPC endpoint to each allowed transport form
        * @expected Load the operator policy and preserve the configured URL

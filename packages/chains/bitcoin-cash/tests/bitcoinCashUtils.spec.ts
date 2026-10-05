@@ -31,18 +31,17 @@ import {
   BCH_MAX_TRANSACTION_BYTES,
 } from '../lib/constants';
 import { BitcoinCashRawTransaction } from '../lib/types';
-import { mutate, digest, signatures, signed } from './bitcoinCashTestUtils';
 import {
   approvalId,
   firstDigest,
   firstPreimage,
   parentHex,
   parentId,
-  prevouts,
   publicKey,
   treasuryScript,
-  unsigned,
-} from './fixtures';
+} from './bitcoinCashTestData';
+import { mutate, digest, signatures, signed } from './bitcoinCashTestUtils';
+import { prevouts, unsigned } from './bitcoinCashTestUtils';
 
 describe('bitcoinCashUtils', () => {
   describe('getBchSigningPreimage', () => {

@@ -227,6 +227,7 @@ class ChainHandler {
     );
   };
 
+  /** Constructs the configured BCH chain, RPC provider and signing mediator. */
   private generateBitcoinCashChain = (): BitcoinCashChain => {
     const tokens = TokenHandler.getInstance().getTokenMap();
     const configs = GuardsBitcoinCashConfigs.load(tokens);

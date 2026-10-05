@@ -18,11 +18,10 @@ import {
 import { decodeBchTransaction } from '@rosen-chains/bitcoin-cash';
 
 import { RpcTransport } from '../lib/types';
+import { fixtureKeyHex, tip, block } from './bitcoinCashRpcTestData';
 
 // Fixed synthetic fixture key, never a funded wallet or operator credential.
-const fixtureKey = Uint8Array.from({ length: 32 }, (_, i) =>
-  i === 31 ? 1 : 0,
-);
+const fixtureKey = hexToBin(fixtureKeyHex);
 const key = secp256k1.derivePublicKeyCompressed(fixtureKey);
 if (typeof key === 'string') throw Error(key);
 /** Compressed public key corresponding to the deterministic scalar-1 fixture. */
@@ -35,10 +34,6 @@ export const address = encodeCashAddress({
   type: CashAddressType.p2pkh,
   payload: hexToBin(script.slice(6, 46)),
 }).address;
-/** Synthetic block identifier returned by the mocked BCHN chain tip. */
-export const tip = 'ab'.repeat(32);
-/** Synthetic block identifier used for confirmed transaction fixtures. */
-export const block = 'cd'.repeat(32);
 
 /**
  * Encode a synthetic parent with one native treasury output.

@@ -7,14 +7,14 @@ import {
   probeBitcoinCashRpcCapabilities,
   readOnlyBitcoinCashRpcTransport,
 } from '../lib';
+import { block } from './bitcoinCashRpcTestData';
 import {
   address,
-  block,
   fixture,
   parentId,
   signedId,
   unsigned,
-} from './fixtures';
+} from './bitcoinCashRpcTestUtils';
 
 /** Operator-selected synthetic absence hash, distinct from every fixture ID. */
 const absent = 'fe'.repeat(32);

@@ -31,11 +31,13 @@ import { EventStatus } from '../../src/utils/constants';
 import EventVerifier from '../../src/verification/eventVerifier';
 import bchEventContract_EventVerifier from '../../src/verification/eventVerifier';
 import {
-  bchLock as bchEventContract_bchLock,
   bchPublicKey as bchEventContract_bchPublicKey,
-  bchTokenSet as bchEventContract_bchTokenSet,
   ergoAddress as bchEventContract_ergoAddress,
-} from '../configs/bitcoinCashFixtures';
+} from '../configs/bitcoinCashTestData';
+import {
+  bchLock as bchEventContract_bchLock,
+  bchTokenSet as bchEventContract_bchTokenSet,
+} from '../configs/bitcoinCashTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { mockEventTrigger } from '../event/testData';
 import ChainHandlerMock from '../handlers/chainHandler.mock';

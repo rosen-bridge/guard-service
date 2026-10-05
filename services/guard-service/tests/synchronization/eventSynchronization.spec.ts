@@ -24,7 +24,7 @@ import { mockPaymentTransaction as BchConsumers_mockPaymentTransaction } from '.
 import {
   insertNamespaceEvent as BchConsumers_insertNamespaceEvent,
   namespaceEvent as BchConsumers_namespaceEvent,
-} from '../db/bitcoinCashNamespaceFixtures';
+} from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import BchConsumers_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { mockCreateEventPaymentOrder } from '../event/mocked/eventOrder.mock';
@@ -914,8 +914,8 @@ describe('EventSynchronization', () => {
     });
 
     /**
-     * @target EventSynchronization.verifySynchronizationResponse should return true
-     * when all conditions are met
+     * @target EventSynchronization.verifySynchronizationResponse verifies
+     * synchronized identity for %s (matching: %s)
      * @dependencies
      * - database
      * - ChainHandler

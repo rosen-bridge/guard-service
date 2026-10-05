@@ -8,7 +8,7 @@ import {
   bchTokenSet as bchHealthRegistration_bchTokenSet,
   bchValues as bchHealthRegistration_bchValues,
   bchLock as bchHealthRegistration_bchLock,
-} from '../configs/bitcoinCashFixtures';
+} from '../configs/bitcoinCashTestUtils';
 import { createBitcoinCashConfigMock } from '../configs/mocked/guardsBitcoinCashConfigs.mock';
 
 describe('getHealthCheck', () => {

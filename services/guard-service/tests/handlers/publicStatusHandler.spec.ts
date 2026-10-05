@@ -15,7 +15,7 @@ import { mockPaymentTransaction as bchPublicStatus_mockPaymentTransaction } from
 import {
   insertNamespaceEvent as bchPublicStatus_insertNamespaceEvent,
   namespaceEvent as bchPublicStatus_namespaceEvent,
-} from '../db/bitcoinCashNamespaceFixtures';
+} from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import bchPublicStatus_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import * as EventTestData from '../event/testData';

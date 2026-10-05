@@ -1,6 +1,6 @@
 import bchGuardNamespace_EventSerializer from '../../src/event/eventSerializer';
 import bchGuardNamespace_Utils from '../../src/utils/utils';
-import { namespaceEvent as bchGuardNamespace_namespaceEvent } from '../db/bitcoinCashNamespaceFixtures';
+import { namespaceEvent as bchGuardNamespace_namespaceEvent } from '../db/bitcoinCashNamespaceTestUtils';
 import bchGuardNamespace_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 
 describe('EventSerializer', () => {

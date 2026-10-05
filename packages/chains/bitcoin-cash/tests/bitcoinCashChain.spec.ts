@@ -29,7 +29,8 @@ import {
 } from '../lib/bitcoinCashUtils';
 import { BitcoinCashConfigs, BitcoinCashUtxo } from '../lib/chainTypes';
 import AbstractBitcoinCashNetwork from '../lib/network/abstractBitcoinCashNetwork';
-import { privateKey, publicKey, treasuryScript } from './fixtures';
+import { publicKey, treasuryScript } from './bitcoinCashTestData';
+import { privateKey } from './bitcoinCashTestUtils';
 
 /**
  * Encode a fixture locking script as a native mainnet CashAddr.
@@ -1202,7 +1203,8 @@ describe('BitcoinCashChain', () => {
   });
   describe('verifyLockTransactionExtraConditions', () => {
     /**
-     * @target BitcoinCashChain.verifyLockTransactionExtraConditions should enforce source deposit admission bounds
+     * @target BitcoinCashChain.verifyLockTransactionExtraConditions isolates
+     * canonical deposit %s
      * @dependencies Real chain source verification and canonical libauth deposits with matching raw/RPC identity
      * @scenario Vary input count, output count or bytes at the exact bound and one above, preserving the native treasury and Rosen payload
      * @expected Accept each inclusive bound and reject the isolated excess without network, signing or submission

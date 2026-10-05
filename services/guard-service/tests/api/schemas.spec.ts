@@ -1,7 +1,7 @@
 import {
   bchContract as bchConfig_bchContract,
   bchValues as bchConfig_bchValues,
-} from '../configs/bitcoinCashFixtures';
+} from '../configs/bitcoinCashTestUtils';
 import { createBitcoinCashConfigMock } from '../configs/mocked/guardsBitcoinCashConfigs.mock';
 
 describe('SupportedChainsSchema', () => {

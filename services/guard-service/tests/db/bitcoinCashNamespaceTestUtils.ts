@@ -5,29 +5,13 @@ import { DatabaseAction } from '../../src/db/databaseAction';
 import EventSerializer from '../../src/event/eventSerializer';
 import { ChainConfigKey, EventStatus } from '../../src/utils/constants';
 import Utils from '../../src/utils/utils';
+import { namespaceEventData } from './bitcoinCashNamespaceTestData';
 
 /** Build a trigger whose source namespace and individual fields can be faulted. */
 export const namespaceEvent = (
   fromChain = 'bitcoin-cash',
   changes: Partial<EventTrigger> = {},
-): EventTrigger => ({
-  height: 200,
-  fromChain,
-  toChain: 'ergo',
-  fromAddress: 'source-address',
-  toAddress: 'target-address',
-  amount: '1000000',
-  bridgeFee: '3',
-  networkFee: '4',
-  sourceChainTokenId: 'source-token',
-  targetChainTokenId: 'target-token',
-  sourceTxId: '22'.repeat(32),
-  sourceChainHeight: 101,
-  sourceBlockId: '33'.repeat(32),
-  WIDsHash: '44'.repeat(32),
-  WIDsCount: 1,
-  ...changes,
-});
+): EventTrigger => ({ ...namespaceEventData, fromChain, ...changes });
 
 /** Insert the raw trigger and its current source-scoped guard identity. */
 export const insertNamespaceEvent = async (

@@ -9,7 +9,7 @@ import {
   insertNamespaceCommitment as bchDbNamespace_insertNamespaceCommitment,
   insertNamespaceEvent as bchDbNamespace_insertNamespaceEvent,
   namespaceEvent as bchDbNamespace_namespaceEvent,
-} from '../db/bitcoinCashNamespaceFixtures';
+} from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import bchDbNamespace_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import TestUtils from '../testUtils/testUtils';

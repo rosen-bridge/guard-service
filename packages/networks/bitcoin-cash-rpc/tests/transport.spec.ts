@@ -4,21 +4,14 @@ import { AddressInfo } from 'node:net';
 
 import { createBitcoinCashRpcTransport } from '../lib/transport';
 import { BitcoinCashRpcConfig } from '../lib/types';
+import { mockFetch } from './mocked/transport.mock';
 
 const config = {
   url: 'http://127.0.0.1:18443',
   expectedChain: 'regtest' as const,
   auth: { username: 'fixture-user', password: 'fixture-pass' },
 };
-/**
- * Adapt a response factory to the fetch signature without making HTTP requests.
- * @param reply - Factory receiving the parsed JSON-RPC request body
- * @returns An injected fetch implementation returning the factory response
- */
-const mockFetch = (
-  reply: (request: Record<string, unknown>) => Response | Promise<Response>,
-) =>
-  (async (_url, init) => reply(JSON.parse(String(init?.body)))) as typeof fetch;
+
 describe('createBitcoinCashRpcTransport', () => {
   describe('call', () => {
     /**
@@ -212,91 +205,9 @@ describe('createBitcoinCashRpcTransport', () => {
         ).rejects.toThrow('chunk cardinality');
       });
     });
-  });
-  /**
-   * @target createBitcoinCashRpcTransport - rejects URL credentials and unsafe
-   * limit values
-   * @dependencies Synthetic regtest endpoint configuration
-   * @scenario Put authentication in the endpoint URL or configure a zero
-   * timeout.
-   * @expected Reject both invalid configurations during transport
-   * construction.
-   */
-  it('rejects URL credentials and unsafe limit values', () => {
-    expect(() =>
-      createBitcoinCashRpcTransport({
-        ...config,
-        url: 'http://user:pass@localhost',
-      }),
-    ).toThrow();
-    expect(() =>
-      createBitcoinCashRpcTransport({ ...config, timeoutMs: 0 }),
-    ).toThrow();
-  });
-  describe('endpoint policy', () => {
-    /**
-     * @target createBitcoinCashRpcTransport - rejects plaintext remote hosts
-     * @dependencies Actual HTTP transport constructor
-     * @scenario Change only the endpoint to a non-loopback or ambiguous HTTP host
-     * @expected Reject before dispatch, including DNS and normalized IPv4 aliases
-     */
-    it.each([
-      'http://rpc.example.test',
-      'http://localhost',
-      'http://LOCALHOST.',
-      'http://127.0.0.1.example.test',
-      'http://192.168.1.1',
-      'http://0.0.0.0',
-      'http://126.255.255.255',
-      'http://128.0.0.1',
-      'http://[::]',
-      'http://[::2]',
-      'http://[::ffff:127.0.0.1]',
-      'http://[::ffff:7f00:1]',
-      'http://127.1',
-      'http://2130706433',
-      'http://0x7f000001',
-      'http://0177.0.0.1',
-      'http://127.0.0.1.',
-      'http://%31%32%37.0.0.1',
-    ])('rejects plaintext endpoint %s at construction', (url) => {
-      expect(() => createBitcoinCashRpcTransport({ ...config, url })).toThrow(
-        'HTTPS outside literal loopback',
-      );
-    });
 
     /**
-     * @target createBitcoinCashRpcTransport - rejects malformed authority
-     * @dependencies Actual HTTP transport constructor
-     * @scenario Change only URL syntax or add userinfo or a fragment marker
-     * @expected Reject with a static message that contains no endpoint contents
-     */
-    it.each([
-      'https://fixture-user:fixture-pass@rpc.example.test',
-      'https://fixture-user@rpc.example.test',
-      'https://:fixture-pass@rpc.example.test',
-      'https://@rpc.example.test',
-      'https://rpc.example.test/#',
-      'https://rpc.example.test/#fragment',
-      'https:///rpc.example.test',
-      'https:rpc.example.test',
-      'https://rpc.example.test\\@127.0.0.1',
-      ' https://rpc.example.test',
-      'https://rpc.example.test\n',
-      'https://rpc.exa\tmple.test',
-      'https://rpc.example.test:65536',
-      'http://[::1%25lo0]',
-      'ftp://127.0.0.1',
-      '//127.0.0.1',
-      'not-a-url',
-    ])('rejects ambiguous or credential-bearing endpoint %#', (url) => {
-      expect(() => createBitcoinCashRpcTransport({ ...config, url })).toThrow(
-        /^Invalid RPC endpoint$/,
-      );
-    });
-
-    /**
-     * @target createBitcoinCashRpcTransport.call - accepts TLS or literal loopback
+     * @target createBitcoinCashRpcTransport.call dispatches accepted endpoint %s
      * @dependencies Actual transport constructor and injected response-only fetch
      * @scenario Construct and call with each permitted host representation
      * @expected Pass the parsed URL, separate credentials and redirect:error
@@ -342,39 +253,6 @@ describe('createBitcoinCashRpcTransport', () => {
       );
     });
 
-    /**
-     * @target createBitcoinCashRpcTransport - requires separate paired auth
-     * @dependencies Actual HTTP transport constructor with deliberately untyped input
-     * @scenario Remove or invalidate one credential field while URL stays valid
-     * @expected Reject construction with a fixed credential-pair error
-     */
-    it.each([
-      null,
-      {},
-      { username: 'fixture-user' },
-      { password: 'fixture-pass' },
-      { username: '', password: 'fixture-pass' },
-      { username: 'fixture-user', password: '' },
-      { username: 4, password: 'fixture-pass' },
-      { username: 'fixture-user', password: 4 },
-      { username: 'u'.repeat(1025), password: 'fixture-pass' },
-      { username: 'fixture-user', password: 'p'.repeat(1025) },
-      { username: 'fixture:user', password: 'fixture-pass' },
-      { username: 'fixture\nuser', password: 'fixture-pass' },
-      { username: 'fixture-user', password: 'fixture\npassword' },
-      { username: ' fixture-user', password: 'fixture-pass' },
-      { username: 'fixture-user', password: 'fixture-pass ' },
-    ])('rejects invalid credential pair %#', (auth) => {
-      expect(() =>
-        createBitcoinCashRpcTransport({
-          ...config,
-          auth: auth as BitcoinCashRpcConfig['auth'],
-        }),
-      ).toThrow(
-        /^RPC credentials must be a valid separate username\/password pair$/,
-      );
-    });
-
     describe('platform HTTP client', () => {
       const servers: Server[] = [];
       afterEach(async () => {
@@ -398,7 +276,8 @@ describe('createBitcoinCashRpcTransport', () => {
       };
 
       /**
-       * @target createBitcoinCashRpcTransport.call - sends optional separate auth
+       * @target createBitcoinCashRpcTransport.call calls literal loopback with
+       * auth=%s
        * @dependencies Real Node fetch and a local HTTP fixture server
        * @scenario Send a valid RPC request with credentials present or absent
        * @expected Receive the result and only the configured Authorization header
@@ -432,7 +311,7 @@ describe('createBitcoinCashRpcTransport', () => {
       );
 
       /**
-       * @target createBitcoinCashRpcTransport.call - refuses all HTTP redirects
+       * @target createBitcoinCashRpcTransport.call does not follow status %s
        * @dependencies Real Node fetch and a local server with a second route
        * @scenario Return a redirect to another route on the same server
        * @expected Static transport failure; no second request or credential relay
@@ -460,6 +339,123 @@ describe('createBitcoinCashRpcTransport', () => {
           );
           expect(paths).toEqual(['/redirect']);
         },
+      );
+    });
+  });
+  /**
+   * @target createBitcoinCashRpcTransport - rejects URL credentials and unsafe
+   * limit values
+   * @dependencies Synthetic regtest endpoint configuration
+   * @scenario Put authentication in the endpoint URL or configure a zero
+   * timeout.
+   * @expected Reject both invalid configurations during transport
+   * construction.
+   */
+  it('rejects URL credentials and unsafe limit values', () => {
+    expect(() =>
+      createBitcoinCashRpcTransport({
+        ...config,
+        url: 'http://user:pass@localhost',
+      }),
+    ).toThrow();
+    expect(() =>
+      createBitcoinCashRpcTransport({ ...config, timeoutMs: 0 }),
+    ).toThrow();
+  });
+  describe('endpoint policy', () => {
+    /**
+     * @target createBitcoinCashRpcTransport rejects plaintext endpoint %s at
+     * construction
+     * @dependencies Actual HTTP transport constructor
+     * @scenario Change only the endpoint to a non-loopback or ambiguous HTTP host
+     * @expected Reject before dispatch, including DNS and normalized IPv4 aliases
+     */
+    it.each([
+      'http://rpc.example.test',
+      'http://localhost',
+      'http://LOCALHOST.',
+      'http://127.0.0.1.example.test',
+      'http://192.168.1.1',
+      'http://0.0.0.0',
+      'http://126.255.255.255',
+      'http://128.0.0.1',
+      'http://[::]',
+      'http://[::2]',
+      'http://[::ffff:127.0.0.1]',
+      'http://[::ffff:7f00:1]',
+      'http://127.1',
+      'http://2130706433',
+      'http://0x7f000001',
+      'http://0177.0.0.1',
+      'http://127.0.0.1.',
+      'http://%31%32%37.0.0.1',
+    ])('rejects plaintext endpoint %s at construction', (url) => {
+      expect(() => createBitcoinCashRpcTransport({ ...config, url })).toThrow(
+        'HTTPS outside literal loopback',
+      );
+    });
+
+    /**
+     * @target createBitcoinCashRpcTransport rejects ambiguous or
+     * credential-bearing endpoint %#
+     * @dependencies Actual HTTP transport constructor
+     * @scenario Change only URL syntax or add userinfo or a fragment marker
+     * @expected Reject with a static message that contains no endpoint contents
+     */
+    it.each([
+      'https://fixture-user:fixture-pass@rpc.example.test',
+      'https://fixture-user@rpc.example.test',
+      'https://:fixture-pass@rpc.example.test',
+      'https://@rpc.example.test',
+      'https://rpc.example.test/#',
+      'https://rpc.example.test/#fragment',
+      'https:///rpc.example.test',
+      'https:rpc.example.test',
+      'https://rpc.example.test\\@127.0.0.1',
+      ' https://rpc.example.test',
+      'https://rpc.example.test\n',
+      'https://rpc.exa\tmple.test',
+      'https://rpc.example.test:65536',
+      'http://[::1%25lo0]',
+      'ftp://127.0.0.1',
+      '//127.0.0.1',
+      'not-a-url',
+    ])('rejects ambiguous or credential-bearing endpoint %#', (url) => {
+      expect(() => createBitcoinCashRpcTransport({ ...config, url })).toThrow(
+        /^Invalid RPC endpoint$/,
+      );
+    });
+
+    /**
+     * @target createBitcoinCashRpcTransport rejects invalid credential pair %#
+     * @dependencies Actual HTTP transport constructor with deliberately untyped input
+     * @scenario Remove or invalidate one credential field while URL stays valid
+     * @expected Reject construction with a fixed credential-pair error
+     */
+    it.each([
+      null,
+      {},
+      { username: 'fixture-user' },
+      { password: 'fixture-pass' },
+      { username: '', password: 'fixture-pass' },
+      { username: 'fixture-user', password: '' },
+      { username: 4, password: 'fixture-pass' },
+      { username: 'fixture-user', password: 4 },
+      { username: 'u'.repeat(1025), password: 'fixture-pass' },
+      { username: 'fixture-user', password: 'p'.repeat(1025) },
+      { username: 'fixture:user', password: 'fixture-pass' },
+      { username: 'fixture\nuser', password: 'fixture-pass' },
+      { username: 'fixture-user', password: 'fixture\npassword' },
+      { username: ' fixture-user', password: 'fixture-pass' },
+      { username: 'fixture-user', password: 'fixture-pass ' },
+    ])('rejects invalid credential pair %#', (auth) => {
+      expect(() =>
+        createBitcoinCashRpcTransport({
+          ...config,
+          auth: auth as BitcoinCashRpcConfig['auth'],
+        }),
+      ).toThrow(
+        /^RPC credentials must be a valid separate username\/password pair$/,
       );
     });
   });

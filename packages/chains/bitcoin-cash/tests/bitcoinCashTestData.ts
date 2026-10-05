@@ -1,10 +1,6 @@
-import { hexToBin } from '@bitauth/libauth';
-
-import { BitcoinCashPrevout } from '../lib/types';
-
 // Synthetic scalar 1; never use these public test keys for funds.
 /** Publicly known scalar 1 used only by deterministic signing fixtures. */
-export const privateKey = hexToBin('00'.repeat(31) + '01');
+export const privateKeyHex = '00'.repeat(31) + '01';
 /** Compressed public key corresponding to the deterministic scalar-1 fixture. */
 export const publicKey =
   '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798';
@@ -33,20 +29,3 @@ export const firstPreimage =
 /** Independent double-SHA256 digest of the first fork-ID preimage. */
 export const firstDigest =
   '00848b2b0c44d580f72cc129155ef995002390d75648a33c83071d0466e6cc84';
-/**
- * Read a fresh copy of the fixed independently serialized unsigned vector.
- * @returns Canonical two-input transaction bytes
- */
-export const unsigned = () => hexToBin(unsignedHex);
-/**
- * Build fresh prevout context for the two ordered fixed-vector inputs.
- * @returns Native values, treasury scripts and independently serialized parent bytes
- */
-export const prevouts = (): BitcoinCashPrevout[] =>
-  [50_000n, 40_000n].map((value, index) => ({
-    txId: parentId,
-    index,
-    value,
-    scriptPubKey: treasuryScript,
-    parentTransactionHex: parentHex,
-  }));

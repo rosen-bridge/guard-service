@@ -6,9 +6,9 @@ import {
 } from '@bitauth/libauth';
 
 import { BitcoinCashRpcNetwork, BitcoinCashRpcError } from '../lib';
+import { block } from './bitcoinCashRpcTestData';
 import {
   address,
-  block,
   envelope,
   fixture,
   metadata,
@@ -19,7 +19,7 @@ import {
   signedEnvelope,
   signedId,
   unsigned,
-} from './fixtures';
+} from './bitcoinCashRpcTestUtils';
 
 const config = {
   url: 'http://127.0.0.1:18443',
@@ -41,7 +41,8 @@ const setup = (options: Parameters<typeof fixture>[0] = {}, limits = {}) => {
 describe('BitcoinCashRpcNetwork', () => {
   describe('constructor', () => {
     /**
-     * @target BitcoinCashRpcNetwork.constructor - validates default transport
+     * @target BitcoinCashRpcNetwork.constructor enforces endpoint policy without
+     * an injected transport
      * @dependencies Actual network and transport; no injected RPC implementation
      * @scenario Configure remote HTTP, then HTTPS or literal loopback HTTP
      * @expected Reject remote plaintext and accept TLS and literal loopback

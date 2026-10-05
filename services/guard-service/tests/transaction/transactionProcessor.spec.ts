@@ -1,13 +1,4 @@
 import {
-  binToHex as bchRecovery_binToHex,
-  encodeTransactionBCH as bchRecovery_encodeTransactionBCH,
-  hashTransaction as bchRecovery_hashTransaction,
-  hexToBin as bchRecovery_hexToBin,
-  secp256k1 as bchRecovery_secp256k1,
-} from '@bitauth/libauth';
-
-import { TokenMap as bchRecovery_TokenMap } from '@rosen-bridge/tokens';
-import {
   ConfirmationStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
@@ -16,17 +7,12 @@ import {
   SigningStatus as bchRecovery_SigningStatus,
   TransactionType as bchRecovery_TransactionType,
 } from '@rosen-chains/abstract-chain';
-import {
-  BitcoinCashChain as bchRecovery_BitcoinCashChain,
-  decodeBchTransaction as bchRecovery_decodeBchTransaction,
-} from '@rosen-chains/bitcoin-cash';
-import { BitcoinCashRpcNetwork as bchRecovery_BitcoinCashRpcNetwork } from '@rosen-chains/bitcoin-cash-rpc';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { DOGE_CHAIN } from '@rosen-chains/doge';
 
 import { DatabaseAction as bchRecovery_DatabaseAction } from '../../src/db/databaseAction';
 import bchOwnedEventOrder from '../../src/event/eventOrder';
 import EventSerializer from '../../src/event/eventSerializer';
-import bchRecovery_EventSerializer from '../../src/event/eventSerializer';
 import bchRecovery_ChainHandler from '../../src/handlers/chainHandler';
 import bchOwnedMinimumFeeHandler from '../../src/handlers/minimumFeeHandler';
 import TransactionProcessor from '../../src/transaction/transactionProcessor';
@@ -37,25 +23,16 @@ import {
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
-import {
-  EventStatus as bchRecovery_EventStatus,
-  TransactionStatus as bchRecovery_TransactionStatus,
-} from '../../src/utils/constants';
+import { TransactionStatus as bchRecovery_TransactionStatus } from '../../src/utils/constants';
 import {
   mockErgoPaymentTransaction,
   mockPaymentTransaction,
 } from '../agreement/testData';
-import {
-  bchPublicKey as bchRecovery_bchPublicKey,
-  bchLock as bchRecovery_bchLock,
-  bchCold as bchRecovery_bchCold,
-} from '../configs/bitcoinCashFixtures';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import bchRecovery_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { mockCreateEventPaymentOrder as bchRecovery_mockCreateEventPaymentOrder } from '../event/mocked/eventOrder.mock';
 import { mockGetEventFeeConfig as bchRecovery_mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
 import * as EventTestData from '../event/testData';
-import * as bchRecovery_EventTestData from '../event/testData';
 import ChainHandlerMock, {
   chainHandlerInstance,
 } from '../handlers/chainHandler.mock';
@@ -65,6 +42,8 @@ import bchRecovery_TestEventSynchronization from '../synchronization/testEventSy
 import { preserveBitcoinCashMocks } from '../testUtils/mocked/bitcoinCashMockScope.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TransactionProcessorMock from './transactionProcessor.mock';
+import { malformedLegacyFixture } from './transactionProcessorLegacyTestUtils';
+import { bchRecovery_setup } from './transactionProcessorTestUtils';
 
 describe('TransactionProcessor', () => {
   const currentTimeStampSeconds = Math.round(
@@ -920,7 +899,8 @@ describe('TransactionProcessor', () => {
       afterEach(() => restoreBchMocks());
 
       /**
-       * @target TransactionProcessor.processTransactions - persists actual RPC recovery before sent status
+       * @target TransactionProcessor.processSignFailedTx persists actual RPC
+       * recovery before advancing the row to sent
        * @dependencies
        * - Real SQLite, serializer, BCH chain and RPC provider; deterministic read-only transport
        * @scenario
@@ -966,7 +946,8 @@ describe('TransactionProcessor', () => {
       });
 
       /**
-       * @target TransactionProcessor.processTransactions - rejects inconsistent wallet recovery raw identity
+       * @target TransactionProcessor.processSignFailedTx retains the unsigned row
+       * when wallet recovery raw bytes mismatch its advertised ID
        * @dependencies
        * - Same real SQLite, serializer, BCH chain and RPC provider as the positive case
        * @scenario
@@ -1082,6 +1063,145 @@ describe('TransactionProcessor', () => {
           ).toEqual(true);
         },
       );
+    });
+
+    describe('legacy envelope timing', () => {
+      const status = TransactionStatus.signFailed;
+      let restoreLegacyMocks: () => void;
+      beforeEach(() => {
+        restoreLegacyMocks = preserveBitcoinCashMocks([
+          [bchRecovery_ChainHandler, ['getInstance']],
+          [chainHandlerInstance, ['getChain']],
+          [bchRecovery_TransactionSerializer, ['fromJson']],
+          [TransactionProcessor, ['processApprovedTx']],
+          [Math, ['random']],
+          [
+            bchRecovery_DatabaseAction.getInstance(),
+            ['setTxStatus', 'updateTxLastCheck'],
+          ],
+        ]);
+      });
+      afterEach(() => restoreLegacyMocks());
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx preserves
+       * malformed legacy envelopes for provider outcome %s with mempool=%s
+       * @dependencies Actual serializer; controlled legacy provider and persistence ports
+       * @scenario Find the malformed row on chain or in mempool without a recovery hook
+       * @expected Preserve provider argument shape and advance state without deserialization
+       */
+      it.each([
+        [ConfirmationStatus.NotConfirmedEnough, false],
+        [ConfirmationStatus.ConfirmedEnough, false],
+        [ConfirmationStatus.NotFound, true],
+      ])(
+        'preserves malformed legacy envelopes for provider outcome %s with mempool=%s',
+        async (confirmation, mempool) => {
+          const fixture = await malformedLegacyFixture(
+            status,
+            confirmation,
+            mempool,
+          );
+          await TransactionProcessor.processSignFailedTx(fixture.row);
+          expect(fixture.deserialize).not.toHaveBeenCalled();
+          expect(
+            fixture.chain.getTxConfirmationStatus,
+          ).toHaveBeenCalledExactlyOnceWith(fixture.row.txId, fixture.row.type);
+          if (confirmation === ConfirmationStatus.NotFound)
+            expect(fixture.chain.isTxInMempool).toHaveBeenCalledExactlyOnceWith(
+              fixture.row.txId,
+            );
+          else expect(fixture.chain.isTxInMempool).not.toHaveBeenCalled();
+          expect(fixture.setStatus).toHaveBeenCalledExactlyOnceWith(
+            fixture.row.txId,
+            TransactionStatus.sent,
+          );
+        },
+      );
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx rejects a
+       * malformed legacy envelope only after both providers report absence
+       * @dependencies Actual serializer; controlled legacy provider and persistence ports
+       * @scenario Return NotFound and false mempool membership for the malformed row
+       * @expected Query both provider ports first, then reject without changing persistence
+       */
+      it('rejects a malformed legacy envelope only after both providers report absence', async () => {
+        const fixture = await malformedLegacyFixture(
+          status,
+          ConfirmationStatus.NotFound,
+        );
+        await expect(
+          TransactionProcessor.processSignFailedTx(fixture.row),
+        ).rejects.toThrow(SyntaxError);
+        expect(
+          fixture.chain.getTxConfirmationStatus,
+        ).toHaveBeenCalledExactlyOnceWith(fixture.row.txId, fixture.row.type);
+        expect(fixture.chain.isTxInMempool).toHaveBeenCalledExactlyOnceWith(
+          fixture.row.txId,
+        );
+        expect(fixture.deserialize).toHaveBeenCalledOnce();
+        expect(fixture.setStatus).not.toHaveBeenCalled();
+        expect(fixture.updateHeight).not.toHaveBeenCalled();
+      });
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx keeps
+       * the Doge cooldown ahead of legacy deserialization and provider reads
+       * @dependencies Actual serializer; controlled Doge cooldown and provider ports
+       * @scenario Select the existing skip branch for a malformed Doge envelope
+       * @expected Skip provider/deserializer calls and retain the existing signing retry
+       */
+      it('keeps the Doge cooldown ahead of legacy deserialization and provider reads', async () => {
+        const fixture = await malformedLegacyFixture(
+          status,
+          ConfirmationStatus.NotFound,
+        );
+        fixture.row.chain = DOGE_CHAIN;
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+        const retry = vi
+          .spyOn(TransactionProcessor, 'processApprovedTx')
+          .mockResolvedValue(undefined);
+        await TransactionProcessor.processSignFailedTx(fixture.row);
+        expect(fixture.deserialize).not.toHaveBeenCalled();
+        expect(fixture.chain.getTxConfirmationStatus).not.toHaveBeenCalled();
+        expect(retry).toHaveBeenCalledExactlyOnceWith(fixture.row);
+        expect(fixture.setStatus).not.toHaveBeenCalled();
+        expect(fixture.updateHeight).not.toHaveBeenCalled();
+      });
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx rejects
+       * BCH row identity mismatch before provider or recovery calls
+       * @dependencies Actual BCH chain, authenticated unsigned envelope and migrated database
+       * @scenario Keep the exact envelope but change only its persisted approval ID
+       * @expected Refuse the context without provider reads or status advancement
+       */
+      it('rejects BCH row identity mismatch before provider or recovery calls', async () => {
+        const fixture = await bchRecovery_setup();
+        const row = Object.assign(
+          new (
+            await import('../../src/db/entities/transactionEntity')
+          ).TransactionEntity(),
+          {
+            txId: '00'.repeat(32),
+            chain: fixture.unsigned.network,
+            type: fixture.unsigned.txType,
+            status,
+            txJson: fixture.unsigned.toJson(),
+          },
+        );
+        const recover = vi.spyOn(fixture.chain, 'getRecoveredTransaction');
+        const setStatus = vi.spyOn(fixture.action, 'setTxStatus');
+        await expect(
+          TransactionProcessor.processSignFailedTx(row),
+        ).rejects.toThrow();
+        expect(fixture.network.getTxConfirmation).not.toHaveBeenCalled();
+        expect(fixture.network.findSignedTransaction).not.toHaveBeenCalled();
+        expect(fixture.network.isTxInMempool).not.toHaveBeenCalled();
+        expect(recover).not.toHaveBeenCalled();
+        expect(setStatus).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -1871,6 +1991,149 @@ describe('TransactionProcessor', () => {
           expect(row.txJson).toEqual(signed.toJson());
         },
       );
+    });
+
+    describe('legacy envelope timing', () => {
+      const status = TransactionStatus.sent;
+      let restoreLegacyMocks: () => void;
+      beforeEach(() => {
+        restoreLegacyMocks = preserveBitcoinCashMocks([
+          [bchRecovery_ChainHandler, ['getInstance']],
+          [chainHandlerInstance, ['getChain']],
+          [bchRecovery_TransactionSerializer, ['fromJson']],
+          [TransactionProcessor, ['processApprovedTx']],
+          [Math, ['random']],
+          [
+            bchRecovery_DatabaseAction.getInstance(),
+            ['setTxStatus', 'updateTxLastCheck'],
+          ],
+        ]);
+      });
+      afterEach(() => restoreLegacyMocks());
+
+      /**
+       * @target TransactionProcessor.processSentTx preserves
+       * malformed legacy envelopes for provider outcome %s with mempool=%s
+       * @dependencies Actual serializer; controlled legacy provider and persistence ports
+       * @scenario Find the malformed row on chain or in mempool without a recovery hook
+       * @expected Preserve provider argument shape and advance state without deserialization
+       */
+      it.each([
+        [ConfirmationStatus.NotConfirmedEnough, false],
+        [ConfirmationStatus.ConfirmedEnough, false],
+        [ConfirmationStatus.NotFound, true],
+      ])(
+        'preserves malformed legacy envelopes for provider outcome %s with mempool=%s',
+        async (confirmation, mempool) => {
+          const fixture = await malformedLegacyFixture(
+            status,
+            confirmation,
+            mempool,
+          );
+          await TransactionProcessor.processSentTx(fixture.row);
+          expect(fixture.deserialize).not.toHaveBeenCalled();
+          expect(
+            fixture.chain.getTxConfirmationStatus,
+          ).toHaveBeenCalledExactlyOnceWith(fixture.row.txId, fixture.row.type);
+          if (confirmation === ConfirmationStatus.NotFound)
+            expect(fixture.chain.isTxInMempool).toHaveBeenCalledExactlyOnceWith(
+              fixture.row.txId,
+            );
+          else expect(fixture.chain.isTxInMempool).not.toHaveBeenCalled();
+          if (confirmation === ConfirmationStatus.ConfirmedEnough)
+            expect(fixture.setStatus).toHaveBeenCalledExactlyOnceWith(
+              fixture.row.txId,
+              TransactionStatus.completed,
+            );
+          else
+            expect(fixture.updateHeight).toHaveBeenCalledExactlyOnceWith(
+              fixture.row.txId,
+              321,
+            );
+        },
+      );
+
+      /**
+       * @target TransactionProcessor.processSentTx rejects a
+       * malformed legacy envelope only after both providers report absence
+       * @dependencies Actual serializer; controlled legacy provider and persistence ports
+       * @scenario Return NotFound and false mempool membership for the malformed row
+       * @expected Query both provider ports first, then reject without changing persistence
+       */
+      it('rejects a malformed legacy envelope only after both providers report absence', async () => {
+        const fixture = await malformedLegacyFixture(
+          status,
+          ConfirmationStatus.NotFound,
+        );
+        await expect(
+          TransactionProcessor.processSentTx(fixture.row),
+        ).rejects.toThrow(SyntaxError);
+        expect(
+          fixture.chain.getTxConfirmationStatus,
+        ).toHaveBeenCalledExactlyOnceWith(fixture.row.txId, fixture.row.type);
+        expect(fixture.chain.isTxInMempool).toHaveBeenCalledExactlyOnceWith(
+          fixture.row.txId,
+        );
+        expect(fixture.deserialize).toHaveBeenCalledOnce();
+        expect(fixture.setStatus).not.toHaveBeenCalled();
+        expect(fixture.updateHeight).not.toHaveBeenCalled();
+      });
+
+      /**
+       * @target TransactionProcessor.processSentTx keeps
+       * the Doge cooldown ahead of legacy deserialization and provider reads
+       * @dependencies Actual serializer; controlled Doge cooldown and provider ports
+       * @scenario Select the existing skip branch for a malformed Doge envelope
+       * @expected Skip provider/deserializer calls and retain the existing signing retry
+       */
+      it('keeps the Doge cooldown ahead of legacy deserialization and provider reads', async () => {
+        const fixture = await malformedLegacyFixture(
+          status,
+          ConfirmationStatus.NotFound,
+        );
+        fixture.row.chain = DOGE_CHAIN;
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+        const retry = vi
+          .spyOn(TransactionProcessor, 'processApprovedTx')
+          .mockResolvedValue(undefined);
+        await TransactionProcessor.processSentTx(fixture.row);
+        expect(fixture.deserialize).not.toHaveBeenCalled();
+        expect(fixture.chain.getTxConfirmationStatus).not.toHaveBeenCalled();
+        expect(retry).not.toHaveBeenCalled();
+        expect(fixture.setStatus).not.toHaveBeenCalled();
+        expect(fixture.updateHeight).not.toHaveBeenCalled();
+      });
+
+      /**
+       * @target TransactionProcessor.processSentTx rejects
+       * BCH row identity mismatch before provider or recovery calls
+       * @dependencies Actual BCH chain, authenticated unsigned envelope and migrated database
+       * @scenario Keep the exact envelope but change only its persisted approval ID
+       * @expected Refuse the context without provider reads or status advancement
+       */
+      it('rejects BCH row identity mismatch before provider or recovery calls', async () => {
+        const fixture = await bchRecovery_setup();
+        const row = Object.assign(
+          new (
+            await import('../../src/db/entities/transactionEntity')
+          ).TransactionEntity(),
+          {
+            txId: '00'.repeat(32),
+            chain: fixture.unsigned.network,
+            type: fixture.unsigned.txType,
+            status,
+            txJson: fixture.unsigned.toJson(),
+          },
+        );
+        const recover = vi.spyOn(fixture.chain, 'getRecoveredTransaction');
+        const setStatus = vi.spyOn(fixture.action, 'setTxStatus');
+        await expect(TransactionProcessor.processSentTx(row)).rejects.toThrow();
+        expect(fixture.network.getTxConfirmation).not.toHaveBeenCalled();
+        expect(fixture.network.findSignedTransaction).not.toHaveBeenCalled();
+        expect(fixture.network.isTxInMempool).not.toHaveBeenCalled();
+        expect(recover).not.toHaveBeenCalled();
+        expect(setStatus).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -2772,259 +3035,3 @@ describe('TransactionProcessor', () => {
     });
   });
 });
-
-/** Provide the bchRecovery_setup test seam for the current scenario without external requests. */
-const bchRecovery_setup = async (
-  rpcMode?: 'actual-rpc' | 'actual-rpc-raw-mismatch',
-) => {
-  await bchRecovery_DatabaseActionMock.clearTables();
-  const event = bchRecovery_EventTestData.mockEventTrigger().event;
-  event.toChain = 'bitcoin-cash';
-  const eventId = bchRecovery_EventSerializer.getId(event);
-  await bchRecovery_DatabaseActionMock.insertEventRecord(
-    event,
-    bchRecovery_EventStatus.pendingPayment,
-  );
-  const script = '76a914751e76e8199196d454941c45d1b3a323f1433bd688ac';
-  const parent = bchRecovery_encodeTransactionBCH({
-    version: 2,
-    locktime: 0,
-    inputs: [
-      {
-        outpointTransactionHash: new Uint8Array(32).fill(1),
-        outpointIndex: 0,
-        sequenceNumber: 0xffffffff,
-        unlockingBytecode: new Uint8Array(),
-      },
-    ],
-    outputs: [
-      { lockingBytecode: bchRecovery_hexToBin(script), valueSatoshis: 50000n },
-    ],
-  });
-  const box = {
-    txId: bchRecovery_hashTransaction(parent),
-    index: 0,
-    value: 50000n,
-    scriptPubKey: script,
-    parentTransactionHex: bchRecovery_binToHex(parent),
-    coinbase: false,
-    confirmations: 1,
-  };
-  const network = {
-    /** Provide the getAddressBoxes test seam for the current scenario without external requests. */
-    getAddressBoxes: vi.fn(
-      async (_address: string, offset: number, limit: number) =>
-        [box].slice(offset, offset + limit),
-    ),
-    /** Provide the getUtxo test seam for the current scenario without external requests. */
-    getUtxo: vi.fn(async () => box),
-    /** Provide the getPrevout test seam for the current scenario without external requests. */
-    getPrevout: vi.fn(async () => box),
-    /** Provide the getHeight test seam for the current scenario without external requests. */
-    getHeight: vi.fn(async () => 10),
-    /** Provide the isBoxUnspentAndValid test seam for the current scenario without external requests. */
-    isBoxUnspentAndValid: vi.fn(async () => true),
-    /** Provide the findSignedTransaction test seam for the current scenario without external requests. */
-    findSignedTransaction: vi.fn<() => Promise<Uint8Array | undefined>>(
-      async () => undefined,
-    ),
-    /** Provide the getTxConfirmation test seam for the current scenario without external requests. */
-    getTxConfirmation: vi.fn(async () => 1),
-    /** Provide the isTxInMempool test seam for the current scenario without external requests. */
-    isTxInMempool: vi.fn(async () => false),
-  };
-  const tokens = new bchRecovery_TokenMap();
-  await tokens.updateConfigByJson([
-    {
-      'bitcoin-cash': {
-        tokenId: 'bch',
-        name: 'BCH',
-        decimals: 8,
-        type: 'native',
-        residency: 'native',
-        extra: {},
-      },
-      ergo: {
-        tokenId: 'bb'.repeat(32),
-        name: 'rsBCH',
-        decimals: 6,
-        type: 'wrapped',
-        residency: 'wrapped',
-        extra: {},
-      },
-    },
-  ]);
-  const chainConfig = {
-    aggregatedPublicKey: bchRecovery_bchPublicKey,
-    feeRate: 1,
-    maxFee: 100000n,
-    minimumUtxoValue: 546n,
-    maxUtxoPages: 2,
-    fee: 0n,
-    confirmations: {
-      observation: 1,
-      payment: 1,
-      cold: 1,
-      manual: 1,
-      arbitrary: 1,
-    },
-    addresses: {
-      lock: bchRecovery_bchLock,
-      cold: bchRecovery_bchCold,
-      permit: '',
-      fraud: '',
-    },
-    rwtId: '',
-  };
-  let chain = new bchRecovery_BitcoinCashChain(
-    network as never,
-    chainConfig,
-    tokens,
-    {
-      /** Provide the isInSign test seam for the current scenario without external requests. */
-      isInSign: async () => false,
-      /** Provide the sign test seam for the current scenario without external requests. */
-      sign: async (digest) => ({
-        signature: bchRecovery_binToHex(
-          bchRecovery_secp256k1.signMessageHashCompact(
-            bchRecovery_hexToBin('00'.repeat(31) + '01'),
-            digest,
-          ) as Uint8Array,
-        ),
-        signatureRecovery: '0',
-      }),
-    },
-  );
-  const generated = await chain.generateTransaction(
-    eventId,
-    bchRecovery_TransactionType.payment,
-    [
-      {
-        address: bchRecovery_bchCold,
-        assets: { nativeToken: 100n, tokens: [] },
-      },
-    ],
-    [],
-    [],
-  );
-  const unsigned = chain.PaymentTransactionFromJson(generated.toJson());
-  const signed = chain.PaymentTransactionFromJson(
-    (await chain.signTransaction(unsigned)).toJson(),
-  );
-  network.findSignedTransaction.mockResolvedValue(signed.txBytes);
-  const rpcCalls: { method: string; params: readonly unknown[] }[] = [];
-  const rpcErrors: string[] = [];
-  const forbiddenSign = vi.fn(async () => {
-    throw Error('Recovery must not sign');
-  });
-  if (rpcMode) {
-    const actualId = signed.getActualTxId();
-    const raw = Uint8Array.from(signed.txBytes);
-    if (rpcMode === 'actual-rpc-raw-mismatch') raw[raw.length - 1] ^= 1;
-    const tx = bchRecovery_decodeBchTransaction(signed.txBytes);
-    const tip = 'ab'.repeat(32);
-    const rpc = new bchRecovery_BitcoinCashRpcNetwork(
-      {
-        url: 'http://offline.invalid',
-        expectedChain: 'regtest',
-        walletHistoryPageSize: 2,
-        maxWalletHistoryPages: 2,
-      },
-      {
-        call: async (method, params) => {
-          rpcCalls.push({ method, params });
-          switch (method) {
-            case 'getnetworkinfo':
-              return { subversion: '/Bitcoin Cash Node:28.0.1/' };
-            case 'getblockchaininfo':
-              return { chain: 'regtest', bestblockhash: tip, blocks: 100 };
-            case 'getbestblockhash':
-              return tip;
-            case 'getwalletinfo':
-              return { txcount: 1 };
-            case 'listtransactions':
-              return params[2] === 0
-                ? [{ txid: actualId, confirmations: 0 }]
-                : [];
-            case 'gettransaction':
-              expect(params[0]).toEqual(actualId);
-              return {
-                txid: actualId,
-                hex: bchRecovery_binToHex(raw),
-                confirmations: 0,
-                abandoned: false,
-              };
-            case 'getrawtransaction':
-              expect(params[0]).toEqual(actualId);
-              return {
-                hex: bchRecovery_binToHex(signed.txBytes),
-                txid: actualId,
-                hash: actualId,
-                size: signed.txBytes.length,
-                version: tx.version,
-                locktime: tx.locktime,
-                vin: tx.inputs.map((input) => ({
-                  txid: bchRecovery_binToHex(input.outpointTransactionHash),
-                  vout: input.outpointIndex,
-                  scriptSig: {
-                    hex: bchRecovery_binToHex(input.unlockingBytecode),
-                  },
-                  sequence: input.sequenceNumber,
-                })),
-                vout: tx.outputs.map((output, n) => ({
-                  n,
-                  value: (Number(output.valueSatoshis) / 1e8).toFixed(8),
-                  scriptPubKey: {
-                    hex: bchRecovery_binToHex(output.lockingBytecode),
-                  },
-                })),
-                confirmations: 0,
-              };
-            case 'getrawmempool':
-              return [actualId];
-            default:
-              throw Error(`Recovery fixture forbids RPC method ${method}`);
-          }
-        },
-      },
-    );
-    const recover = rpc.findSignedTransaction.bind(rpc);
-    vi.spyOn(rpc, 'findSignedTransaction').mockImplementation(
-      async (...args) => {
-        try {
-          return await recover(...args);
-        } catch (error) {
-          rpcErrors.push((error as Error).message);
-          throw error;
-        }
-      },
-    );
-    chain = new bchRecovery_BitcoinCashChain(rpc, chainConfig, tokens, {
-      isInSign: async () => false,
-      sign: forbiddenSign,
-    });
-  }
-  vi.spyOn(bchRecovery_ChainHandler, 'getInstance').mockReturnValue(
-    bchRecovery_chainHandlerInstance as unknown as bchRecovery_ChainHandler,
-  );
-  vi.spyOn(bchRecovery_chainHandlerInstance, 'getChain').mockImplementation(
-    () => chain as never,
-  );
-  const actualSerializer = await vi.importActual<
-    typeof bchRecovery_TransactionSerializer
-  >('../../src/transaction/transactionSerializer');
-  vi.spyOn(bchRecovery_TransactionSerializer, 'fromJson').mockImplementation(
-    actualSerializer.fromJson,
-  );
-  return {
-    chain,
-    network,
-    unsigned,
-    signed,
-    eventId,
-    action: bchRecovery_DatabaseAction.getInstance(),
-    rpcCalls,
-    rpcErrors,
-    forbiddenSign,
-  };
-};

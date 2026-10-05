@@ -7,7 +7,7 @@ import {
   bchContract as bchRegistration_bchContract,
   bchTokenMap as bchRegistration_bchTokenMap,
   bchValues as bchRegistration_bchValues,
-} from '../configs/bitcoinCashFixtures';
+} from '../configs/bitcoinCashTestUtils';
 import { createBitcoinCashConfigMock } from '../configs/mocked/guardsBitcoinCashConfigs.mock';
 
 describe('runProcessors', () => {

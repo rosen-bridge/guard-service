@@ -16,7 +16,8 @@ import { BitcoinCashRpcNetwork } from '@rosen-chains/bitcoin-cash-rpc';
 
 import { DatabaseAction } from '../../src/db/databaseAction';
 import { TransactionStatus } from '../../src/utils/constants';
-import { bchPublicKey, bchLock, bchCold } from '../configs/bitcoinCashFixtures';
+import { bchPublicKey } from '../configs/bitcoinCashTestData';
+import { bchLock, bchCold } from '../configs/bitcoinCashTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 
 const receiptPath = process.env.ROSEN_BCH_NATIVE_RECEIPT;

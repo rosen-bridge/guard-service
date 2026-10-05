@@ -44,12 +44,12 @@ import {
   event as bchFee_event,
   feeBox as bchFee_feeBox,
 } from '../bitcoinCashFeeTestUtils';
-import { bchTokenSet as bchFee_bchTokenSet } from '../configs/bitcoinCashFixtures';
+import { bchTokenSet as bchFee_bchTokenSet } from '../configs/bitcoinCashTestUtils';
 import {
   insertNamespaceEvent as bchGuardNamespace_insertNamespaceEvent,
   namespaceEvent as bchGuardNamespace_namespaceEvent,
-} from '../db/bitcoinCashNamespaceFixtures';
-import { namespaceEvent as BchConsumers_namespaceEvent } from '../db/bitcoinCashNamespaceFixtures';
+} from '../db/bitcoinCashNamespaceTestUtils';
+import { namespaceEvent as BchConsumers_namespaceEvent } from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import bchGuardNamespace_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import BchConsumers_DatabaseActionMock from '../db/mocked/databaseAction.mock';

@@ -7,7 +7,7 @@ import {
   event as bchFee_event,
   feeBox as bchFee_feeBox,
 } from '../bitcoinCashFeeTestUtils';
-import { bchTokenSet as bchFee_bchTokenSet } from '../configs/bitcoinCashFixtures';
+import { bchTokenSet as bchFee_bchTokenSet } from '../configs/bitcoinCashTestUtils';
 import { preserveBitcoinCashMocks } from '../testUtils/mocked/bitcoinCashMockScope.mock';
 
 describe('MinimumFeeHandler', () => {

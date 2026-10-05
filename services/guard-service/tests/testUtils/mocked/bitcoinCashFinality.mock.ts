@@ -13,12 +13,8 @@ import GuardsErgoConfigs from '../../../src/configs/guardsErgoConfigs';
 import EventBoxes from '../../../src/event/eventBoxes';
 import ChainHandler from '../../../src/handlers/chainHandler';
 import MinimumFeeHandler from '../../../src/handlers/minimumFeeHandler';
-import {
-  bchLock,
-  bchPublicKey,
-  bchTokenMap,
-  ergoAddress,
-} from '../../configs/bitcoinCashFixtures';
+import { bchPublicKey, ergoAddress } from '../../configs/bitcoinCashTestData';
+import { bchLock, bchTokenMap } from '../../configs/bitcoinCashTestUtils';
 import DatabaseActionMock from '../../db/mocked/databaseAction.mock';
 import { preserveBitcoinCashMocks } from './bitcoinCashMockScope.mock';
 

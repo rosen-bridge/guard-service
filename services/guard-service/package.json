@@ -20,7 +20,7 @@
     "prettify:check": "prettier --check . --ignore-path ./.gitignore",
     "start": "tsx ./src/index.ts",
     "start:dev": "tsx watch ./src/index.ts",
-    "test": "cross-env NODE_OPTIONS=\"--import tsx\" vitest",
+    "test": "NODE_OPTIONS='--import tsx' vitest",
     "type-check": "tsc --noEmit",
     "typeorm": "NODE_OPTIONS='--import tsx' typeorm",
     "typeorm:generate:postgres": "npm run typeorm migration:generate src/db/migrations/postgres/migration -- -p -d src/db/dataSource.ts",

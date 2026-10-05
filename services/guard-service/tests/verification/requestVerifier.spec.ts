@@ -24,7 +24,7 @@ import { mockPaymentTransaction as BchConsumers_mockPaymentTransaction } from '.
 import {
   insertNamespaceEvent as BchConsumers_insertNamespaceEvent,
   namespaceEvent as BchConsumers_namespaceEvent,
-} from '../db/bitcoinCashNamespaceFixtures';
+} from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import BchConsumers_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
