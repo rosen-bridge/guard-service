@@ -873,6 +873,89 @@ describe('EventSynchronization', () => {
         [tx, ...responses.slice(1)].map((_) => _?.txId),
       );
     });
+
+    /**
+     * @target EventSynchronization.processSyncResponse should not set tx as
+     * approved when the required number of responses name different
+     * transactions
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock event and two different transactions and insert event into db
+     * - insert event into active sync with one response for the other
+     *   transaction
+     * - mock EventSynchronization
+     *   - mock `verifySynchronizationResponse`
+     *   - mock `setTxAsApproved`
+     * - run test
+     * - check if function got called
+     * - check active syncs in memory
+     * @expected
+     * - `setTxAsApproved` should NOT got called
+     * - both responses should be kept in active sync
+     */
+    it('should not set tx as approved when guards responded different transactions', async () => {
+      // mock event and transactions and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId,
+      );
+      const anotherTx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment,
+      );
+
+      // insert event into active sync
+      // total responses reach requiredApproval, but no single transaction does
+      const eventSync = new TestEventSynchronization();
+      const responses = [
+        undefined,
+        anotherTx,
+        ...Array(guardsLen - 2).fill(undefined),
+      ];
+      eventSync.insertEventIntoActiveSync(eventId, {
+        timestamp: TestConfigs.currentTimeStamp / 1000 - 100,
+        responses: responses,
+      });
+
+      // mock EventSynchronization
+      vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        eventSync as any,
+        'verifySynchronizationResponse',
+      ).mockResolvedValue(true);
+      const mockedSetTxAsApproved = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setTxAsApprovedSpy = vi.spyOn(eventSync as any, 'setTxAsApproved');
+      setTxAsApprovedSpy.mockImplementation(mockedSetTxAsApproved);
+
+      // run test
+      await eventSync.processMessage(
+        SynchronizationMessageTypes.response,
+        { txJson: tx.toJson() },
+        'signature',
+        0,
+        'peer-0',
+        TestConfigs.currentTimeStamp / 1000,
+      );
+
+      // `setTxAsApproved` should NOT got called
+      expect(mockedSetTxAsApproved).not.toHaveBeenCalled();
+
+      // both responses should be kept in active sync
+      const activeSync = eventSync.getActiveSyncMap();
+      expect(activeSync.get(eventId)?.responses.map((_) => _?.txId)).toEqual(
+        [tx, ...responses.slice(1)].map((_) => _?.txId),
+      );
+    });
   });
 
   describe(`verifySynchronizationResponse`, () => {
@@ -1704,6 +1787,114 @@ describe('EventSynchronization', () => {
       const result = await eventSync.callVerifySynchronizationResponse(
         tx,
         tx.txId,
+      );
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target EventSynchronization.verifySynchronizationResponse should return false
+     * when actualTxId does not belong to the transaction
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * - MinimumFee
+     * - EventOrder
+     * @scenario
+     * - mock event and transaction and insert into db
+     * - insert event into active sync
+     * - mock a PaymentOrder
+     * - mock ChainHandler `getChain`
+     *   - mock `verifyPaymentTransaction`
+     *   - mock `extractTransactionOrder`
+     *   - mock `getTxConfirmationStatus`
+     *   - mock `verifyTransactionExtraConditions`
+     *   - mock `getActualTxId` to return the transaction id
+     * - mock EventOrder.createEventPaymentOrder to return mocked order
+     * - run test with the id of another transaction as actualTxId
+     * - check returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when actualTxId does not belong to the transaction', async () => {
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment,
+      );
+
+      // insert event into active sync
+      const eventSync = new TestEventSynchronization();
+      const responses = Array(guardsLen).fill(undefined);
+      eventSync.insertEventIntoActiveSync(eventId, {
+        timestamp: TestConfigs.currentTimeStamp / 1000 - 100,
+        responses: responses,
+      });
+
+      // mock a PaymentOrder
+      const mockedOrder: PaymentOrder = [
+        {
+          address: 'address',
+          assets: {
+            nativeToken: 10n,
+            tokens: [],
+          },
+        },
+      ];
+
+      // mock ChainHandler
+      ChainHandlerMock.mockChainName(mockedEvent.toChain);
+      // mock `verifyPaymentTransaction`
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'verifyPaymentTransaction',
+        true,
+        true,
+      );
+      // mock `extractTransactionOrder`
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'extractTransactionOrder',
+        mockedOrder,
+        false,
+      );
+      // mock `getTxConfirmationStatus`
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getTxConfirmationStatus',
+        ConfirmationStatus.ConfirmedEnough,
+        false,
+      );
+      // mock `verifyTransactionExtraConditions`
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'verifyTransactionExtraConditions',
+        true,
+        false,
+      );
+      // mock `getActualTxId`
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getActualTxId',
+        tx.txId,
+        true,
+      );
+
+      // mock EventOrder.createEventPaymentOrder to return mocked order
+      mockCreateEventPaymentOrder(mockedOrder);
+
+      // run test
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        TestUtils.generateRandomId(),
       );
 
       // check returned value

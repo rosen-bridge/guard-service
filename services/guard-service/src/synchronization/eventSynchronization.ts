@@ -378,7 +378,10 @@ class EventSynchronization extends Communicator {
         const activeSync = this.activeSyncMap.get(tx.eventId);
         if (activeSync) {
           activeSync.responses[senderIndex] = tx;
-          const occurrences = countBy(activeSync.responses.filter((_) => _));
+          const occurrences = countBy(
+            activeSync.responses.filter((_) => _),
+            (_) => _?.txId,
+          );
 
           if (
             Math.max(...Object.values(occurrences)) >= this.requiredApproval
@@ -411,6 +414,7 @@ class EventSynchronization extends Communicator {
    * - PaymentTransaction object consistency is verified
    * - tx order is equal to expected event order
    * - tx is confirmed enough
+   * - actualTxId belongs to the transaction
    * - tx satisfies the chain conditions
    * @param tx
    * @returns true if transaction verified
@@ -473,6 +477,16 @@ class EventSynchronization extends Communicator {
       return false;
     } else if (txConfirmation === ConfirmationStatus.NotFound) {
       logger.warn(baseError + `tx is not found`);
+      return false;
+    }
+
+    // check if actualTxId belongs to the transaction
+    const expectedActualTxId = await chain.getActualTxId(tx.txId);
+    if (actualTxId !== expectedActualTxId) {
+      logger.warn(
+        baseError +
+          `actualTxId [${actualTxId}] does not belong to the transaction (expected [${expectedActualTxId}])`,
+      );
       return false;
     }
 
