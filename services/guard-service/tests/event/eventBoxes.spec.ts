@@ -147,7 +147,7 @@ describe('EventBoxes', () => {
 
       // verify returned value
       expect(result).toEqual(
-        [validCommitment1, validCommitment2].map((buf) => buf.toString('hex')),
+        [validCommitment2, validCommitment1].map((buf) => buf.toString('hex')),
       );
     });
 
@@ -229,7 +229,7 @@ describe('EventBoxes', () => {
 
       // verify returned value
       expect(result).toEqual(
-        [validCommitment1, validCommitment2].map((buf) => buf.toString('hex')),
+        [validCommitment2, validCommitment1].map((buf) => buf.toString('hex')),
       );
     });
 
@@ -315,11 +315,171 @@ describe('EventBoxes', () => {
 
       // verify returned value
       expect(result).toEqual(
-        [validCommitment1, validCommitment2].map((buf) => buf.toString('hex')),
+        [validCommitment2, validCommitment1].map((buf) => buf.toString('hex')),
       );
 
       // verify that event remains unchanged
       expect(mockedEvent).toEqual(originalMockedEvent);
+    });
+
+    /**
+     * @target EventBoxes.getEventValidCommitments should return commitments
+     * in creation order regardless of insertion order
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert a mocked event into db
+     * - insert event commitment boxes into db
+     * - insert three valid commitment boxes into db in scrambled order
+     *   (latest height first, earliest height second, middle height last)
+     * - run test
+     * - verify returned value
+     * @expected
+     * - it should return serialized boxes ordered by creation height,
+     *   earliest first, so every guard builds the same permit order
+     */
+    it('should return commitments in creation order regardless of insertion order', async () => {
+      // insert a mocked event into db
+      const mockedEvent = mockEventTrigger();
+      const eventId = EventSerializer.getId(mockedEvent.event);
+      const boxSerialized = Buffer.from('boxSerialized');
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent.event,
+        boxSerialized.toString('base64'),
+      );
+
+      // insert event commitment boxes into db
+      for (let i = 0; i < mockedEvent.WIDs.length; i++) {
+        await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
+          eventId,
+          Buffer.from(`event-serialized-box-${i}`).toString('base64'),
+          mockedEvent.WIDs[i],
+          mockedEvent.event.height - 4,
+          rwtCount.toString(),
+          'event-creation-tx-id',
+          i,
+        );
+      }
+
+      // insert three valid commitment boxes in scrambled height order
+      const lateCommitment = Buffer.from('serialized-box-late');
+      await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
+        eventId,
+        lateCommitment.toString('base64'),
+        TestUtils.generateRandomId(),
+        mockedEvent.event.height - 1,
+        rwtCount.toString(),
+      );
+      const earlyCommitment = Buffer.from('serialized-box-early');
+      await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
+        eventId,
+        earlyCommitment.toString('base64'),
+        TestUtils.generateRandomId(),
+        mockedEvent.event.height - 3,
+        rwtCount.toString(),
+      );
+      const middleCommitment = Buffer.from('serialized-box-middle');
+      await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
+        eventId,
+        middleCommitment.toString('base64'),
+        TestUtils.generateRandomId(),
+        mockedEvent.event.height - 2,
+        rwtCount.toString(),
+      );
+
+      // run test
+      const result = await EventBoxes.getEventValidCommitments(
+        mockedEvent.event,
+        rwtCount,
+        mockedEvent.WIDs,
+      );
+
+      // verify returned value
+      expect(result).toEqual(
+        [earlyCommitment, middleCommitment, lateCommitment].map((buf) =>
+          buf.toString('hex'),
+        ),
+      );
+    });
+
+    /**
+     * @target EventBoxes.getEventValidCommitments should keep the earliest
+     * commitment when a WID has duplicates
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert a mocked event into db
+     * - insert event commitment boxes into db
+     * - insert a later commitment box for a WID into db first
+     * - insert an earlier commitment box with the same WID into db
+     * - run test
+     * - verify returned value
+     * @expected
+     * - it should return only the earliest commitment for the duplicated WID,
+     *   so every guard picks the same permit box for that watcher
+     */
+    it('should keep the earliest commitment when a WID has duplicates', async () => {
+      // insert a mocked event into db
+      const mockedEvent = mockEventTrigger();
+      const eventId = EventSerializer.getId(mockedEvent.event);
+      const boxSerialized = Buffer.from('boxSerialized');
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent.event,
+        boxSerialized.toString('base64'),
+      );
+
+      // insert event commitment boxes into db
+      for (let i = 0; i < mockedEvent.WIDs.length; i++) {
+        await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
+          eventId,
+          Buffer.from(`event-serialized-box-${i}`).toString('base64'),
+          mockedEvent.WIDs[i],
+          mockedEvent.event.height - 4,
+          rwtCount.toString(),
+          'event-creation-tx-id',
+          i,
+        );
+      }
+
+      // insert the later duplicate commitment first
+      const duplicateWID = TestUtils.generateRandomId();
+      const laterCommitment = Buffer.from('serialized-box-later');
+      await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
+        eventId,
+        laterCommitment.toString('base64'),
+        duplicateWID,
+        mockedEvent.event.height - 1,
+        rwtCount.toString(),
+      );
+
+      // insert the earlier commitment with the same WID
+      const earlierCommitment = Buffer.from('serialized-box-earlier');
+      await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
+        eventId,
+        earlierCommitment.toString('base64'),
+        duplicateWID,
+        mockedEvent.event.height - 3,
+        rwtCount.toString(),
+      );
+
+      // run test
+      const result = await EventBoxes.getEventValidCommitments(
+        mockedEvent.event,
+        rwtCount,
+        mockedEvent.WIDs,
+      );
+
+      // verify returned value
+      expect(result).toEqual(
+        [earlierCommitment].map((buf) => buf.toString('hex')),
+      );
     });
 
     /**
@@ -400,7 +560,7 @@ describe('EventBoxes', () => {
 
       // verify returned value
       expect(result).toEqual(
-        [validCommitment1, validCommitment2].map((buf) => buf.toString('hex')),
+        [validCommitment2, validCommitment1].map((buf) => buf.toString('hex')),
       );
     });
 
