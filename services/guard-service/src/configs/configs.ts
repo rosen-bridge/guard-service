@@ -402,8 +402,11 @@ class Configs {
     'healthCheck.ergoNode.maxPeerHeightDifference',
     2,
   );
-  static logDuration =
-    getConfigIntKeyOrDefault('healthCheck.logs.duration', 600) * 1000;
+  // duration in seconds; LogLevelHealthCheck converts it to milliseconds
+  static logDuration = getConfigIntKeyOrDefault(
+    'healthCheck.logs.duration',
+    600,
+  );
   static errorLogAllowedCount = getConfigIntKeyOrDefault(
     'healthCheck.logs.maxAllowedErrorCount',
     10,
