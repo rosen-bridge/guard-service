@@ -977,6 +977,60 @@ describe('DatabaseActions', () => {
       // assert
       expect(updatePublicEventStatusSpy).not.toHaveBeenCalled();
     });
+
+    /**
+     * @target DatabaseAction.setEventStatus should not resolve until the public event status update completes
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus with a promise that only resolves when the test releases it
+     * - define a mock EventTrigger and insert it into db
+     * - call DatabaseAction.setEventStatus without awaiting it
+     * - wait until the public update is called and flush pending work
+     * - release the public update promise and await the setter
+     * @expected
+     * - the setter should still be pending while the public update is pending
+     * - the setter should resolve after the public update resolves
+     */
+    it('should not resolve until the public event status update completes', async () => {
+      // arrange
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+      let releasePublicUpdate!: () => void;
+      updatePublicEventStatusSpy.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            releasePublicUpdate = resolve;
+          }),
+      );
+
+      const event = EventTestData.mockEventTrigger().event;
+      const eventId = Utils.txIdToEventId(event.sourceTxId);
+      await DatabaseActionMock.insertEventRecord(
+        event,
+        EventStatus.pendingPayment,
+      );
+
+      // act
+      let setterResolved = false;
+      const setterPromise = DatabaseActionMock.testDatabase
+        .setEventStatus(eventId, EventStatus.pendingReward)
+        .then(() => {
+          setterResolved = true;
+        });
+
+      // assert
+      await vi.waitFor(() => {
+        expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
+      });
+      // let the database update and any un-awaited continuation settle
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(setterResolved).toBe(false);
+
+      releasePublicUpdate();
+      await setterPromise;
+      expect(setterResolved).toBe(true);
+    });
   });
 
   describe('setEventStatusToPending', () => {
@@ -1176,6 +1230,115 @@ describe('DatabaseActions', () => {
 
       // assert
       expect(updatePublicTxStatusSpy).not.toHaveBeenCalled();
+    });
+
+    /**
+     * @target DatabaseAction.setTxStatus should not resolve until the public tx status update completes
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus with a promise that only resolves when the test releases it
+     * - define a mock PaymentTransaction and insert it into db
+     * - call DatabaseAction.setTxStatus without awaiting it
+     * - wait until the public update is called and flush pending work
+     * - release the public update promise and await the setter
+     * @expected
+     * - the setter should still be pending while the public update is pending
+     * - the setter should resolve after the public update resolves
+     */
+    it('should not resolve until the public tx status update completes', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+      let releasePublicUpdate!: () => void;
+      updatePublicTxStatusSpy.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            releasePublicUpdate = resolve;
+          }),
+      );
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+      await DatabaseActionMock.insertTxRecord(mockTx, TransactionStatus.sent);
+
+      // act
+      let setterResolved = false;
+      const setterPromise = DatabaseActionMock.testDatabase
+        .setTxStatus(mockTx.txId, TransactionStatus.approved)
+        .then(() => {
+          setterResolved = true;
+        });
+
+      // assert
+      await vi.waitFor(() => {
+        expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      });
+      // let the database update and any un-awaited continuation settle
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(setterResolved).toBe(false);
+
+      releasePublicUpdate();
+      await setterPromise;
+      expect(setterResolved).toBe(true);
+    });
+
+    /**
+     * @target DatabaseAction.setTxStatus should queue two sequential status updates in the order they were set
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus so the first call only resolves when the test releases it and later calls resolve immediately, recording the order of calls
+     * - define a mock PaymentTransaction and insert it into db
+     * - sequentially await setTxStatus with 'approved' and then 'completed', as callers do
+     * - check the recorded public updates before releasing the first one
+     * - release the first public update and await the sequence
+     * @expected
+     * - only the 'approved' public update should have started before the first one is released
+     * - both public updates should have been recorded in order after the sequence completes
+     */
+    it('should queue two sequential status updates in the order they were set', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+      const publicUpdateOrder: TransactionStatus[] = [];
+      let releaseFirstUpdate!: () => void;
+      updatePublicTxStatusSpy.mockImplementation(async (...args: unknown[]) => {
+        publicUpdateOrder.push(args[1] as TransactionStatus);
+        if (publicUpdateOrder.length === 1)
+          await new Promise<void>((resolve) => {
+            releaseFirstUpdate = resolve;
+          });
+      });
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+      await DatabaseActionMock.insertTxRecord(mockTx, TransactionStatus.sent);
+
+      // act
+      const sequence = (async () => {
+        await DatabaseActionMock.testDatabase.setTxStatus(
+          mockTx.txId,
+          TransactionStatus.approved,
+        );
+        await DatabaseActionMock.testDatabase.setTxStatus(
+          mockTx.txId,
+          TransactionStatus.completed,
+        );
+      })();
+
+      // assert
+      await vi.waitFor(() => {
+        expect(publicUpdateOrder).toEqual([TransactionStatus.approved]);
+      });
+      // let any un-awaited continuation of the first setter run
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(publicUpdateOrder).toEqual([TransactionStatus.approved]);
+
+      releaseFirstUpdate();
+      await sequence;
+      expect(publicUpdateOrder).toEqual([
+        TransactionStatus.approved,
+        TransactionStatus.completed,
+      ]);
     });
   });
 
