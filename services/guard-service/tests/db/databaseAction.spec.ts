@@ -6,6 +6,7 @@ import { DatabaseAction } from '../../src/db/databaseAction';
 import { SortRequest } from '../../src/types/api';
 import {
   EventStatus,
+  OrderStatus,
   RevenuePeriod,
   RevenueType,
   TransactionStatus,
@@ -1176,6 +1177,306 @@ describe('DatabaseActions', () => {
 
       // assert
       expect(updatePublicTxStatusSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setTxAsCompleted', () => {
+    const currentTimeStampSeconds = Math.round(
+      TestConfigs.currentTimeStamp / 1000,
+    );
+
+    beforeAll(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(TestConfigs.currentTimeStamp));
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    /**
+     * @target DatabaseAction.setTxAsCompleted should set tx as completed
+     * and event as pending-reward in one call
+     * @dependencies
+     * - database
+     * - Date
+     * @scenario
+     * - stub PublicStatusHandler update functions to resolve
+     * - mock event and insert into db as 'in-payment'
+     * - mock payment transaction and insert into db as 'sent'
+     * - run test
+     * - check tx and event in database
+     * @expected
+     * - tx status should be updated to 'completed'
+     * - event status should be updated to 'pending-reward'
+     * - event firstTry should be updated to current timestamp
+     * - PublicStatusHandler update functions should have been called once each
+     */
+    it('should set tx as completed and event as pending-reward in one call', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = Utils.txIdToEventId(mockedEvent.sourceTxId);
+      const tx = TxTestData.mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inPayment,
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent);
+
+      // run test
+      await DatabaseAction.getInstance().setTxAsCompleted(
+        tx.txId,
+        eventId,
+        EventStatus.pendingReward,
+        true,
+      );
+
+      // tx status should be updated to 'completed'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.completed,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+
+      // event status should be updated to 'pending-reward', firstTry to now
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status, event.firstTry],
+      );
+      expect(dbEvents).toEqual([
+        [
+          eventId,
+          EventStatus.pendingReward,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.completed,
+      );
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        eventId,
+        EventStatus.pendingReward,
+      );
+    });
+
+    /**
+     * @target DatabaseAction.setTxAsCompleted should set tx as completed
+     * and order as completed in one call
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock order and insert into db as 'in-process'
+     * - mock arbitrary transaction and insert into db as 'sent'
+     * - run test
+     * - check tx and order in database
+     * @expected
+     * - tx status should be updated to 'completed'
+     * - order status should be updated to 'completed'
+     */
+    it('should set tx as completed and order as completed in one call', async () => {
+      PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      // mock order and transaction and insert into db
+      const orderId = 'order-id';
+      const tx = TxTestData.mockErgoPaymentTransaction(
+        TransactionType.arbitrary,
+        orderId,
+      );
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        ERGO_CHAIN,
+        'orderJson',
+        OrderStatus.inProcess,
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent);
+
+      // run test
+      await DatabaseAction.getInstance().setTxAsCompleted(
+        tx.txId,
+        undefined,
+        undefined,
+        false,
+        orderId,
+        OrderStatus.completed,
+      );
+
+      // tx status should be updated to 'completed'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+      ]);
+      expect(dbTxs).toEqual([[tx.txId, TransactionStatus.completed]]);
+
+      // order status should be updated to 'completed'
+      const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
+        (order) => [order.id, order.status],
+      );
+      expect(dbOrders).toEqual([[orderId, OrderStatus.completed]]);
+    });
+
+    /**
+     * @target DatabaseAction.setTxAsCompleted should leave the tx
+     * untouched when the event update fails
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock event and insert into db as 'in-payment'
+     * - mock payment transaction and insert into db as 'sent'
+     * - run test with an invalid event status (null violates the
+     *   not-null constraint of the event status column)
+     * - check tx and event in database
+     * @expected
+     * - the call should reject
+     * - tx status should remain 'sent' (the tx update is rolled back
+     *   with the failed event update)
+     * - event status should remain 'in-payment'
+     */
+    it('should leave the tx untouched when the event update fails', async () => {
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = Utils.txIdToEventId(mockedEvent.sourceTxId);
+      const tx = TxTestData.mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inPayment,
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent);
+
+      // run test
+      await expect(
+        DatabaseAction.getInstance().setTxAsCompleted(
+          tx.txId,
+          eventId,
+          null as unknown as string,
+        ),
+      ).rejects.toThrow();
+
+      // tx status should remain 'sent'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+      ]);
+      expect(dbTxs).toEqual([[tx.txId, TransactionStatus.sent]]);
+
+      // event status should remain 'in-payment'
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status],
+      );
+      expect(dbEvents).toEqual([[eventId, EventStatus.inPayment]]);
+    });
+  });
+
+  describe('getCompletedTxsWithUnfinishedEventOrOrder', () => {
+    /**
+     * @target DatabaseAction.getCompletedTxsWithUnfinishedEventOrOrder
+     * should return only completed txs whose event/order did not move on
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert a completed payment tx whose event is still 'in-payment'
+     * - insert a completed reward tx whose event is already 'completed'
+     * - insert a sent payment tx whose event is 'in-payment'
+     * - insert a completed arbitrary tx whose order is still 'in-process'
+     * - run test
+     * @expected
+     * - should return the first and the fourth transactions only
+     */
+    it('should return only completed txs whose event/order did not move on', async () => {
+      // completed payment tx, event still in-payment
+      const mockedEvent1 = EventTestData.mockEventTrigger().event;
+      const eventId1 = Utils.txIdToEventId(mockedEvent1.sourceTxId);
+      const stuckPaymentTx = TxTestData.mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent1.toChain,
+        eventId1,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent1,
+        EventStatus.inPayment,
+      );
+      await DatabaseActionMock.insertTxRecord(
+        stuckPaymentTx,
+        TransactionStatus.completed,
+      );
+
+      // completed reward tx, event already completed
+      const mockedEvent2 = EventTestData.mockEventTrigger().event;
+      const eventId2 = Utils.txIdToEventId(mockedEvent2.sourceTxId);
+      const finishedRewardTx = TxTestData.mockErgoPaymentTransaction(
+        TransactionType.reward,
+        eventId2,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent2,
+        EventStatus.completed,
+      );
+      await DatabaseActionMock.insertTxRecord(
+        finishedRewardTx,
+        TransactionStatus.completed,
+      );
+
+      // sent payment tx, event in-payment (still being processed)
+      const mockedEvent3 = EventTestData.mockEventTrigger().event;
+      const eventId3 = Utils.txIdToEventId(mockedEvent3.sourceTxId);
+      const activePaymentTx = TxTestData.mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent3.toChain,
+        eventId3,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent3,
+        EventStatus.inPayment,
+      );
+      await DatabaseActionMock.insertTxRecord(
+        activePaymentTx,
+        TransactionStatus.sent,
+      );
+
+      // completed arbitrary tx, order still in-process
+      const orderId = 'order-id';
+      const stuckArbitraryTx = TxTestData.mockErgoPaymentTransaction(
+        TransactionType.arbitrary,
+        orderId,
+      );
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        ERGO_CHAIN,
+        'orderJson',
+        OrderStatus.inProcess,
+      );
+      await DatabaseActionMock.insertTxRecord(
+        stuckArbitraryTx,
+        TransactionStatus.completed,
+      );
+
+      // run test
+      const result =
+        await DatabaseAction.getInstance().getCompletedTxsWithUnfinishedEventOrOrder();
+
+      // should return the stuck payment and arbitrary transactions only
+      expect(result.map((tx) => tx.txId).sort()).toEqual(
+        [stuckPaymentTx.txId, stuckArbitraryTx.txId].sort(),
+      );
     });
   });
 

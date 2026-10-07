@@ -24,6 +24,23 @@ import * as TransactionSerializer from './transactionSerializer';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
+/**
+ * the event/order move that follows the completion of a transaction
+ * `expectedEventStatus`/`expectedOrderStatus` is the status the
+ * event/order is in while the transaction is being processed; it is
+ * only used when re-driving a stuck completed transaction, to make
+ * sure the event/order was not already moved on by its own next step
+ */
+interface CompletedTxTransition {
+  eventId?: string;
+  eventStatus?: string;
+  setEventFirstTry?: boolean;
+  expectedEventStatus?: string;
+  orderId?: string;
+  orderStatus?: string;
+  expectedOrderStatus?: string;
+}
+
 class TransactionProcessor {
   /**
    * processes all active transactions in the database
@@ -64,6 +81,124 @@ class TransactionProcessor {
       }
     }
     logger.info(`Processed [${txs.length}] transactions`);
+    await this.processStuckCompletedTransactions();
+  };
+
+  /**
+   * returns the event/order move that follows the completion of a tx
+   * @param tx transaction record
+   * @returns the transition, or undefined when the tx type has no
+   * event/order to move (e.g. cold storage and manual transactions)
+   */
+  static getCompletedTxTransition = (
+    tx: TransactionEntity,
+  ): CompletedTxTransition | undefined => {
+    if (tx.type === TransactionType.payment && tx.chain !== ERGO_CHAIN) {
+      if (!tx.event)
+        throw new ImpossibleBehavior(
+          `Tx [${tx.txId}] has no event associated with it`,
+        );
+      // set event status, to start reward distribution
+      return {
+        eventId: tx.event.id,
+        eventStatus: EventStatus.pendingReward,
+        setEventFirstTry: true,
+        expectedEventStatus: EventStatus.inPayment,
+      };
+    } else if (
+      tx.type === TransactionType.reward ||
+      (tx.type === TransactionType.payment && tx.chain === ERGO_CHAIN)
+    ) {
+      if (!tx.event)
+        throw new ImpossibleBehavior(
+          `Tx [${tx.txId}] has no event associated with it`,
+        );
+      // set event as complete
+      return {
+        eventId: tx.event.id,
+        eventStatus: EventStatus.completed,
+        expectedEventStatus:
+          tx.type === TransactionType.reward
+            ? EventStatus.inReward
+            : EventStatus.inPayment,
+      };
+    } else if (tx.type === TransactionType.arbitrary) {
+      if (!tx.order)
+        throw new ImpossibleBehavior(
+          `Tx [${tx.txId}] has no order associated with it`,
+        );
+      // set order as complete
+      return {
+        orderId: tx.order.id,
+        orderStatus: OrderStatus.completed,
+        expectedOrderStatus: OrderStatus.inProcess,
+      };
+    }
+    return undefined;
+  };
+
+  /**
+   * finishes the event/order move of transactions that are already
+   * completed but whose event/order never moved on
+   *
+   * before the completion writes were made atomic, a guard that stopped
+   * between setting a tx as completed and moving its event/order left
+   * the event in `in-payment`/`in-reward` (or the order in `in-process`)
+   * forever, since completed transactions are not processed again and
+   * nothing else moves those events/orders
+   */
+  static processStuckCompletedTransactions = async (): Promise<void> => {
+    const txs =
+      await DatabaseAction.getInstance().getCompletedTxsWithUnfinishedEventOrOrder();
+    for (const tx of txs) {
+      try {
+        const transition = this.getCompletedTxTransition(tx);
+        if (transition === undefined) continue;
+        const eventId = transition.eventId;
+        const eventStatus = transition.eventStatus;
+        if (eventId !== undefined && eventStatus !== undefined) {
+          // move the event only if it is still in the status this tx was
+          // supposed to move it from; an event that already moved on
+          // (e.g. a payment event already distributing its reward) must
+          // not be sent back
+          if (!tx.event || tx.event.status !== transition.expectedEventStatus)
+            continue;
+          if (transition.setEventFirstTry)
+            await DatabaseAction.getInstance().setEventStatusToPending(
+              eventId,
+              eventStatus,
+            );
+          else
+            await DatabaseAction.getInstance().setEventStatus(
+              eventId,
+              eventStatus,
+            );
+          logger.info(
+            `Tx [${tx.txId}] was already completed but event [${eventId}] was left in [${transition.expectedEventStatus}]. Event is now [${eventStatus}]`,
+          );
+        }
+        const orderId = transition.orderId;
+        const orderStatus = transition.orderStatus;
+        if (orderId !== undefined && orderStatus !== undefined) {
+          if (!tx.order || tx.order.status !== transition.expectedOrderStatus)
+            continue;
+          await DatabaseAction.getInstance().setOrderStatus(
+            orderId,
+            orderStatus,
+          );
+          logger.info(
+            `Tx [${tx.txId}] was already completed but order [${orderId}] was left in [${transition.expectedOrderStatus}]. Order is now [${orderStatus}]`,
+          );
+        }
+      } catch (e) {
+        logger.warn(
+          `An error occurred while processing stuck completed tx [${tx.txId}]: ${e}`,
+        );
+        logger.warn(e.stack);
+      }
+    }
+    if (txs.length > 0)
+      logger.info(`Processed [${txs.length}] stuck completed transactions`);
   };
 
   /**
@@ -243,53 +378,32 @@ class TransactionProcessor {
     switch (txConfirmation) {
       case ConfirmationStatus.ConfirmedEnough: {
         // tx confirmed enough, proceed to next process
-        await DatabaseAction.getInstance().setTxStatus(
+        // compute the event/order move before writing anything: it throws
+        // for a tx that is missing its event/order, and that must not
+        // happen after the tx is already set as completed
+        const transition = this.getCompletedTxTransition(tx);
+        // set the tx as completed and move its event/order in a single
+        // database transaction, so a failure between the two writes
+        // cannot leave the event/order behind
+        await DatabaseAction.getInstance().setTxAsCompleted(
           tx.txId,
-          TransactionStatus.completed,
+          transition?.eventId,
+          transition?.eventStatus,
+          transition?.setEventFirstTry ?? false,
+          transition?.orderId,
+          transition?.orderStatus,
         );
-        if (tx.type === TransactionType.payment && tx.chain !== ERGO_CHAIN) {
-          if (!tx.event)
-            throw new ImpossibleBehavior(
-              `Tx [${tx.txId}] has no event associated with it`,
-            );
-
-          // set event status, to start reward distribution
-          await DatabaseAction.getInstance().setEventStatusToPending(
-            tx.event.id,
-            EventStatus.pendingReward,
-          );
+        if (transition?.eventStatus === EventStatus.pendingReward) {
           logger.info(
-            `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is ready for reward distribution`,
+            `Tx [${tx.txId}] is confirmed. Event [${transition.eventId}] is ready for reward distribution`,
           );
-        } else if (
-          tx.type === TransactionType.reward ||
-          (tx.type === TransactionType.payment && tx.chain === ERGO_CHAIN)
-        ) {
-          if (!tx.event)
-            throw new ImpossibleBehavior(
-              `Tx [${tx.txId}] has no event associated with it`,
-            );
-          // set event as complete
-          await DatabaseAction.getInstance().setEventStatus(
-            tx.event.id,
-            EventStatus.completed,
-          );
+        } else if (transition?.eventId !== undefined) {
           logger.info(
-            `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is complete`,
+            `Tx [${tx.txId}] is confirmed. Event [${transition.eventId}] is complete`,
           );
-        } else if (tx.type === TransactionType.arbitrary) {
-          if (!tx.order)
-            throw new ImpossibleBehavior(
-              `Tx [${tx.txId}] has no order associated with it`,
-            );
-
-          // set order as complete
-          await DatabaseAction.getInstance().setOrderStatus(
-            tx.order.id,
-            OrderStatus.completed,
-          );
+        } else if (transition?.orderId !== undefined) {
           logger.info(
-            `Tx [${tx.txId}] is confirmed. Order [${tx.order.id}] is complete`,
+            `Tx [${tx.txId}] is confirmed. Order [${transition.orderId}] is complete`,
           );
         } else {
           // no need to do anything about event, just log that tx confirmed
