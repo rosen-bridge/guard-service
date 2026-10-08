@@ -28,10 +28,6 @@ import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import GuardsHandshakeConfigs from '../configs/guardsHandshakeConfigs';
 import { dataSource } from '../db/dataSource';
 import { TokenHandler } from '../handlers/tokenHandler';
-import {
-  DEFAULT_BLOCK_CLEANUP_THRESHOLD_DURATION,
-  DEFAULT_BLOCK_CLEANUP_TRIM,
-} from '../utils/constants';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
@@ -184,10 +180,7 @@ const initScanner = () => {
         : new ErgoExplorerNetwork(GuardsErgoConfigs.explorer.url),
     logger: loggers.ergoScannerLogger,
     blockCleanupConfig: {
-      blockCleanupThresholdDuration: DEFAULT_BLOCK_CLEANUP_THRESHOLD_DURATION,
-      blockTrimCountInRound: Configs.scannersBlockCleanup.isActiveForErgoChain
-        ? DEFAULT_BLOCK_CLEANUP_TRIM
-        : 0,
+      active: Configs.scannersBlockCleanup.isActiveForErgoChain,
     },
   };
 
@@ -215,10 +208,7 @@ const initScanner = () => {
     GuardsBitcoinConfigs.bitcoinContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    {
-      ...commitmentInitialization,
-      address: GuardsBitcoinConfigs.bitcoinContractConfig.addresses.Commitment,
-    },
+    commitmentInitialization,
     loggers.bitcoinCommitmentExtractorLogger,
   );
   const bitcoinEventTriggerExtractor = new EventTriggerExtractor(
@@ -241,10 +231,7 @@ const initScanner = () => {
     GuardsDogeConfigs.dogeContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    {
-      ...commitmentInitialization,
-      address: GuardsDogeConfigs.dogeContractConfig.addresses.Commitment,
-    },
+    commitmentInitialization,
     loggers.dogeCommitmentExtractorLogger,
   );
 
@@ -268,10 +255,7 @@ const initScanner = () => {
     GuardsFiroConfigs.firoContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    {
-      ...commitmentInitialization,
-      address: GuardsFiroConfigs.firoContractConfig.addresses.Commitment,
-    },
+    commitmentInitialization,
     loggers.firoCommitmentExtractorLogger,
   );
 
@@ -295,11 +279,7 @@ const initScanner = () => {
     GuardsHandshakeConfigs.handshakeContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    {
-      ...commitmentInitialization,
-      address:
-        GuardsHandshakeConfigs.handshakeContractConfig.addresses.Commitment,
-    },
+    commitmentInitialization,
     loggers.handshakeCommitmentExtractorLogger,
   );
 
@@ -323,10 +303,7 @@ const initScanner = () => {
     GuardsCardanoConfigs.cardanoContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    {
-      ...commitmentInitialization,
-      address: GuardsCardanoConfigs.cardanoContractConfig.addresses.Commitment,
-    },
+    commitmentInitialization,
     loggers.cardanoCommitmentExtractorLogger,
   );
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
@@ -349,10 +326,7 @@ const initScanner = () => {
     GuardsErgoConfigs.ergoContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    {
-      ...commitmentInitialization,
-      address: GuardsErgoConfigs.ergoContractConfig.addresses.Commitment,
-    },
+    commitmentInitialization,
     loggers.ergoCommitmentExtractorLogger,
   );
   const ergoEventTriggerExtractor = new EventTriggerExtractor(
@@ -375,11 +349,7 @@ const initScanner = () => {
     GuardsEthereumConfigs.ethereumContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    {
-      ...commitmentInitialization,
-      address:
-        GuardsEthereumConfigs.ethereumContractConfig.addresses.Commitment,
-    },
+    commitmentInitialization,
     loggers.ethereumCommitmentExtractorLogger,
   );
   const ethereumEventTriggerExtractor = new EventTriggerExtractor(
@@ -402,10 +372,7 @@ const initScanner = () => {
     GuardsBinanceConfigs.binanceContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    {
-      ...commitmentInitialization,
-      address: GuardsBinanceConfigs.binanceContractConfig.addresses.Commitment,
-    },
+    commitmentInitialization,
     loggers.binanceCommitmentExtractorLogger,
   );
   const binanceEventTriggerExtractor = new EventTriggerExtractor(
@@ -426,12 +393,7 @@ const initScanner = () => {
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    {
-      ...commitmentInitialization,
-      address:
-        GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses
-          .Commitment,
-    },
+    commitmentInitialization,
     loggers.bitcoinRunesCommitmentExtractorLogger,
   );
   const bitcoinRunesEventTriggerExtractor = new EventTriggerExtractor(
@@ -468,13 +430,6 @@ const initScanner = () => {
 
   ergoScannerJob();
 
-  const nonErgoBlockCleanupConfig = {
-    blockCleanupThresholdDuration: DEFAULT_BLOCK_CLEANUP_THRESHOLD_DURATION,
-    blockTrimCountInRound: Configs.scannersBlockCleanup.isActiveForNonErgoChains
-      ? DEFAULT_BLOCK_CLEANUP_TRIM
-      : 0,
-  };
-
   // init Ethereum scanner
   if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
     // RPC network requires ethereum scanner
@@ -490,7 +445,9 @@ const initScanner = () => {
         ? GuardsEthereumConfigs.rpc.fastForward.heightGap
         : undefined,
       logger: loggers.ethereumScannerLogger,
-      blockCleanupConfig: nonErgoBlockCleanupConfig,
+      blockCleanupConfig: {
+        active: Configs.scannersBlockCleanup.isActiveForNonErgoChains,
+      },
     });
     const ethereumAddressTxExtractor = new EvmTxExtractor(
       dataSource,
@@ -521,7 +478,9 @@ const initScanner = () => {
         ? GuardsBinanceConfigs.rpc.fastForward.heightGap
         : undefined,
       logger: loggers.binanceScannerLogger,
-      blockCleanupConfig: nonErgoBlockCleanupConfig,
+      blockCleanupConfig: {
+        active: Configs.scannersBlockCleanup.isActiveForNonErgoChains,
+      },
     });
     const BinanceAddressTxExtractor = new EvmTxExtractor(
       dataSource,

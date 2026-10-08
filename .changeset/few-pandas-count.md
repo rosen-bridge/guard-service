@@ -4,4 +4,4 @@
 
 Update dependencies
 
-- @rosen-bridge/firo-scanner@1.0.1
+- @rosen-bridge/firo-scanner@1.0.2
