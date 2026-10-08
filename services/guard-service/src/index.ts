@@ -6,6 +6,8 @@ import TxAgreement from './agreement/txAgreement';
 import ArbitraryProcessor from './arbitrary/arbitraryProcessor';
 import RosenDialer from './communication/rosenDialer';
 import Configs from './configs/configs';
+import GuardsBitcoinCashConfigs from './configs/guardsBitcoinCashConfigs';
+import { assertBitcoinCashDatabaseCompatible } from './db/bitcoinCashState';
 import { DatabaseAction } from './db/databaseAction';
 import { dataSource } from './db/dataSource';
 import BalanceHandler from './handlers/balanceHandler';
@@ -43,6 +45,11 @@ const init = async () => {
 
   // initialize DatabaseAction
   DatabaseAction.init(dataSource);
+
+  await assertBitcoinCashDatabaseCompatible(
+    dataSource,
+    GuardsBitcoinCashConfigs.enabled,
+  );
 
   // initialize PublicStatusHandler
   PublicStatusHandler.init(dataSource);

@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash-es';
 
 import { TransactionType } from '@rosen-chains/abstract-chain';
+import { TransactionType as BchConsumers_TransactionType } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 import {
@@ -8,22 +9,40 @@ import {
   ApprovedCandidate,
 } from '../../src/agreement/interfaces';
 import EventSerializer from '../../src/event/eventSerializer';
+import BchConsumers_EventSerializer from '../../src/event/eventSerializer';
+import BchConsumers_ChainHandler from '../../src/handlers/chainHandler';
 import * as TransactionSerializer from '../../src/transaction/transactionSerializer';
+import { getTxDataHash as BchConsumers_getTxDataHash } from '../../src/transaction/transactionSerializer';
 import {
   EventStatus,
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
 import GuardTurn from '../../src/utils/guardTurn';
+import BchConsumers_GuardTurn from '../../src/utils/guardTurn';
 import RequestVerifier from '../../src/verification/requestVerifier';
 import TransactionVerifier from '../../src/verification/transactionVerifier';
+import BchConsumers_TransactionVerifier from '../../src/verification/transactionVerifier';
+import {
+  insertNamespaceEvent as BchConsumers_insertNamespaceEvent,
+  namespaceEvent as BchConsumers_namespaceEvent,
+} from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import BchConsumers_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import * as EventTestData from '../event/testData';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
+import { chainHandlerInstance as BchConsumers_chainHandlerInstance } from '../handlers/chainHandler.mock';
+import { preserveBitcoinCashMocks } from '../testUtils/mocked/bitcoinCashMockScope.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TestUtils from '../testUtils/testUtils';
 import { mockPaymentTransaction } from './testData';
+import { mockPaymentTransaction as BchConsumers_mockPaymentTransaction } from './testData';
 import TestTxAgreement from './testTxAgreement';
+import BchConsumers_TestTxAgreement from './testTxAgreement';
+
+/** Retain the real namespace verifier before legacy cases install their spies. */
+const bchNamespaceVerifyEventTransactionRequest =
+  RequestVerifier.verifyEventTransactionRequest;
 
 describe('TxAgreement', () => {
   describe('addTransactionToQueue', () => {
@@ -1016,6 +1035,97 @@ describe('TxAgreement', () => {
 
       // should return false
       expect(result).toEqual(false);
+    });
+
+    describe('BCH RCS bitcoinCashNamespaceConsumers', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [BchConsumers_ChainHandler, ['getInstance']],
+          [BchConsumers_GuardTurn, ['guardTurn']],
+          [RequestVerifier, ['verifyEventTransactionRequest']],
+          [
+            BchConsumers_TransactionVerifier,
+            ['verifyTxCommonConditions', 'verifyEventTransaction'],
+          ],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      beforeEach(async () => {
+        await BchConsumers_DatabaseActionMock.clearTables();
+        vi.spyOn(
+          RequestVerifier,
+          'verifyEventTransactionRequest',
+        ).mockImplementation(bchNamespaceVerifyEventTransactionRequest);
+        vi.spyOn(BchConsumers_ChainHandler, 'getInstance').mockReturnValue(
+          BchConsumers_chainHandlerInstance as unknown as BchConsumers_ChainHandler,
+        );
+      });
+
+      /**
+       * @target TxAgreement.verifyTransactionRequest - keeps BCH agreement
+       * separate from a BTC agreement and rejects a competing BCH envelope
+       * @dependencies SQLite namespace fixtures,
+       * TestTxAgreement/TestEventSynchronization wrappers, mocked chain, fee,
+       * order, verification and active-sync seams.
+       * @scenario keeps BCH agreement separate from a BTC agreement and
+       * rejects a competing BCH envelope.
+       * @expected Keep BTC/BCH agreement entries separate and reject a
+       * competing BCH envelope.
+       */
+      it('keeps BCH agreement separate from a BTC agreement and rejects a competing BCH envelope', async () => {
+        const bitcoin = await BchConsumers_insertNamespaceEvent(
+          BchConsumers_namespaceEvent('bitcoin', { toChain: 'cardano' }),
+          'btc-trigger',
+        );
+        const bch = await BchConsumers_insertNamespaceEvent(
+          BchConsumers_namespaceEvent('bitcoin-cash', { toChain: 'cardano' }),
+          'bch-trigger',
+        );
+        vi.spyOn(BchConsumers_GuardTurn, 'guardTurn').mockReturnValue(1);
+        vi.spyOn(
+          BchConsumers_TransactionVerifier,
+          'verifyTxCommonConditions',
+        ).mockResolvedValue(true);
+        vi.spyOn(
+          BchConsumers_TransactionVerifier,
+          'verifyEventTransaction',
+        ).mockResolvedValue(true);
+        const agreement = new BchConsumers_TestTxAgreement();
+        agreement.insertEventAgreedTransactions(
+          BchConsumers_EventSerializer.getId(bitcoin),
+          'btc-existing-agreement',
+        );
+        const tx = BchConsumers_mockPaymentTransaction(
+          BchConsumers_TransactionType.payment,
+          'cardano',
+          BchConsumers_EventSerializer.getId(bch),
+        );
+        expect(await agreement.callVerifyTransactionRequest(tx, 1)).toEqual(
+          true,
+        );
+        expect(
+          agreement
+            .getEventAgreedTransactions()
+            .get(BchConsumers_EventSerializer.getId(bch)),
+        ).toEqual(BchConsumers_getTxDataHash(tx));
+        expect(
+          agreement
+            .getEventAgreedTransactions()
+            .get(BchConsumers_EventSerializer.getId(bitcoin)),
+        ).toEqual('btc-existing-agreement');
+        expect(
+          await agreement.callVerifyTransactionRequest(
+            BchConsumers_mockPaymentTransaction(
+              BchConsumers_TransactionType.payment,
+              'cardano',
+              BchConsumers_EventSerializer.getId(bch),
+            ),
+            1,
+          ),
+        ).toEqual(false);
+      });
     });
   });
 

@@ -369,6 +369,11 @@ describe('TransactionVerifier', () => {
       // mock EventOrder.createEventPaymentOrder to return mocked order
       mockCreateEventPaymentOrder(mockedOrder);
 
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment,
+      );
+
       // run test
       const result = await TransactionVerifier.verifyEventTransaction(
         paymentTx,
@@ -550,6 +555,11 @@ describe('TransactionVerifier', () => {
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
       mockCreateEventPaymentOrder(expectedOrder);
+
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment,
+      );
 
       // run test
       const result = await TransactionVerifier.verifyEventTransaction(

@@ -6,6 +6,10 @@ api:
   maxRequestsPerMinutePostRoutes: 2
 publicStatus:
   baseUrl: ''
+bitcoinCash:
+  enabled: false
+  health:
+    enabled: false
 binance:
   chainNetwork: 'rpc'
   rpc:
@@ -190,3 +194,6 @@ thresholdsPath: 'tests/resources/threshold.test.json'
 balanceHandler:
   default:
     updateBatchInterval: 0
+  bitcoinCash:
+    tokensPerIteration:
+      rpc: 1

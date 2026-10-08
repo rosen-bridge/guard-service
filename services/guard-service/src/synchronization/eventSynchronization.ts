@@ -12,6 +12,7 @@ import {
   SigningStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import { BITCOIN_CASH_CHAIN } from '@rosen-chains/bitcoin-cash';
 
 import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
@@ -330,7 +331,13 @@ class EventSynchronization extends Communicator {
         );
 
         const targetChain = ChainHandler.getInstance().getChain(txEntity.chain);
-        const actualTxId = await targetChain.getActualTxId(txEntity.txId);
+        const actualTxId = await targetChain.getActualTxId(
+          txEntity.txId,
+          TransactionSerializer.fromJson(
+            txEntity.txJson,
+            ChainHandler.getInstance().getChain,
+          ),
+        );
 
         // send response to sender guard
         const payload: SyncResponse = { txJson: txEntity.txJson, actualTxId };
@@ -463,11 +470,20 @@ class EventSynchronization extends Communicator {
       return false;
     }
 
+    // Bind the claimed network ID to the received payment envelope.
+    if (
+      tx.network === BITCOIN_CASH_CHAIN &&
+      (await chain.getActualTxId(tx.txId, tx)) !== actualTxId
+    ) {
+      logger.warn(baseError + `network transaction identity does not match`);
+      return false;
+    }
+
     // check if tx is confirmed enough
-    const txConfirmation = await chain.getTxConfirmationStatus(
-      actualTxId,
-      tx.txType,
-    );
+    const txConfirmation =
+      tx.network === BITCOIN_CASH_CHAIN
+        ? await chain.getTxConfirmationStatus(tx.txId, tx.txType, tx)
+        : await chain.getTxConfirmationStatus(actualTxId, tx.txType);
     if (txConfirmation === ConfirmationStatus.NotConfirmedEnough) {
       logger.warn(baseError + `tx is not confirmed enough`);
       return false;

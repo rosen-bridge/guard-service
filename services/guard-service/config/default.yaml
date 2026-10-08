@@ -55,6 +55,36 @@ bitcoin:
   tssChainCode: ''
   derivationPath:
     -
+bitcoinCash:
+  enabled: false
+  health:
+    enabled: false
+    # Enabling monitoring requires both thresholds as exact decimal satoshi strings.
+    # warnThreshold: ''
+    # criticalThreshold: '' # must be nonnegative and no greater than warnThreshold
+  chainNetwork: 'rpc'
+  rpc:
+    url: '' # BCHN wallet RPC; import lock/cold addresses and rescan before enabling
+    expectedChain: '' # explicitly select main, test or regtest
+    timeoutMs: 10000 # milliseconds; other service time settings use seconds
+    # username: '' # supply both username and password, or omit both
+    # password: ''
+    walletHistoryPageSize: 100
+    maxWalletHistoryPages: 20
+  bankPublicKey: '' # compressed aggregate public key matching contracts.json lock CashAddr
+  tssChainCode: ''
+  derivationPath: [] # non-hardened indexes only, 0..2147483647
+  feeRate: 1 # fixed positive integer satoshis per serialized byte
+  maxFee: '10000' # exact decimal satoshis
+  minimumUtxoValue: '546' # exact decimal satoshis, including treasury change
+  maxUtxoPages: 20
+  confirmation:
+    observation: 6
+    payment: 6
+    cold: 6
+    manual: 6
+    arbitrary: 6
+  # Enabling requires actual contracts.json['bitcoin-cash'] and bch/Ergo token mapping.
 bitcoinRunes:
   chainNetwork: 'rpc' # 'rpc'
   rpc:
@@ -394,6 +424,9 @@ balanceHandler:
     tokensPerIteration:
       rpc: 10
   bitcoinRunes:
+    tokensPerIteration:
+      rpc: 9999
+  bitcoinCash:
     tokensPerIteration:
       rpc: 9999
 ergoMultiSig:

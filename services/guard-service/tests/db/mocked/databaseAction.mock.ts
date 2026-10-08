@@ -36,7 +36,7 @@ import { RevenueView } from '../../../src/db/entities/revenueView';
 import { TransactionEntity } from '../../../src/db/entities/transactionEntity';
 import migrations from '../../../src/db/migrations';
 import { ReprocessStatus } from '../../../src/reprocess/interfaces';
-import { OrderStatus } from '../../../src/utils/constants';
+import { ChainConfigKey, OrderStatus } from '../../../src/utils/constants';
 import Utils from '../../../src/utils/utils';
 import TestUtils from '../../testUtils/testUtils';
 
@@ -80,6 +80,8 @@ class DatabaseActionMock {
    * initializes test database
    */
   static initDatabase = async () => {
+    // Register only the unit-test chain; production keeps a closed registry.
+    ChainConfigKey.fromChain = 'fromChain';
     try {
       await this.testDataSource.initialize();
       await this.testDataSource.runMigrations();
@@ -383,7 +385,7 @@ class DatabaseActionMock {
     await this.testDatabase.CommitmentRepository.createQueryBuilder()
       .insert()
       .values({
-        extractor: 'extractor',
+        extractor: `${ChainConfigKey[event.fromChain]}Commitment`,
         eventId: eventId,
         commitment: commitment,
         WID: wid,

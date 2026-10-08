@@ -1,5 +1,8 @@
+import config from 'config';
+
 import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
+import { BITCOIN_CASH_CHAIN, BCH } from '@rosen-chains/bitcoin-cash';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
@@ -62,7 +65,18 @@ const SUPPORTED_CHAINS = [
   FIRO_CHAIN,
   HANDSHAKE_CHAIN,
   BITCOIN_RUNES_CHAIN,
+  BITCOIN_CASH_CHAIN,
 ] as const;
+
+const bitcoinCashEnabled = config.has('bitcoinCash.enabled')
+  ? config.get<unknown>('bitcoinCash.enabled')
+  : false;
+if (typeof bitcoinCashEnabled !== 'boolean')
+  throw Error('bitcoinCash.enabled must be boolean');
+/** API schemas advertise support; runtime jobs enumerate only enabled chains. */
+const ACTIVE_CHAINS = SUPPORTED_CHAINS.filter(
+  (chain) => chain !== BITCOIN_CASH_CHAIN || bitcoinCashEnabled,
+);
 
 enum RevenueType {
   fraud = 'fraud',
@@ -86,6 +100,7 @@ const ChainNativeToken: Record<string, string> = {
   [HANDSHAKE_CHAIN]: HNS,
   [BINANCE_CHAIN]: BNB,
   [BITCOIN_RUNES_CHAIN]: BTC,
+  [BITCOIN_CASH_CHAIN]: BCH,
 };
 
 const ChainConfigKey: Record<string, string> = {
@@ -98,6 +113,7 @@ const ChainConfigKey: Record<string, string> = {
   [HANDSHAKE_CHAIN]: HANDSHAKE_CHAIN,
   [BINANCE_CHAIN]: BINANCE_CHAIN,
   [BITCOIN_RUNES_CHAIN]: 'bitcoinRunes',
+  [BITCOIN_CASH_CHAIN]: 'bitcoinCash',
 };
 
 enum OrderStatus {
@@ -127,6 +143,7 @@ export {
   ADA_DECIMALS,
   ERG_DECIMALS,
   SUPPORTED_CHAINS,
+  ACTIVE_CHAINS,
   RevenueType,
   TssAlgorithms,
   ChainNativeToken,
