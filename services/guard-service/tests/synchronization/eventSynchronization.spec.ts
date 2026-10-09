@@ -835,8 +835,8 @@ describe('EventSynchronization', () => {
       const responses = [
         undefined,
         ...Array(requiredApproval - 2).fill(tx),
-        ...Array(requiredApproval - 2).fill(anotherTx),
-        ...Array(guardsLen - 2 * requiredApproval + 3).fill(undefined),
+        ...Array(requiredApproval - 1).fill(anotherTx),
+        ...Array(guardsLen - 2 * requiredApproval + 2).fill(undefined),
       ];
       eventSync.insertEventIntoActiveSync(eventId, {
         timestamp: TestConfigs.currentTimeStamp / 1000 - 100,
@@ -1000,6 +1000,45 @@ describe('EventSynchronization', () => {
 
       // check returned value
       expect(result).toEqual(true);
+    });
+
+    /**
+     * @target EventSynchronization.verifySynchronizationResponse should return false
+     * when tx network is not the event target chain
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock event and a transaction of another network
+     * - insert event into db and active sync
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when tx network is not the event target chain', async () => {
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain + '-other',
+        eventId,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment,
+      );
+
+      const eventSync = new TestEventSynchronization();
+      eventSync.insertEventIntoActiveSync(eventId, {
+        timestamp: TestConfigs.currentTimeStamp / 1000 - 100,
+        responses: Array(guardsLen).fill(undefined),
+      });
+
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        tx.txId,
+      );
+      expect(result).toEqual(false);
     });
 
     /**

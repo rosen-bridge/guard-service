@@ -378,15 +378,22 @@ class EventSynchronization extends Communicator {
         const activeSync = this.activeSyncMap.get(tx.eventId);
         if (activeSync) {
           activeSync.responses[senderIndex] = tx;
-          const occurrences = countBy(activeSync.responses.filter((_) => _));
+          const occurrences = countBy(
+            activeSync.responses.filter((_) => _),
+            'txId',
+          );
+          const approvedTxId = Object.keys(occurrences).find(
+            (txId) => occurrences[txId] >= this.requiredApproval,
+          );
 
-          if (
-            Math.max(...Object.values(occurrences)) >= this.requiredApproval
-          ) {
+          if (approvedTxId !== undefined) {
+            const approvedTx = activeSync.responses.find(
+              (_) => _?.txId === approvedTxId,
+            )!;
             logger.info(
-              `The majority of guards responded the sync request of event [${tx.eventId}] with transaction [${tx.txId}]`,
+              `The majority of guards responded the sync request of event [${tx.eventId}] with transaction [${approvedTxId}]`,
             );
-            await this.setTxAsApproved(tx);
+            await this.setTxAsApproved(approvedTx);
           } else {
             logger.debug(
               `event [${tx.eventId}] sync status is: [${JSON.stringify(
@@ -407,6 +414,7 @@ class EventSynchronization extends Communicator {
    * verifies the transaction sent by other guards for synchronization
    * conditions:
    * - there is a request for this event
+   * - tx network is equal to event target chain
    * - tx type is payment
    * - PaymentTransaction object consistency is verified
    * - tx order is equal to expected event order
@@ -435,6 +443,15 @@ class EventSynchronization extends Communicator {
       throw new ImpossibleBehavior(baseError + `event is not found`);
     }
     const event = EventSerializer.fromConfirmedEntity(eventEntity);
+
+    // verify tx network
+    if (tx.network !== event.toChain) {
+      logger.warn(
+        baseError +
+          `transaction network [${tx.network}] is not the event target chain [${event.toChain}]`,
+      );
+      return false;
+    }
 
     // verify tx type
     if (tx.txType !== TransactionType.payment) {
