@@ -1372,6 +1372,217 @@ describe('TransactionProcessor', () => {
     });
   });
 
+  describe('completed transaction transitions', () => {
+    beforeEach(async () => {
+      await DatabaseActionMock.clearTables();
+      ChainHandlerMock.resetMock();
+      TransactionProcessorMock.restoreMocks();
+    });
+
+    /**
+     * @target TransactionProcessor.processTransactions should not set a
+     * sent tx as completed when its event is missing
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock payment transaction with no event record and insert into db as 'sent'
+     * - mock ChainHandler `getChain`
+     *   - mock `getTxConfirmationStatus` to return ConfirmedEnough
+     * - run test (call `processTransactions`)
+     * - check tx in database
+     * @expected
+     * - tx status should remain 'sent', so it is processed again instead
+     *   of being completed with its event left behind
+     */
+    it('should not set a sent tx as completed when its event is missing', async () => {
+      // mock payment transaction with no event record and insert into db
+      const tx = mockPaymentTransaction(
+        TransactionType.payment,
+        CARDANO_CHAIN,
+        'missing-event-id',
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent);
+
+      // mock ChainHandler `getChain`
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
+      // mock `getTxConfirmationStatus`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxConfirmationStatus',
+        ConfirmationStatus.ConfirmedEnough,
+        true,
+      );
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // tx status should remain 'sent'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+      ]);
+      expect(dbTxs).toEqual([[tx.txId, TransactionStatus.sent]]);
+    });
+
+    /**
+     * @target TransactionProcessor.processTransactions should move the
+     * event of an already completed payment tx to pending-reward
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock event and insert into db as 'in-payment'
+     * - mock payment transaction and insert into db as 'completed'
+     *   (the state a guard is left in when it stopped between setting
+     *   the tx as completed and moving the event)
+     * - run test (call `processTransactions`)
+     * - check event in database
+     * @expected
+     * - event status should be updated to 'pending-reward'
+     * - event firstTry should be updated to current timestamp
+     */
+    it('should move the event of an already completed payment tx to pending-reward', async () => {
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inPayment,
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // event status should be updated to 'pending-reward'
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status, event.firstTry],
+      );
+      expect(dbEvents).toEqual([
+        [
+          eventId,
+          EventStatus.pendingReward,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+    });
+
+    /**
+     * @target TransactionProcessor.processTransactions should move the
+     * event of an already completed reward tx to completed
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock event and insert into db as 'in-reward'
+     * - mock reward transaction and insert into db as 'completed'
+     * - run test (call `processTransactions`)
+     * - check event in database
+     * @expected
+     * - event status should be updated to 'completed'
+     */
+    it('should move the event of an already completed reward tx to completed', async () => {
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockErgoPaymentTransaction(TransactionType.reward, eventId);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inReward,
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // event status should be updated to 'completed'
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status],
+      );
+      expect(dbEvents).toEqual([[eventId, EventStatus.completed]]);
+    });
+
+    /**
+     * @target TransactionProcessor.processTransactions should move the
+     * order of an already completed arbitrary tx to completed
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock order and insert into db as 'in-process'
+     * - mock arbitrary transaction and insert into db as 'completed'
+     * - run test (call `processTransactions`)
+     * - check order in database
+     * @expected
+     * - order status should be updated to 'completed'
+     */
+    it('should move the order of an already completed arbitrary tx to completed', async () => {
+      // mock order and transaction and insert into db
+      const orderId = 'order-id';
+      const tx = mockErgoPaymentTransaction(TransactionType.arbitrary, orderId);
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        CARDANO_CHAIN,
+        'orderJson',
+        OrderStatus.inProcess,
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // order status should be updated to 'completed'
+      const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
+        (order) => [order.id, order.status],
+      );
+      expect(dbOrders).toEqual([[orderId, OrderStatus.completed]]);
+    });
+
+    /**
+     * @target TransactionProcessor.processTransactions should not move
+     * an event that already passed the completed tx's transition
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock event and insert into db as 'in-reward' (its payment already
+     *   completed and the reward distribution already started)
+     * - mock payment transaction and insert into db as 'completed'
+     * - run test (call `processTransactions`)
+     * - check event in database
+     * @expected
+     * - event status should remain 'in-reward'; the completed payment tx
+     *   must not send it back to 'pending-reward'
+     */
+    it('should not move an event that already passed the completed tx transition', async () => {
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inReward,
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // event status should remain 'in-reward'
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status],
+      );
+      expect(dbEvents).toEqual([[eventId, EventStatus.inReward]]);
+    });
+  });
+
   describe('setTransactionAsInvalid', () => {
     const invalidationDetails = (unexpected: boolean) => ({
       reason: 'test reason',
