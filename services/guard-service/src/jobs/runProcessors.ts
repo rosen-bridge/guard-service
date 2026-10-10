@@ -21,10 +21,13 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  */
 const agreementQueueJob = async () => {
   if (GuardTurn.secondsToReset() < GuardTurn.UP_TIME_LENGTH) {
-    const txAgreement = await TxAgreement.getInstance();
-    txAgreement.processAgreementQueue().then(() => {
-      setTimeout(agreementQueueJob, Configs.agreementQueueInterval * 1000);
-    });
+    try {
+      const txAgreement = await TxAgreement.getInstance();
+      await txAgreement.processAgreementQueue();
+    } catch (e) {
+      logger.error(`Agreement queue job failed with error: ${e}`);
+    }
+    setTimeout(agreementQueueJob, Configs.agreementQueueInterval * 1000);
   }
 };
 
@@ -33,36 +36,47 @@ const agreementQueueJob = async () => {
  */
 const agreementResendJob = async () => {
   if (GuardTurn.secondsToReset() < GuardTurn.UP_TIME_LENGTH) {
-    const txAgreement = await TxAgreement.getInstance();
-    txAgreement.resendTransactionRequests();
-    setTimeout(
-      txAgreement.resendApprovalMessages,
-      Configs.approvalResendDelay * 1000,
-    );
+    try {
+      const txAgreement = await TxAgreement.getInstance();
+      txAgreement.resendTransactionRequests();
+      setTimeout(
+        txAgreement.resendApprovalMessages,
+        Configs.approvalResendDelay * 1000,
+      );
+    } catch (e) {
+      logger.error(`Agreement resend job failed with error: ${e}`);
+    }
     setTimeout(agreementResendJob, Configs.txResendInterval * 1000);
   }
 };
 
 const roundJob = async () => {
-  // enqueue sign failed txs after 30 seconds in turn
-  setTimeout((await TxAgreement.getInstance()).enqueueSignFailedTxs, 30 * 1000);
-  // run TxAgreement queue and resend jobs
-  setTimeout(agreementQueueJob, Configs.agreementQueueInterval * 1000);
-  setTimeout(agreementResendJob, Configs.txResendInterval * 1000);
-  // clear generated transactions when turn is over
-  setTimeout(
-    (await TxAgreement.getInstance()).clearTransactions,
-    GuardTurn.UP_TIME_LENGTH * 1000,
-  );
-  // TODO: There are some concerns about sequential execution of Tx Generation jobs
-  //  local:ergo/rosen-bridge/guard-service#317
-  // process confirmed events
-  await EventProcessor.processConfirmedEvents();
-  // process arbitrary orders
-  await ArbitraryProcessor.getInstance().processArbitraryOrders();
-  // process lock address assets for sending any to cold storage
-  if (ColdStorageConfig.isWithinTime()) {
-    await ColdStorage.processLockAddressAssets();
+  try {
+    // enqueue sign failed txs after 30 seconds in turn
+    setTimeout(
+      (await TxAgreement.getInstance()).enqueueSignFailedTxs,
+      30 * 1000,
+    );
+    // run TxAgreement queue and resend jobs
+    setTimeout(agreementQueueJob, Configs.agreementQueueInterval * 1000);
+    setTimeout(agreementResendJob, Configs.txResendInterval * 1000);
+    // clear generated transactions when turn is over
+    setTimeout(
+      (await TxAgreement.getInstance()).clearTransactions,
+      GuardTurn.UP_TIME_LENGTH * 1000,
+    );
+    // TODO: There are some concerns about sequential execution of Tx Generation jobs
+    //  local:ergo/rosen-bridge/guard-service#317
+    // process confirmed events
+    await EventProcessor.processConfirmedEvents();
+    // process arbitrary orders
+    await ArbitraryProcessor.getInstance().processArbitraryOrders();
+    // process lock address assets for sending any to cold storage
+    if (ColdStorageConfig.isWithinTime()) {
+      await ColdStorage.processLockAddressAssets();
+    }
+  } catch (e) {
+    logger.error(`Round job failed with error: ${e}`);
   }
 
   // reschedule the job
@@ -73,36 +87,57 @@ const roundJob = async () => {
  * runs EventProcessor job to process scanned events
  */
 const scannedEventsJob = () => {
-  EventProcessor.processScannedEvents().then(() =>
-    setTimeout(scannedEventsJob, Configs.scannedEventProcessorInterval * 1000),
-  );
+  EventProcessor.processScannedEvents()
+    .then(() =>
+      setTimeout(
+        scannedEventsJob,
+        Configs.scannedEventProcessorInterval * 1000,
+      ),
+    )
+    .catch((e) => {
+      logger.error(`Scanned events job failed with error: ${e}`);
+      setTimeout(
+        scannedEventsJob,
+        Configs.scannedEventProcessorInterval * 1000,
+      );
+    });
 };
 
 /**
  * runs cleanUp job for txAgreement
  */
 const resetJob = async () => {
-  (await TxAgreement.getInstance())
-    .clearAgreedTransactions()
-    .then(() => setTimeout(resetJob, GuardTurn.secondsToReset() * 1000));
+  try {
+    await (await TxAgreement.getInstance()).clearAgreedTransactions();
+  } catch (e) {
+    logger.error(`Reset job failed with error: ${e}`);
+  }
+  setTimeout(resetJob, GuardTurn.secondsToReset() * 1000);
 };
 
 /**
  * runs TransactionProcessor job
  */
 const transactionJob = () => {
-  TransactionProcessor.processTransactions().then(() =>
-    setTimeout(transactionJob, Configs.txProcessorInterval * 1000),
-  );
+  TransactionProcessor.processTransactions()
+    .then(() => setTimeout(transactionJob, Configs.txProcessorInterval * 1000))
+    .catch((e) => {
+      logger.error(`Transaction processor job failed with error: ${e}`);
+      setTimeout(transactionJob, Configs.txProcessorInterval * 1000);
+    });
 };
 
 /**
  * runs timeout leftover events, orders and event active syncs job
  */
 const timeoutProcessorJob = async () => {
-  await EventProcessor.TimeoutLeftoverEvents();
-  await ArbitraryProcessor.getInstance().timeoutLeftoverOrders();
-  await EventSynchronization.getInstance().timeoutActiveSyncs();
+  try {
+    await EventProcessor.TimeoutLeftoverEvents();
+    await ArbitraryProcessor.getInstance().timeoutLeftoverOrders();
+    await EventSynchronization.getInstance().timeoutActiveSyncs();
+  } catch (e) {
+    logger.error(`Timeout processor job failed with error: ${e}`);
+  }
   setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000);
 };
 
@@ -110,8 +145,12 @@ const timeoutProcessorJob = async () => {
  * runs requeue waiting events and orders job
  */
 const requeueWaitingEventsJob = async () => {
-  await EventProcessor.RequeueWaitingEvents();
-  await ArbitraryProcessor.getInstance().requeueWaitingOrders();
+  try {
+    await EventProcessor.RequeueWaitingEvents();
+    await ArbitraryProcessor.getInstance().requeueWaitingOrders();
+  } catch (e) {
+    logger.error(`Requeue waiting events job failed with error: ${e}`);
+  }
   setTimeout(
     requeueWaitingEventsJob,
     Configs.requeueWaitingEventsInterval * 1000,
@@ -122,8 +161,12 @@ const requeueWaitingEventsJob = async () => {
  * runs event active synchronizations jobs
  */
 const eventSyncJob = async () => {
-  await EventSynchronization.getInstance().processSyncQueue();
-  await EventSynchronization.getInstance().sendSyncBatch();
+  try {
+    await EventSynchronization.getInstance().processSyncQueue();
+    await EventSynchronization.getInstance().sendSyncBatch();
+  } catch (e) {
+    logger.error(`Event synchronization job failed with error: ${e}`);
+  }
   setTimeout(eventSyncJob, Configs.eventSyncInterval * 1000);
 };
 
@@ -181,4 +224,15 @@ const runProcessors = () => {
   balanceUpdateJob();
 };
 
-export { runProcessors };
+export {
+  agreementQueueJob,
+  agreementResendJob,
+  eventSyncJob,
+  requeueWaitingEventsJob,
+  resetJob,
+  roundJob,
+  runProcessors,
+  scannedEventsJob,
+  timeoutProcessorJob,
+  transactionJob,
+};
