@@ -113,6 +113,20 @@ export interface HandshakeCoin {
 }
 
 /**
+ * Transaction object returned by the /tx/:hash endpoint
+ */
+export interface HandshakeNodeTransaction {
+  hash: string;
+  inputs: Array<{
+    prevout: {
+      hash: string;
+      index: number;
+    };
+    coin?: Omit<HandshakeCoin, 'hash' | 'index'>;
+  }>;
+}
+
+/**
  * Authentication credentials for Handshake RPC
  */
 export interface RpcAuth {

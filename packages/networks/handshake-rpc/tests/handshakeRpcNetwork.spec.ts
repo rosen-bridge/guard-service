@@ -3,6 +3,7 @@ import { FailedError } from '@rosen-chains/abstract-chain';
 import { HandshakeRpcNetwork } from '../lib/handshakeRpcNetwork';
 import {
   mockAxiosGet,
+  mockAxiosGetToThrow,
   mockAxiosPost,
   mockAxiosPostRpcError,
   resetAxiosMock,
@@ -427,15 +428,16 @@ describe('HandshakeRpcNetwork', () => {
      * @target `HandshakeRpcNetwork.getAddressAssets` should return address assets successfully
      * @dependencies
      * @scenario
-     * - mock axios to return address coins
+     * - mock axios to return address coins and the mempool transaction
      * - run test
      * - check returned value
      * @expected
-     * - it should be the sum of the confirmed coin values, in dollarydoos
+     * - it should be the sum of the confirmed coin values, including the one spent in mempool
      * - it should exclude the name covenant and the mempool coin
      */
     it('should return address assets successfully', async () => {
       mockAxiosGet(testData.addressCoins);
+      mockAxiosGet(testData.mempoolPaymentTx);
 
       const network = new HandshakeRpcNetwork(URL);
       const result = await network.getAddressAssets(testData.lockAddress);
@@ -444,6 +446,73 @@ describe('HandshakeRpcNetwork', () => {
         nativeToken: testData.addressBalance,
         tokens: [],
       });
+    });
+
+    /**
+     * @target `HandshakeRpcNetwork.getAddressAssets` should count coins spent by chained mempool transactions
+     * @dependencies
+     * @scenario
+     * - mock axios to return address coins and the chained mempool transactions
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the address coin spent by the first transaction
+     */
+    it('should count coins spent by chained mempool transactions', async () => {
+      mockAxiosGet(testData.chainedMempoolCoins);
+      mockAxiosGet(testData.chainedMempoolSecondTx);
+      mockAxiosGet(testData.chainedMempoolFirstTx);
+
+      const network = new HandshakeRpcNetwork(URL);
+      const result = await network.getAddressAssets(testData.lockAddress);
+
+      expect(result).toEqual({
+        nativeToken: testData.chainedMempoolBalance,
+        tokens: [],
+      });
+    });
+
+    /**
+     * @target `HandshakeRpcNetwork.getAddressAssets` should skip a transaction that left the mempool
+     * @dependencies
+     * @scenario
+     * - mock axios to return address coins and 404 for the mempool transaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the sum of the confirmed coin values
+     */
+    it('should skip a transaction that left the mempool', async () => {
+      mockAxiosGet(testData.addressCoins);
+      mockAxiosGetToThrow({ response: { status: 404, data: null } });
+
+      const network = new HandshakeRpcNetwork(URL);
+      const result = await network.getAddressAssets(testData.lockAddress);
+
+      expect(result).toEqual({
+        nativeToken: testData.confirmedCoinsBalance,
+        tokens: [],
+      });
+    });
+
+    /**
+     * @target `HandshakeRpcNetwork.getAddressAssets` should throw when fetching the mempool transaction fails
+     * @dependencies
+     * @scenario
+     * - mock axios to return address coins and 500 for the mempool transaction
+     * - run test and expect exception thrown
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw when fetching the mempool transaction fails', async () => {
+      mockAxiosGet(testData.addressCoins);
+      mockAxiosGetToThrow({ response: { status: 500, data: 'error' } });
+
+      const network = new HandshakeRpcNetwork(URL);
+
+      await expect(
+        network.getAddressAssets(testData.lockAddress),
+      ).rejects.toThrow(FailedError);
     });
   });
 
