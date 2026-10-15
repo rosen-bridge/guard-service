@@ -144,7 +144,10 @@ class DatabaseAction {
       );
 
     if ((result.affected ?? 0) === 0) return;
-    PublicStatusHandler.getInstance().updatePublicEventStatus(eventId, status);
+    await PublicStatusHandler.getInstance().updatePublicEventStatus(
+      eventId,
+      status,
+    );
   };
 
   /**
@@ -226,7 +229,7 @@ class DatabaseAction {
       },
     );
     if ((result.affected ?? 0) === 0) return;
-    PublicStatusHandler.getInstance().updatePublicTxStatus(txId, status);
+    await PublicStatusHandler.getInstance().updatePublicTxStatus(txId, status);
   };
 
   /**
@@ -247,7 +250,7 @@ class DatabaseAction {
       },
     );
     if ((result.affected ?? 0) === 0) return;
-    PublicStatusHandler.getInstance().updatePublicTxStatus(
+    await PublicStatusHandler.getInstance().updatePublicTxStatus(
       txId,
       TransactionStatus.signFailed,
     );
@@ -282,7 +285,10 @@ class DatabaseAction {
       { status: status, firstTry: String(Math.round(Date.now() / 1000)) },
     );
     if ((result.affected ?? 0) === 0) return;
-    PublicStatusHandler.getInstance().updatePublicEventStatus(eventId, status);
+    await PublicStatusHandler.getInstance().updatePublicEventStatus(
+      eventId,
+      status,
+    );
   };
 
   /**
@@ -313,7 +319,7 @@ class DatabaseAction {
       },
     );
     if ((result.affected ?? 0) === 0) return;
-    PublicStatusHandler.getInstance().updatePublicTxStatus(
+    await PublicStatusHandler.getInstance().updatePublicTxStatus(
       txId,
       TransactionStatus.signed,
     );
@@ -365,7 +371,7 @@ class DatabaseAction {
       },
     );
     if ((result.affected ?? 0) === 0) return;
-    PublicStatusHandler.getInstance().updatePublicTxStatus(
+    await PublicStatusHandler.getInstance().updatePublicTxStatus(
       tx.txId,
       TransactionStatus.approved,
     );
@@ -426,7 +432,7 @@ class DatabaseAction {
       signFailedCount: 0,
       requiredSign: requiredSign,
     });
-    PublicStatusHandler.getInstance().updatePublicTxStatus(
+    await PublicStatusHandler.getInstance().updatePublicTxStatus(
       paymentTx.txId,
       TransactionStatus.approved,
     );
@@ -457,7 +463,7 @@ class DatabaseAction {
       signFailedCount: 0,
       requiredSign: requiredSign,
     });
-    PublicStatusHandler.getInstance().updatePublicTxStatus(
+    await PublicStatusHandler.getInstance().updatePublicTxStatus(
       paymentTx.txId,
       TransactionStatus.completed,
     );
@@ -510,7 +516,10 @@ class DatabaseAction {
       firstTry: String(Math.round(Date.now() / 1000)),
     });
 
-    PublicStatusHandler.getInstance().updatePublicEventStatus(eventId, status);
+    await PublicStatusHandler.getInstance().updatePublicEventStatus(
+      eventId,
+      status,
+    );
   };
 
   /**
@@ -530,7 +539,7 @@ class DatabaseAction {
       reason,
     });
 
-    PublicStatusHandler.getInstance().updatePublicEventStatus(
+    await PublicStatusHandler.getInstance().updatePublicEventStatus(
       eventId,
       EventStatus.rejected,
     );
