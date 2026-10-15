@@ -438,7 +438,8 @@ const initScanner = () => {
       initialHeight: GuardsEthereumConfigs.rpc.initialHeight,
       network: new EvmRpcNetwork(
         GuardsEthereumConfigs.rpc.url,
-        GuardsEthereumConfigs.rpc.timeout,
+        // the config timeout is in seconds, but ethers expects milliseconds
+        GuardsEthereumConfigs.rpc.timeout * 1000,
         GuardsEthereumConfigs.rpc.authToken,
       ),
       heightGap: GuardsEthereumConfigs.rpc.fastForward.isEnabled
@@ -471,7 +472,8 @@ const initScanner = () => {
       initialHeight: GuardsBinanceConfigs.rpc.initialHeight,
       network: new EvmRpcNetwork(
         GuardsBinanceConfigs.rpc.url,
-        GuardsBinanceConfigs.rpc.timeout,
+        // the config timeout is in seconds, but ethers expects milliseconds
+        GuardsBinanceConfigs.rpc.timeout * 1000,
         GuardsBinanceConfigs.rpc.authToken,
       ),
       heightGap: GuardsBinanceConfigs.rpc.fastForward.isEnabled
