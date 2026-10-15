@@ -287,7 +287,8 @@ const getHealthCheck = async () => {
         Configs.ethWarnThreshold,
         Configs.ethCriticalThreshold,
         GuardsEthereumConfigs.rpc.url,
-        8,
+        // the config timeout is in seconds, but ethers expects milliseconds
+        GuardsEthereumConfigs.rpc.timeout * 1000,
         GuardsEthereumConfigs.rpc.authToken,
         18,
       );
@@ -313,7 +314,8 @@ const getHealthCheck = async () => {
         Configs.bnbWarnThreshold,
         Configs.bnbCriticalThreshold,
         GuardsBinanceConfigs.rpc.url,
-        8,
+        // the config timeout is in seconds, but ethers expects milliseconds
+        GuardsBinanceConfigs.rpc.timeout * 1000,
         GuardsBinanceConfigs.rpc.authToken,
         18,
       );
