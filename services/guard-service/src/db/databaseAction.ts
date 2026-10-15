@@ -478,6 +478,19 @@ class DatabaseAction {
         height: LessThan(eventBoxHeight),
         spendBlock: IsNull(),
       },
+      // Deterministic order is consensus-critical: the returned commitments
+      // become permit outputs whose order other guards verify with an
+      // order-sensitive comparison. Without an explicit order the database
+      // returns rows in physical storage order, which changes when a row is
+      // updated (e.g. a commitment spent and then un-spent by a fork), so
+      // guards could disagree on the reward order. Creation height, then
+      // box id as a tie-breaker, are on-chain data every guard shares, so
+      // all guards derive the same order (and the same earliest commitment
+      // per WID) regardless of local storage order.
+      order: {
+        height: 'ASC',
+        identifier: 'ASC',
+      },
     });
   };
 
