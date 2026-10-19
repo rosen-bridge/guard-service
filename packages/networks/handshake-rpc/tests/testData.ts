@@ -400,8 +400,8 @@ export const addressUtxos = [
   },
 ];
 
-// `/tx/:hash` response for the mempool coin of `addressCoins`
-export const mempoolPaymentTx = {
+// `/tx/:hash` response for the mempool coin of `addressCoins`, without outputs
+export const partialMempoolPaymentTx = {
   hash: 'cccc42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfedcccc',
   height: -1,
   inputs: [
@@ -448,8 +448,8 @@ export const chainedMempoolCoins = [
   },
 ];
 
-// `/tx/:hash` responses for the chained transactions
-export const chainedMempoolSecondTx = {
+// `/tx/:hash` responses for the chained transactions, without outputs
+export const partialChainedMempoolTx2 = {
   hash: '2222b2f5a1d7c3e0f4a6b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70812222',
   height: -1,
   inputs: [
@@ -474,7 +474,7 @@ export const chainedMempoolSecondTx = {
   ],
 };
 
-export const chainedMempoolFirstTx = {
+export const partialChainedMempoolTx1 = {
   hash: '1111b2f5a1d7c3e0f4a6b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70811111',
   height: -1,
   inputs: [
@@ -518,5 +518,3 @@ export const chainedMempoolFirstTx = {
 };
 
 export const chainedMempoolBalance = 9000000n;
-
-export const confirmedCoinsBalance = 29989744n; // 600 + 29989144

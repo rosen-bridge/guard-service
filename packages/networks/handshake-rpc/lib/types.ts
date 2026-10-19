@@ -117,6 +117,7 @@ export interface HandshakeCoin {
  */
 export interface HandshakeNodeTransaction {
   hash: string;
+  height: number; // -1 while the transaction is in the mempool
   inputs: Array<{
     prevout: {
       hash: string;

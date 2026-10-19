@@ -437,7 +437,7 @@ describe('HandshakeRpcNetwork', () => {
      */
     it('should return address assets successfully', async () => {
       mockAxiosGet(testData.addressCoins);
-      mockAxiosGet(testData.mempoolPaymentTx);
+      mockAxiosGet(testData.partialMempoolPaymentTx);
 
       const network = new HandshakeRpcNetwork(URL);
       const result = await network.getAddressAssets(testData.lockAddress);
@@ -460,8 +460,8 @@ describe('HandshakeRpcNetwork', () => {
      */
     it('should count coins spent by chained mempool transactions', async () => {
       mockAxiosGet(testData.chainedMempoolCoins);
-      mockAxiosGet(testData.chainedMempoolSecondTx);
-      mockAxiosGet(testData.chainedMempoolFirstTx);
+      mockAxiosGet(testData.partialChainedMempoolTx2);
+      mockAxiosGet(testData.partialChainedMempoolTx1);
 
       const network = new HandshakeRpcNetwork(URL);
       const result = await network.getAddressAssets(testData.lockAddress);
@@ -473,40 +473,37 @@ describe('HandshakeRpcNetwork', () => {
     });
 
     /**
-     * @target `HandshakeRpcNetwork.getAddressAssets` should skip a transaction that left the mempool
+     * @target `HandshakeRpcNetwork.getAddressAssets` should throw when a mempool transaction is dropped
      * @dependencies
      * @scenario
      * - mock axios to return address coins and 404 for the mempool transaction
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should be the sum of the confirmed coin values
-     */
-    it('should skip a transaction that left the mempool', async () => {
-      mockAxiosGet(testData.addressCoins);
-      mockAxiosGetToThrow({ response: { status: 404, data: null } });
-
-      const network = new HandshakeRpcNetwork(URL);
-      const result = await network.getAddressAssets(testData.lockAddress);
-
-      expect(result).toEqual({
-        nativeToken: testData.confirmedCoinsBalance,
-        tokens: [],
-      });
-    });
-
-    /**
-     * @target `HandshakeRpcNetwork.getAddressAssets` should throw when fetching the mempool transaction fails
-     * @dependencies
-     * @scenario
-     * - mock axios to return address coins and 500 for the mempool transaction
      * - run test and expect exception thrown
      * @expected
      * - it should throw FailedError
      */
-    it('should throw when fetching the mempool transaction fails', async () => {
+    it('should throw when a mempool transaction is dropped', async () => {
       mockAxiosGet(testData.addressCoins);
-      mockAxiosGetToThrow({ response: { status: 500, data: 'error' } });
+      mockAxiosGetToThrow({ response: { status: 404, data: null } });
+
+      const network = new HandshakeRpcNetwork(URL);
+
+      await expect(
+        network.getAddressAssets(testData.lockAddress),
+      ).rejects.toThrow(FailedError);
+    });
+
+    /**
+     * @target `HandshakeRpcNetwork.getAddressAssets` should throw when a mempool transaction is mined
+     * @dependencies
+     * @scenario
+     * - mock axios to return address coins and the mempool transaction with a block height
+     * - run test and expect exception thrown
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw when a mempool transaction is mined', async () => {
+      mockAxiosGet(testData.addressCoins);
+      mockAxiosGet({ ...testData.partialMempoolPaymentTx, height: 150001 });
 
       const network = new HandshakeRpcNetwork(URL);
 
