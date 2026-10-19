@@ -493,23 +493,50 @@ describe('HandshakeRpcNetwork', () => {
     });
 
     /**
-     * @target `HandshakeRpcNetwork.getAddressAssets` should throw when a mempool transaction is mined
+     * @target `HandshakeRpcNetwork.getAddressAssets` should count the coins spent by a transaction mined since the coins were fetched
      * @dependencies
      * @scenario
-     * - mock axios to return address coins and the mempool transaction with a block height
-     * - run test and expect exception thrown
+     * - mock axios to return address coins and the mined transaction
+     * - run test
+     * - check returned value
      * @expected
-     * - it should throw FailedError
+     * - it should be the same balance as while the transaction was in the mempool
      */
-    it('should throw when a mempool transaction is mined', async () => {
+    it('should count the coins spent by a transaction mined since the coins were fetched', async () => {
       mockAxiosGet(testData.addressCoins);
-      mockAxiosGet({ ...testData.partialMempoolPaymentTx, height: 150001 });
+      mockAxiosGet(testData.partialMinedPaymentTx);
 
       const network = new HandshakeRpcNetwork(URL);
+      const result = await network.getAddressAssets(testData.lockAddress);
 
-      await expect(
-        network.getAddressAssets(testData.lockAddress),
-      ).rejects.toThrow(FailedError);
+      expect(result).toEqual({
+        nativeToken: testData.addressBalance,
+        tokens: [],
+      });
+    });
+
+    /**
+     * @target `HandshakeRpcNetwork.getAddressAssets` should follow coins mined in the same block as the transaction spending them
+     * @dependencies
+     * @scenario
+     * - mock axios to return address coins and the chained transactions mined in one block
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the address coin spent by the first transaction
+     */
+    it('should follow coins mined in the same block as the transaction spending them', async () => {
+      mockAxiosGet(testData.chainedMempoolCoins);
+      mockAxiosGet(testData.partialMinedChainedTx2);
+      mockAxiosGet(testData.partialMinedChainedTx1);
+
+      const network = new HandshakeRpcNetwork(URL);
+      const result = await network.getAddressAssets(testData.lockAddress);
+
+      expect(result).toEqual({
+        nativeToken: testData.chainedMempoolBalance,
+        tokens: [],
+      });
     });
   });
 

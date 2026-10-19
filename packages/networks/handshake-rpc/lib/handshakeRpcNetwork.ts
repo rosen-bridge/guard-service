@@ -435,7 +435,7 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
    * @param address the address
    * @param mempoolCoins the address coins created by mempool transactions
    * @returns list of the confirmed coins spent in the mempool
-   * @throws FailedError if a transaction left the mempool after the coins were fetched
+   * @throws FailedError if a transaction was dropped from the mempool after the coins were fetched
    */
   protected getMempoolSpentCoins = async (
     address: string,
@@ -450,17 +450,18 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
       for (const txId of txIds) {
         visitedTxIds.add(txId);
         const tx = await this.getNodeTransaction(txId);
-        if (!tx || tx.height !== MEMPOOL_COIN_HEIGHT)
+        if (!tx)
           throw new FailedError(
-            `Transaction [${txId}] left the mempool while getting address [${address}] assets`,
+            `Transaction [${txId}] was dropped from the mempool while getting address [${address}] assets`,
           );
 
         for (const input of tx.inputs) {
           const coin = input.coin;
           if (!coin || coin.address !== address) continue;
 
-          if (coin.height === MEMPOOL_COIN_HEIGHT)
-            parentTxIds.add(input.prevout.hash);
+          // unconfirmed when the coins were fetched: still in the mempool, or
+          // mined in the same block as a transaction mined since then
+          if (coin.height === tx.height) parentTxIds.add(input.prevout.hash);
           else if (this.isConfirmedHnsCoin(coin))
             spentCoins.set(`${input.prevout.hash}.${input.prevout.index}`, {
               ...coin,

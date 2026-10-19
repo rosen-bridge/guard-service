@@ -518,3 +518,22 @@ export const partialChainedMempoolTx1 = {
 };
 
 export const chainedMempoolBalance = 9000000n;
+
+// the transactions above after being mined in one block since the coins were fetched
+export const minedHeight = 150001;
+export const partialMinedPaymentTx = {
+  ...partialMempoolPaymentTx,
+  height: minedHeight,
+};
+export const partialMinedChainedTx2 = {
+  ...partialChainedMempoolTx2,
+  height: minedHeight,
+  inputs: partialChainedMempoolTx2.inputs.map((input) => ({
+    ...input,
+    coin: { ...input.coin, height: minedHeight },
+  })),
+};
+export const partialMinedChainedTx1 = {
+  ...partialChainedMempoolTx1,
+  height: minedHeight,
+};
