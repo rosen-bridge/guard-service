@@ -36,6 +36,7 @@ import {
   HandshakeChainInfo,
   RpcAuth,
   HandshakeCoin,
+  HandshakeNodeTransaction,
 } from './types';
 
 export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
@@ -347,7 +348,7 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
   };
 
   /**
-   * gets the confirmed and unspent coin outputs of an address
+   * gets the coins of an address, with the mempool applied
    * @param address the address
    * @returns list of the address coins
    */
@@ -365,13 +366,7 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
         )}`,
       );
 
-      // hsd merges mempool coins into this endpoint, so unconfirmed ones have to
-      // be dropped; only regular coin outputs hold spendable HNS
-      return coins.filter(
-        (coin) =>
-          coin.covenant.type === COIN_COVENANT_TYPE &&
-          coin.height !== MEMPOOL_COIN_HEIGHT,
-      );
+      return coins;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get address [${address}] coins from Handshake: `;
@@ -388,18 +383,141 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
   };
 
   /**
-   * gets the amount of each asset in an address
+   * checks if a coin is a confirmed regular coin output
+   * @param coin the coin
+   * @returns true if the coin is a confirmed regular coin output
+   */
+  protected isConfirmedHnsCoin = (
+    coin: Pick<HandshakeCoin, 'height' | 'covenant'>,
+  ): boolean =>
+    coin.covenant.type === COIN_COVENANT_TYPE &&
+    coin.height !== MEMPOOL_COIN_HEIGHT;
+
+  /**
+   * gets a transaction along with the coins its inputs spend
+   * @param transactionId the transaction id
+   * @returns the transaction, or undefined if the node does not know it
+   */
+  protected getNodeTransaction = async (
+    transactionId: string,
+  ): Promise<HandshakeNodeTransaction | undefined> => {
+    try {
+      const tx = (
+        await this.client.get<HandshakeNodeTransaction>(`/tx/${transactionId}`)
+      ).data;
+
+      this.logger?.debug(
+        `Requested '/tx' for transaction [${transactionId}]. Response: ${JsonBigInt.stringify(
+          tx,
+        )}`,
+      );
+
+      return tx;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      if (e.response?.status === 404) return undefined;
+      const baseError = `Failed to get transaction [${transactionId}] from Handshake: `;
+      if (e.response) {
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data),
+        );
+      } else if (e.request) {
+        throw new NetworkError(baseError + e.message);
+      } else {
+        throw new UnexpectedApiError(baseError + e.message);
+      }
+    }
+  };
+
+  /**
+   * checks if a coin was created after a height, i.e. it is in the mempool or
+   * was confirmed in a later block
+   * @param coin the coin
+   * @param height the height
+   * @returns true if the coin was created after the height
+   */
+  protected isCreatedAfter = (
+    coin: Pick<HandshakeCoin, 'height'>,
+    height: number,
+  ): boolean => coin.height === MEMPOOL_COIN_HEIGHT || coin.height > height;
+
+  /**
+   * gets the coins of an address confirmed at a height and spent since then,
+   * found by walking back from the address coins created after the height
+   *
+   * coins spent by a transaction that pays nothing back to the address can not
+   * be reached and are left out; guard transactions always pay their change
+   * back to the lock address
+   * @param address the address
+   * @param height the height
+   * @param newerCoins the address coins created after the height
+   * @returns list of the coins confirmed at the height and spent since then
+   * @throws FailedError if a transaction was dropped from the mempool after the coins were fetched
+   */
+  protected getCoinsSpentSince = async (
+    address: string,
+    height: number,
+    newerCoins: Array<HandshakeCoin>,
+  ): Promise<Array<HandshakeCoin>> => {
+    const spentCoins = new Map<string, HandshakeCoin>();
+    const visitedTxIds = new Set<string>();
+    let txIds = new Set(newerCoins.map((coin) => coin.hash));
+
+    while (txIds.size > 0) {
+      const parentTxIds = new Set<string>();
+      for (const txId of txIds) {
+        visitedTxIds.add(txId);
+        const tx = await this.getNodeTransaction(txId);
+        if (!tx)
+          throw new FailedError(
+            `Transaction [${txId}] was dropped from the mempool while getting address [${address}] assets`,
+          );
+
+        for (const input of tx.inputs) {
+          const coin = input.coin;
+          if (!coin || coin.address !== address) continue;
+
+          if (this.isCreatedAfter(coin, height))
+            parentTxIds.add(input.prevout.hash);
+          else if (this.isConfirmedHnsCoin(coin))
+            spentCoins.set(`${input.prevout.hash}.${input.prevout.index}`, {
+              ...coin,
+              hash: input.prevout.hash,
+              index: input.prevout.index,
+            });
+        }
+      }
+      txIds = new Set(
+        [...parentTxIds].filter((txId) => !visitedTxIds.has(txId)),
+      );
+    }
+
+    return Array.from(spentCoins.values());
+  };
+
+  /**
+   * gets the amount of each asset in an address, as confirmed at the current height
    * @param address the address
    * @returns an object containing the amount of each asset
    */
   getAddressAssets = async (address: string): Promise<AssetBalance> => {
+    // fetched before the coins, so coins confirmed after it can be told apart
+    const height = await this.getHeight();
     const coins = await this.getAddressCoins(address);
+    const spentCoins = await this.getCoinsSpentSince(
+      address,
+      height,
+      coins.filter((coin) => this.isCreatedAfter(coin, height)),
+    );
 
     // the `/coin/address` endpoint already reports values in dollarydoos
-    const totalBalance = coins.reduce(
-      (sum, coin) => sum + BigInt(coin.value),
-      0n,
-    );
+    const totalBalance = coins
+      .filter(
+        (coin) =>
+          this.isConfirmedHnsCoin(coin) && !this.isCreatedAfter(coin, height),
+      )
+      .concat(spentCoins)
+      .reduce((sum, coin) => sum + BigInt(coin.value), 0n);
 
     return {
       nativeToken: totalBalance,
@@ -419,7 +537,9 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
     offset: number,
     limit: number,
   ): Promise<Array<HandshakeUtxo>> => {
-    const coins = await this.getAddressCoins(address);
+    const coins = (await this.getAddressCoins(address)).filter(
+      this.isConfirmedHnsCoin,
+    );
 
     // the `/coin/address` endpoint already reports values in dollarydoos
     const boxes: HandshakeUtxo[] = coins.map((coin) => ({

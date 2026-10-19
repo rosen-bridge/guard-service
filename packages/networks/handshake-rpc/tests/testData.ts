@@ -400,4 +400,152 @@ export const addressUtxos = [
   },
 ];
 
-export const addressBalance = 29989744n; // 600 + 29989144
+// `/tx/:hash` response for the mempool coin of `addressCoins`, without outputs
+export const partialMempoolPaymentTx = {
+  hash: 'cccc42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfedcccc',
+  height: -1,
+  inputs: [
+    {
+      prevout: {
+        hash: 'dddd42b9daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfedddd',
+        index: 1,
+      },
+      coin: {
+        version: 0,
+        height: 149980,
+        value: 8000000,
+        address: lockAddress,
+        covenant: {
+          type: 0,
+          action: 'NONE',
+          items: [],
+        },
+        coinbase: false,
+      },
+    },
+  ],
+};
+
+export const addressBalance = 37989744n; // 600 + 29989144 + 8000000
+
+export const otherAddress = 'hs1qehqumchyz76cd0t3faj2ls7hmm6pkec45h4l9c';
+
+// `/coin/address` response while two chained transactions are in the mempool
+export const chainedMempoolCoins = [
+  {
+    version: 0,
+    height: -1,
+    value: 2000000,
+    address: lockAddress,
+    covenant: {
+      type: 0,
+      action: 'NONE',
+      items: [],
+    },
+    coinbase: false,
+    hash: '2222b2f5a1d7c3e0f4a6b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70812222',
+    index: 1,
+  },
+];
+
+// `/tx/:hash` responses for the chained transactions, without outputs
+export const partialChainedMempoolTx2 = {
+  hash: '2222b2f5a1d7c3e0f4a6b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70812222',
+  height: -1,
+  inputs: [
+    {
+      prevout: {
+        hash: '1111b2f5a1d7c3e0f4a6b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70811111',
+        index: 1,
+      },
+      coin: {
+        version: 0,
+        height: -1,
+        value: 6000000,
+        address: lockAddress,
+        covenant: {
+          type: 0,
+          action: 'NONE',
+          items: [],
+        },
+        coinbase: false,
+      },
+    },
+  ],
+};
+
+export const partialChainedMempoolTx1 = {
+  hash: '1111b2f5a1d7c3e0f4a6b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70811111',
+  height: -1,
+  inputs: [
+    {
+      prevout: {
+        hash: 'aaaab2f5a1d7c3e0f4a6b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7081aaaa',
+        index: 0,
+      },
+      coin: {
+        version: 0,
+        height: 149970,
+        value: 9000000,
+        address: lockAddress,
+        covenant: {
+          type: 0,
+          action: 'NONE',
+          items: [],
+        },
+        coinbase: false,
+      },
+    },
+    {
+      prevout: {
+        hash: 'eeeeb2f5a1d7c3e0f4a6b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7081eeee',
+        index: 3,
+      },
+      coin: {
+        version: 0,
+        height: 149960,
+        value: 4000000,
+        address: otherAddress,
+        covenant: {
+          type: 0,
+          action: 'NONE',
+          items: [],
+        },
+        coinbase: false,
+      },
+    },
+  ],
+};
+
+export const chainedMempoolBalance = 9000000n;
+
+// the transactions above after being mined in one block since the height was fetched
+export const minedHeight = 150001;
+export const partialMinedPaymentTx = {
+  ...partialMempoolPaymentTx,
+  height: minedHeight,
+};
+export const partialMinedChainedTx2 = {
+  ...partialChainedMempoolTx2,
+  height: minedHeight,
+  inputs: partialChainedMempoolTx2.inputs.map((input) => ({
+    ...input,
+    coin: { ...input.coin, height: minedHeight },
+  })),
+};
+export const partialMinedChainedTx1 = {
+  ...partialChainedMempoolTx1,
+  height: minedHeight,
+};
+
+// the change of `partialMinedChainedTx2`, confirmed after the height was fetched
+export const minedChainedCoins = chainedMempoolCoins.map((coin) => ({
+  ...coin,
+  height: minedHeight,
+}));
+
+// `partialChainedMempoolTx2` still in the mempool after its parent got mined
+export const partialChainedMempoolTx2WithMinedParent = {
+  ...partialMinedChainedTx2,
+  height: -1,
+};
