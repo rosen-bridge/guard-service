@@ -430,20 +430,38 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
   };
 
   /**
-   * gets the confirmed coins of an address spent by mempool transactions,
-   * found by walking back from the address mempool coins
+   * checks if a coin was created after a height, i.e. it is in the mempool or
+   * was confirmed in a later block
+   * @param coin the coin
+   * @param height the height
+   * @returns true if the coin was created after the height
+   */
+  protected isCreatedAfter = (
+    coin: Pick<HandshakeCoin, 'height'>,
+    height: number,
+  ): boolean => coin.height === MEMPOOL_COIN_HEIGHT || coin.height > height;
+
+  /**
+   * gets the coins of an address confirmed at a height and spent since then,
+   * found by walking back from the address coins created after the height
+   *
+   * coins spent by a transaction that pays nothing back to the address can not
+   * be reached and are left out; guard transactions always pay their change
+   * back to the lock address
    * @param address the address
-   * @param mempoolCoins the address coins created by mempool transactions
-   * @returns list of the confirmed coins spent in the mempool
+   * @param height the height
+   * @param newerCoins the address coins created after the height
+   * @returns list of the coins confirmed at the height and spent since then
    * @throws FailedError if a transaction was dropped from the mempool after the coins were fetched
    */
-  protected getMempoolSpentCoins = async (
+  protected getCoinsSpentSince = async (
     address: string,
-    mempoolCoins: Array<HandshakeCoin>,
+    height: number,
+    newerCoins: Array<HandshakeCoin>,
   ): Promise<Array<HandshakeCoin>> => {
     const spentCoins = new Map<string, HandshakeCoin>();
     const visitedTxIds = new Set<string>();
-    let txIds = new Set(mempoolCoins.map((coin) => coin.hash));
+    let txIds = new Set(newerCoins.map((coin) => coin.hash));
 
     while (txIds.size > 0) {
       const parentTxIds = new Set<string>();
@@ -459,9 +477,8 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
           const coin = input.coin;
           if (!coin || coin.address !== address) continue;
 
-          // unconfirmed when the coins were fetched: still in the mempool, or
-          // mined in the same block as a transaction mined since then
-          if (coin.height === tx.height) parentTxIds.add(input.prevout.hash);
+          if (this.isCreatedAfter(coin, height))
+            parentTxIds.add(input.prevout.hash);
           else if (this.isConfirmedHnsCoin(coin))
             spentCoins.set(`${input.prevout.hash}.${input.prevout.index}`, {
               ...coin,
@@ -479,21 +496,27 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
   };
 
   /**
-   * gets the confirmed amount of each asset in an address
+   * gets the amount of each asset in an address, as confirmed at the current height
    * @param address the address
    * @returns an object containing the amount of each asset
    */
   getAddressAssets = async (address: string): Promise<AssetBalance> => {
+    // fetched before the coins, so coins confirmed after it can be told apart
+    const height = await this.getHeight();
     const coins = await this.getAddressCoins(address);
-    const mempoolSpentCoins = await this.getMempoolSpentCoins(
+    const spentCoins = await this.getCoinsSpentSince(
       address,
-      coins.filter((coin) => coin.height === MEMPOOL_COIN_HEIGHT),
+      height,
+      coins.filter((coin) => this.isCreatedAfter(coin, height)),
     );
 
     // the `/coin/address` endpoint already reports values in dollarydoos
     const totalBalance = coins
-      .filter(this.isConfirmedHnsCoin)
-      .concat(mempoolSpentCoins)
+      .filter(
+        (coin) =>
+          this.isConfirmedHnsCoin(coin) && !this.isCreatedAfter(coin, height),
+      )
+      .concat(spentCoins)
       .reduce((sum, coin) => sum + BigInt(coin.value), 0n);
 
     return {

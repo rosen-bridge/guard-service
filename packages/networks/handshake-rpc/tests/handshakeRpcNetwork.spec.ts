@@ -428,7 +428,7 @@ describe('HandshakeRpcNetwork', () => {
      * @target `HandshakeRpcNetwork.getAddressAssets` should return address assets successfully
      * @dependencies
      * @scenario
-     * - mock axios to return address coins and the mempool transaction
+     * - mock axios to return the height, address coins and the mempool transaction
      * - run test
      * - check returned value
      * @expected
@@ -436,6 +436,7 @@ describe('HandshakeRpcNetwork', () => {
      * - it should exclude the name covenant and the mempool coin
      */
     it('should return address assets successfully', async () => {
+      mockAxiosPost(testData.chainInfo);
       mockAxiosGet(testData.addressCoins);
       mockAxiosGet(testData.partialMempoolPaymentTx);
 
@@ -452,13 +453,14 @@ describe('HandshakeRpcNetwork', () => {
      * @target `HandshakeRpcNetwork.getAddressAssets` should count coins spent by chained mempool transactions
      * @dependencies
      * @scenario
-     * - mock axios to return address coins and the chained mempool transactions
+     * - mock axios to return the height, address coins and the chained mempool transactions
      * - run test
      * - check returned value
      * @expected
      * - it should be the address coin spent by the first transaction
      */
     it('should count coins spent by chained mempool transactions', async () => {
+      mockAxiosPost(testData.chainInfo);
       mockAxiosGet(testData.chainedMempoolCoins);
       mockAxiosGet(testData.partialChainedMempoolTx2);
       mockAxiosGet(testData.partialChainedMempoolTx1);
@@ -476,12 +478,13 @@ describe('HandshakeRpcNetwork', () => {
      * @target `HandshakeRpcNetwork.getAddressAssets` should throw when a mempool transaction is dropped
      * @dependencies
      * @scenario
-     * - mock axios to return address coins and 404 for the mempool transaction
+     * - mock axios to return the height, address coins and 404 for the mempool transaction
      * - run test and expect exception thrown
      * @expected
      * - it should throw FailedError
      */
     it('should throw when a mempool transaction is dropped', async () => {
+      mockAxiosPost(testData.chainInfo);
       mockAxiosGet(testData.addressCoins);
       mockAxiosGetToThrow({ response: { status: 404, data: null } });
 
@@ -493,16 +496,17 @@ describe('HandshakeRpcNetwork', () => {
     });
 
     /**
-     * @target `HandshakeRpcNetwork.getAddressAssets` should count the coins spent by a transaction mined since the coins were fetched
+     * @target `HandshakeRpcNetwork.getAddressAssets` should count the coins spent by a transaction mined since the height was fetched
      * @dependencies
      * @scenario
-     * - mock axios to return address coins and the mined transaction
+     * - mock axios to return the height, address coins and the mined transaction
      * - run test
      * - check returned value
      * @expected
      * - it should be the same balance as while the transaction was in the mempool
      */
-    it('should count the coins spent by a transaction mined since the coins were fetched', async () => {
+    it('should count the coins spent by a transaction mined since the height was fetched', async () => {
+      mockAxiosPost(testData.chainInfo);
       mockAxiosGet(testData.addressCoins);
       mockAxiosGet(testData.partialMinedPaymentTx);
 
@@ -516,18 +520,44 @@ describe('HandshakeRpcNetwork', () => {
     });
 
     /**
-     * @target `HandshakeRpcNetwork.getAddressAssets` should follow coins mined in the same block as the transaction spending them
+     * @target `HandshakeRpcNetwork.getAddressAssets` should not count coins confirmed after the fetched height
      * @dependencies
      * @scenario
-     * - mock axios to return address coins and the chained transactions mined in one block
+     * - mock axios to return the height, a coin confirmed after it and the chained transactions mined with it
      * - run test
      * - check returned value
      * @expected
      * - it should be the address coin spent by the first transaction
      */
-    it('should follow coins mined in the same block as the transaction spending them', async () => {
-      mockAxiosGet(testData.chainedMempoolCoins);
+    it('should not count coins confirmed after the fetched height', async () => {
+      mockAxiosPost(testData.chainInfo);
+      mockAxiosGet(testData.minedChainedCoins);
       mockAxiosGet(testData.partialMinedChainedTx2);
+      mockAxiosGet(testData.partialMinedChainedTx1);
+
+      const network = new HandshakeRpcNetwork(URL);
+      const result = await network.getAddressAssets(testData.lockAddress);
+
+      expect(result).toEqual({
+        nativeToken: testData.chainedMempoolBalance,
+        tokens: [],
+      });
+    });
+
+    /**
+     * @target `HandshakeRpcNetwork.getAddressAssets` should follow input coins confirmed after the fetched height
+     * @dependencies
+     * @scenario
+     * - mock axios to return the height, address coins, the mempool transaction and its mined parent
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the address coin spent by the parent
+     */
+    it('should follow input coins confirmed after the fetched height', async () => {
+      mockAxiosPost(testData.chainInfo);
+      mockAxiosGet(testData.chainedMempoolCoins);
+      mockAxiosGet(testData.partialChainedMempoolTx2WithMinedParent);
       mockAxiosGet(testData.partialMinedChainedTx1);
 
       const network = new HandshakeRpcNetwork(URL);

@@ -519,7 +519,7 @@ export const partialChainedMempoolTx1 = {
 
 export const chainedMempoolBalance = 9000000n;
 
-// the transactions above after being mined in one block since the coins were fetched
+// the transactions above after being mined in one block since the height was fetched
 export const minedHeight = 150001;
 export const partialMinedPaymentTx = {
   ...partialMempoolPaymentTx,
@@ -536,4 +536,16 @@ export const partialMinedChainedTx2 = {
 export const partialMinedChainedTx1 = {
   ...partialChainedMempoolTx1,
   height: minedHeight,
+};
+
+// the change of `partialMinedChainedTx2`, confirmed after the height was fetched
+export const minedChainedCoins = chainedMempoolCoins.map((coin) => ({
+  ...coin,
+  height: minedHeight,
+}));
+
+// `partialChainedMempoolTx2` still in the mempool after its parent got mined
+export const partialChainedMempoolTx2WithMinedParent = {
+  ...partialMinedChainedTx2,
+  height: -1,
 };
