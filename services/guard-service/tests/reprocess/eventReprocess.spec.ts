@@ -1,15 +1,25 @@
+import { EventTriggerEntity as BchReprocess_EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 import RosenDialer from '../../src/communication/rosenDialer';
+import { DatabaseAction as BchReprocess_DatabaseAction } from '../../src/db/databaseAction';
 import EventSerializer from '../../src/event/eventSerializer';
+import BchReprocess_EventSerializer from '../../src/event/eventSerializer';
 import EventReprocess from '../../src/reprocess/eventReprocess';
+import BchReprocess_EventReprocess from '../../src/reprocess/eventReprocess';
 import {
   ReprocessMessageTypes,
   ReprocessStatus,
 } from '../../src/reprocess/interfaces';
 import { EventStatus } from '../../src/utils/constants';
+import { EventStatus as BchReprocess_EventStatus } from '../../src/utils/constants';
 import RosenDialerMock from '../communication/mocked/rosenDialer.mock';
+import {
+  insertNamespaceEvent as BchReprocess_insertNamespaceEvent,
+  namespaceEvent as BchReprocess_namespaceEvent,
+} from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import BchReprocess_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import * as EventTestData from '../event/testData';
 import TestConfigs from '../testUtils/testConfigs';
 import TestUtils from '../testUtils/testUtils';
@@ -845,4 +855,96 @@ describe('EventReprocess', async () => {
       });
     });
   });
+
+  describe('checkAndApplyReprocess', () => {
+    describe('BCH RCS bitcoinCashEventNamespace', () => {
+      beforeEach(async () => BchReprocess_DatabaseActionMock.clearTables());
+      /**
+       * @target EventReprocess.checkAndApplyReprocess - updates BCH %s without
+       * changing the colliding BTC event
+       * @dependencies DatabaseActionMock, namespace event fixtures and a
+       * TestEventReprocess protected-method wrapper.
+       * @scenario updates BCH %s without changing the colliding BTC event.
+       * @expected Requeue only eligible BCH state under its guard identity and
+       * preserve the colliding BTC event.
+       */
+      it.each([
+        [
+          BchReprocess_EventStatus.paymentWaiting,
+          BchReprocess_EventStatus.pendingPayment,
+        ],
+        [
+          BchReprocess_EventStatus.rewardWaiting,
+          BchReprocess_EventStatus.pendingReward,
+        ],
+      ])(
+        'updates BCH %s without changing the colliding BTC event',
+        async (status, next) => {
+          const bitcoin = await BchReprocess_insertNamespaceEvent(
+            BchReprocess_namespaceEvent('bitcoin'),
+            'btc-trigger',
+            BchReprocess_EventStatus.timeout,
+          );
+          const bch = await BchReprocess_insertNamespaceEvent(
+            BchReprocess_namespaceEvent(),
+            'bch-trigger',
+            status,
+          );
+          expect(
+            await new TestBchReprocess_NamespaceReprocess().apply(bch),
+          ).toEqual(true);
+          const db = BchReprocess_DatabaseAction.getInstance();
+          expect(
+            (await db.getEventById(BchReprocess_EventSerializer.getId(bch)))
+              ?.status,
+          ).toEqual(next);
+          expect(
+            (await db.getEventById(BchReprocess_EventSerializer.getId(bitcoin)))
+              ?.status,
+          ).toEqual(BchReprocess_EventStatus.timeout);
+        },
+      );
+      /**
+       * @target EventReprocess.checkAndApplyReprocess - does not requeue a
+       * completed BCH event because BTC is waiting
+       * @dependencies DatabaseActionMock, namespace event fixtures and a
+       * TestEventReprocess protected-method wrapper.
+       * @scenario does not requeue a completed BCH event because BTC is
+       * waiting.
+       * @expected Requeue only eligible BCH state under its guard identity and
+       * preserve the colliding BTC event.
+       */
+      it('does not requeue a completed BCH event because BTC is waiting', async () => {
+        const bitcoin = await BchReprocess_insertNamespaceEvent(
+          BchReprocess_namespaceEvent('bitcoin'),
+          'btc-trigger',
+          BchReprocess_EventStatus.paymentWaiting,
+        );
+        const bch = await BchReprocess_insertNamespaceEvent(
+          BchReprocess_namespaceEvent(),
+          'bch-trigger',
+          BchReprocess_EventStatus.completed,
+        );
+        expect(
+          await new TestBchReprocess_NamespaceReprocess().apply(bch),
+        ).toEqual(false);
+        expect(
+          (
+            await BchReprocess_DatabaseAction.getInstance().getEventById(
+              BchReprocess_EventSerializer.getId(bitcoin),
+            )
+          )?.status,
+        ).toEqual(BchReprocess_EventStatus.paymentWaiting);
+      });
+    });
+  });
 });
+
+class TestBchReprocess_NamespaceReprocess extends BchReprocess_EventReprocess {
+  /** Record fixture constructor arguments without initializing external clients. */
+  constructor() {
+    super();
+  }
+  apply = (raw: BchReprocess_EventTriggerEntity) =>
+    this.checkAndApplyReprocess(raw);
+}

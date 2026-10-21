@@ -1,21 +1,62 @@
 import { mockPaymentTransaction } from 'tests/agreement/testData';
 
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee as BchConsumers_ChainMinimumFee } from '@rosen-bridge/minimum-fee';
+import { TokenMap as bchFee_TokenMap } from '@rosen-bridge/tokens';
 import {
   EventTrigger,
   NotEnoughAssetsError,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import {
+  AbstractChain as BchConsumers_AbstractChain,
+  EventTrigger as BchConsumers_EventTrigger,
+  PaymentTransaction as BchConsumers_PaymentTransaction,
+  TransactionType as BchConsumers_TransactionType,
+} from '@rosen-chains/abstract-chain';
 import { ErgoTransaction } from '@rosen-chains/ergo';
 
+import BchConsumers_TxAgreement from '../../src/agreement/txAgreement';
 import Configs from '../../src/configs/configs';
+import { DatabaseAction as bchGuardNamespace_DatabaseAction } from '../../src/db/databaseAction';
+import { DatabaseAction as BchConsumers_DatabaseAction } from '../../src/db/databaseAction';
+import { DatabaseAction as bchFee_DatabaseAction } from '../../src/db/databaseAction';
+import BchConsumers_EventBoxes from '../../src/event/eventBoxes';
+import BchConsumers_EventOrder from '../../src/event/eventOrder';
 import EventProcessor from '../../src/event/eventProcessor';
+import bchGuardNamespace_EventProcessor from '../../src/event/eventProcessor';
+import BchConsumers_EventProcessor from '../../src/event/eventProcessor';
+import bchFee_EventProcessor from '../../src/event/eventProcessor';
 import EventSerializer from '../../src/event/eventSerializer';
+import bchGuardNamespace_EventSerializer from '../../src/event/eventSerializer';
+import BchConsumers_EventSerializer from '../../src/event/eventSerializer';
+import bchFee_EventSerializer from '../../src/event/eventSerializer';
+import BchConsumers_ChainHandler from '../../src/handlers/chainHandler';
+import bchGuardNamespace_MinimumFeeHandler from '../../src/handlers/minimumFeeHandler';
+import bchFee_MinimumFeeHandler from '../../src/handlers/minimumFeeHandler';
+import { TokenHandler as bchFee_TokenHandler } from '../../src/handlers/tokenHandler';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import bchGuardNamespace_EventVerifier from '../../src/verification/eventVerifier';
+import bchFee_EventVerifier from '../../src/verification/eventVerifier';
 import TxAgreementMock from '../agreement/mocked/txAgreement.mock';
+import {
+  wrapped as bchFee_wrapped,
+  event as bchFee_event,
+  feeBox as bchFee_feeBox,
+} from '../bitcoinCashFeeTestUtils';
+import { bchTokenSet as bchFee_bchTokenSet } from '../configs/bitcoinCashTestUtils';
+import {
+  insertNamespaceEvent as bchGuardNamespace_insertNamespaceEvent,
+  namespaceEvent as bchGuardNamespace_namespaceEvent,
+} from '../db/bitcoinCashNamespaceTestUtils';
+import { namespaceEvent as BchConsumers_namespaceEvent } from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import bchGuardNamespace_DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import BchConsumers_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
+import { chainHandlerInstance as BchConsumers_chainHandlerInstance } from '../handlers/chainHandler.mock';
 import NotificationHandlerMock from '../handlers/notificationHandler.mock';
+import { preserveBitcoinCashMocks } from '../testUtils/mocked/bitcoinCashMockScope.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import { mockGuardTurn } from '../utils/mocked/guardTurn.mock';
 import {
@@ -266,6 +307,219 @@ describe('EventProcessor', () => {
       expect(rejectedEvents[0].eventDataId).toEqual(id2);
       expect(rejectedEvents[0].eventData.id).toEqual(id2);
       expect(rejectedEvents[0].reason).toEqual('duplicate-trigger');
+    });
+
+    describe('BCH RCS bitcoinCashGuardNamespace', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [
+            bchGuardNamespace_EventVerifier,
+            ['isEventConfirmedEnough', 'verifyEvent'],
+          ],
+          [bchGuardNamespace_MinimumFeeHandler, ['getEventFeeConfig']],
+          [
+            bchGuardNamespace_DatabaseAction.getInstance(),
+            ['getUnconfirmedEvents'],
+          ],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      beforeEach(async () =>
+        bchGuardNamespace_DatabaseActionMock.clearTables(),
+      );
+
+      /**
+       * @target EventProcessor.processScannedEvents - verifies and admits
+       * same-txid %s then %s independently
+       * @dependencies EventSerializer, namespace fixture generator, SQLite
+       * DatabaseActionMock, ErgoTransaction and mocked fee/event verification
+       * seams.
+       * @scenario verifies and admits same-txid %s then %s independently.
+       * @expected Admit colliding BTC/BCH requests independently and reject a
+       * duplicate verified BCH trigger.
+       */
+      it.each([
+        ['bitcoin', 'bitcoin-cash'],
+        ['bitcoin-cash', 'bitcoin'],
+      ])(
+        'verifies and admits same-txid %s then %s independently',
+        async (first, second) => {
+          const raws = [
+            await bchGuardNamespace_insertNamespaceEvent(
+              bchGuardNamespace_namespaceEvent(first),
+              `${first}-trigger`,
+            ),
+            await bchGuardNamespace_insertNamespaceEvent(
+              bchGuardNamespace_namespaceEvent(second),
+              `${second}-trigger`,
+            ),
+          ];
+          const db = bchGuardNamespace_DatabaseAction.getInstance();
+          await db.ConfirmedEventRepository.clear();
+          vi.spyOn(db, 'getUnconfirmedEvents').mockResolvedValue(raws);
+          vi.spyOn(
+            bchGuardNamespace_EventVerifier,
+            'isEventConfirmedEnough',
+          ).mockResolvedValue(true);
+          const verify = vi
+            .spyOn(bchGuardNamespace_EventVerifier, 'verifyEvent')
+            .mockResolvedValue(true);
+          vi.spyOn(
+            bchGuardNamespace_MinimumFeeHandler,
+            'getEventFeeConfig',
+          ).mockReturnValue(
+            {} as ReturnType<
+              typeof bchGuardNamespace_MinimumFeeHandler.getEventFeeConfig
+            >,
+          );
+          await bchGuardNamespace_EventProcessor.processScannedEvents();
+          expect(verify).toHaveBeenCalledTimes(2);
+          expect(await db.ConfirmedEventRepository.count()).toEqual(2);
+          expect(await db.RejectedEventRepository.count()).toEqual(0);
+        },
+      );
+      /**
+       * @target EventProcessor.processScannedEvents - still rejects a second
+       * verified trigger for the same BCH source txid
+       * @dependencies EventSerializer, namespace fixture generator, SQLite
+       * DatabaseActionMock, ErgoTransaction and mocked fee/event verification
+       * seams.
+       * @scenario still rejects a second verified trigger for the same BCH
+       * source txid.
+       * @expected Admit colliding BTC/BCH requests independently and reject a
+       * duplicate verified BCH trigger.
+       */
+      it('still rejects a second verified trigger for the same BCH source txid', async () => {
+        const first = await bchGuardNamespace_insertNamespaceEvent(
+          bchGuardNamespace_namespaceEvent(),
+          'first-trigger',
+        );
+        const second = await bchGuardNamespace_insertNamespaceEvent(
+          bchGuardNamespace_namespaceEvent('bitcoin-cash', {
+            sourceTxId: '55'.repeat(32),
+          }),
+          'second-trigger',
+        );
+        const db = bchGuardNamespace_DatabaseAction.getInstance();
+        await db.ConfirmedEventRepository.delete(
+          bchGuardNamespace_EventSerializer.getId(second),
+        );
+        await db.EventRepository.update(second.id, {
+          sourceTxId: first.sourceTxId,
+          eventId: first.eventId,
+        });
+        second.sourceTxId = first.sourceTxId;
+        second.eventId = first.eventId;
+        vi.spyOn(db, 'getUnconfirmedEvents').mockResolvedValue([second]);
+        vi.spyOn(
+          bchGuardNamespace_EventVerifier,
+          'isEventConfirmedEnough',
+        ).mockResolvedValue(true);
+        const verify = vi.spyOn(bchGuardNamespace_EventVerifier, 'verifyEvent');
+        await bchGuardNamespace_EventProcessor.processScannedEvents();
+        expect(verify).not.toHaveBeenCalled();
+        expect(
+          (
+            await db.RejectedEventRepository.findOneByOrFail({
+              eventDataId: second.id,
+            })
+          ).reason,
+        ).toEqual('duplicate-trigger');
+      });
+    });
+
+    describe('BCH RCS bitcoinCashFeeContract', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [bchFee_TokenHandler, ['getInstance']],
+          [bchFee_MinimumFeeHandler, ['getInstance']],
+          [bchFee_DatabaseAction, ['getInstance']],
+          [bchFee_EventVerifier, ['isEventConfirmedEnough', 'verifyEvent']],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      let tokens: bchFee_TokenMap;
+
+      beforeEach(async () => {
+        tokens = new bchFee_TokenMap();
+        const config = bchFee_bchTokenSet();
+        config[0].ergo.decimals = 6;
+        await tokens.updateConfigByJson(config);
+        vi.spyOn(bchFee_TokenHandler, 'getInstance').mockReturnValue({
+          /** Return the mutable synthetic token map used by this scenario. */
+          getTokenMap: () => tokens,
+        } as bchFee_TokenHandler);
+        const fees = await bchFee_feeBox();
+        /** Record token lookup arguments while returning the selected synthetic mapping. */
+        const lookup = vi.fn((tokenId: string) => {
+          if (tokenId !== bchFee_wrapped)
+            throw Error('Wrong source token join');
+          return fees;
+        });
+        vi.spyOn(bchFee_MinimumFeeHandler, 'getInstance').mockReturnValue({
+          getMinimumFeeBoxObject: lookup,
+        } as unknown as bchFee_MinimumFeeHandler);
+      });
+      /**
+       * @target EventProcessor.processScannedEvents - verifies a BCH trigger
+       * independently when Bitcoin shares its source txid
+       * @dependencies Reusable synthetic fee box/trigger helper, real
+       * BCH8/wrapped6 TokenMap and mocked TokenHandler, fee provider, database
+       * and verification seams.
+       * @scenario verifies a BCH trigger independently when Bitcoin shares its
+       * source txid.
+       * @expected Verify and confirm the BCH trigger independently from a
+       * Bitcoin event with the same wire request ID.
+       */
+      it('verifies a BCH trigger independently when Bitcoin shares its source txid', async () => {
+        const bch = {
+          ...bchFee_event(),
+          id: 2,
+          eventId: bchFee_EventSerializer.getRequestId(bchFee_event()),
+          txId: 'bch-trigger',
+        };
+        const bitcoin = {
+          id: bchFee_EventSerializer.getId(
+            bchFee_event({ fromChain: 'bitcoin' }),
+          ),
+          eventData: {
+            ...bchFee_event({ fromChain: 'bitcoin' }),
+            id: 1,
+            txId: 'bitcoin-trigger',
+          },
+        };
+        const db = {
+          /** Provide the getUnconfirmedEvents test seam for the current scenario without external requests. */
+          getUnconfirmedEvents: vi.fn(async () => [bch]),
+          /** Provide the getEventById test seam for the current scenario without external requests. */
+          getEventById: vi.fn(async (id: string) =>
+            id === bitcoin.id ? bitcoin : null,
+          ),
+          insertRejectedEvent: vi.fn(),
+          insertConfirmedEvent: vi.fn(),
+        };
+        vi.spyOn(bchFee_DatabaseAction, 'getInstance').mockReturnValue(
+          db as unknown as bchFee_DatabaseAction,
+        );
+        vi.spyOn(
+          bchFee_EventVerifier,
+          'isEventConfirmedEnough',
+        ).mockResolvedValue(true);
+        const verify = vi
+          .spyOn(bchFee_EventVerifier, 'verifyEvent')
+          .mockResolvedValue(true);
+        await bchFee_EventProcessor.processScannedEvents();
+        expect(db.getEventById).toHaveBeenCalledWith(
+          bchFee_EventSerializer.getId(bchFee_event()),
+        );
+        expect(db.insertRejectedEvent).not.toHaveBeenCalled();
+        expect(db.insertConfirmedEvent).toHaveBeenCalledWith(bch);
+        expect(verify).toHaveBeenCalledWith(bch, bch.txId, expect.anything());
+      });
     });
   });
 
@@ -1653,4 +1907,266 @@ describe('EventProcessor', () => {
       ]);
     });
   });
+
+  describe('createEventPayment', () => {
+    describe('BCH RCS bitcoinCashNamespaceConsumers', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [BchConsumers_ChainHandler, ['getInstance']],
+          [BchConsumers_chainHandlerInstance, ['getChain', 'getErgoChain']],
+          [BchConsumers_TxAgreement, ['getInstance']],
+          [
+            BchConsumers_EventOrder,
+            ['createEventPaymentOrder', 'createEventRewardOrder'],
+          ],
+          [
+            BchConsumers_EventBoxes,
+            ['getEventBox', 'getEventWIDs', 'getEventValidCommitments'],
+          ],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      beforeEach(async () => {
+        await BchConsumers_DatabaseActionMock.clearTables();
+        vi.spyOn(BchConsumers_ChainHandler, 'getInstance').mockReturnValue(
+          BchConsumers_chainHandlerInstance as unknown as BchConsumers_ChainHandler,
+        );
+      });
+
+      /**
+       * @target EventProcessor.createEventPayment - propagates the BCH guard
+       * ID through the actual %s creation boundary
+       * @dependencies SQLite namespace fixtures,
+       * TestTxAgreement/TestEventSynchronization wrappers, mocked chain, fee,
+       * order, verification and active-sync seams.
+       * @scenario propagates the BCH guard ID through the actual %s creation
+       * boundary.
+       * @expected Propagate the BCH guard identity and payment type into the
+       * generated transaction without looking up by wire request ID.
+       */
+      it.each([BchConsumers_TransactionType.payment])(
+        'propagates the BCH guard ID through the actual %s creation boundary',
+        async (type) => {
+          const event = BchConsumers_namespaceEvent('bitcoin-cash', {
+            toChain: 'cardano',
+          });
+          /** Record the requested transaction generation without signing or submitting. */
+          const generate = vi.fn(
+            async (eventId: string, txType: BchConsumers_TransactionType) =>
+              new BchConsumers_PaymentTransaction(
+                type === BchConsumers_TransactionType.reward
+                  ? 'ergo'
+                  : 'cardano',
+                'generated-tx',
+                eventId,
+                Buffer.from('bytes'),
+                txType,
+              ),
+          );
+          const chain = {
+            generateTransaction: generate,
+            /** Provide the getBoxRWT test seam for the current scenario without external requests. */
+            getBoxRWT: () => 2n,
+            /** Provide the getGuardsConfigBox test seam for the current scenario without external requests. */
+            getGuardsConfigBox: async () => 'guards-config',
+          };
+          vi.spyOn(
+            BchConsumers_chainHandlerInstance,
+            'getChain',
+          ).mockReturnValue(
+            chain as unknown as BchConsumers_AbstractChain<unknown>,
+          );
+          vi.spyOn(
+            BchConsumers_chainHandlerInstance,
+            'getErgoChain',
+          ).mockReturnValue(
+            chain as unknown as ReturnType<
+              BchConsumers_ChainHandler['getErgoChain']
+            >,
+          );
+          vi.spyOn(BchConsumers_TxAgreement, 'getInstance').mockResolvedValue({
+            /** Provide the getChainPendingTransactions test seam for the current scenario without external requests. */
+            getChainPendingTransactions: () => [],
+          } as unknown as BchConsumers_TxAgreement);
+          vi.spyOn(
+            BchConsumers_EventOrder,
+            'createEventPaymentOrder',
+          ).mockResolvedValue([]);
+          vi.spyOn(
+            BchConsumers_EventOrder,
+            'createEventRewardOrder',
+          ).mockResolvedValue([]);
+          vi.spyOn(BchConsumers_EventBoxes, 'getEventBox').mockResolvedValue(
+            'unchanged-event-box',
+          );
+          vi.spyOn(BchConsumers_EventBoxes, 'getEventWIDs').mockResolvedValue([
+            'ab'.repeat(32),
+          ]);
+          vi.spyOn(
+            BchConsumers_EventBoxes,
+            'getEventValidCommitments',
+          ).mockResolvedValue([]);
+          const tx =
+            type === BchConsumers_TransactionType.payment
+              ? await TestBchConsumers_NamespaceProcessor.payment(
+                  event,
+                  'bch-trigger',
+                )
+              : await TestBchConsumers_NamespaceProcessor.reward(
+                  event,
+                  'bch-trigger',
+                );
+          expect(tx.eventId).toEqual(BchConsumers_EventSerializer.getId(event));
+          expect(generate.mock.calls[0][0]).toEqual(
+            BchConsumers_EventSerializer.getId(event),
+          );
+          expect(generate.mock.calls[0][1]).toEqual(type);
+          expect(
+            await BchConsumers_DatabaseAction.getInstance().getEventById(
+              event.sourceTxId,
+            ),
+          ).toBeNull();
+        },
+      );
+    });
+  });
+
+  describe('createEventRewardDistribution', () => {
+    describe('BCH RCS bitcoinCashNamespaceConsumers', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [BchConsumers_ChainHandler, ['getInstance']],
+          [BchConsumers_chainHandlerInstance, ['getChain', 'getErgoChain']],
+          [BchConsumers_TxAgreement, ['getInstance']],
+          [
+            BchConsumers_EventOrder,
+            ['createEventPaymentOrder', 'createEventRewardOrder'],
+          ],
+          [
+            BchConsumers_EventBoxes,
+            ['getEventBox', 'getEventWIDs', 'getEventValidCommitments'],
+          ],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      beforeEach(async () => {
+        await BchConsumers_DatabaseActionMock.clearTables();
+        vi.spyOn(BchConsumers_ChainHandler, 'getInstance').mockReturnValue(
+          BchConsumers_chainHandlerInstance as unknown as BchConsumers_ChainHandler,
+        );
+      });
+
+      /**
+       * @target EventProcessor.createEventRewardDistribution - propagates the
+       * BCH guard ID through the actual %s creation boundary
+       * @dependencies SQLite namespace fixtures,
+       * TestTxAgreement/TestEventSynchronization wrappers, mocked chain, fee,
+       * order, verification and active-sync seams.
+       * @scenario propagates the BCH guard ID through the actual %s creation
+       * boundary.
+       * @expected Propagate the BCH guard identity and reward type into the
+       * generated transaction without looking up by wire request ID.
+       */
+      it.each([BchConsumers_TransactionType.reward])(
+        'propagates the BCH guard ID through the actual %s creation boundary',
+        async (type) => {
+          const event = BchConsumers_namespaceEvent('bitcoin-cash', {
+            toChain: 'cardano',
+          });
+          /** Record the requested transaction generation without signing or submitting. */
+          const generate = vi.fn(
+            async (eventId: string, txType: BchConsumers_TransactionType) =>
+              new BchConsumers_PaymentTransaction(
+                type === BchConsumers_TransactionType.reward
+                  ? 'ergo'
+                  : 'cardano',
+                'generated-tx',
+                eventId,
+                Buffer.from('bytes'),
+                txType,
+              ),
+          );
+          const chain = {
+            generateTransaction: generate,
+            /** Provide the getBoxRWT test seam for the current scenario without external requests. */
+            getBoxRWT: () => 2n,
+            /** Provide the getGuardsConfigBox test seam for the current scenario without external requests. */
+            getGuardsConfigBox: async () => 'guards-config',
+          };
+          vi.spyOn(
+            BchConsumers_chainHandlerInstance,
+            'getChain',
+          ).mockReturnValue(
+            chain as unknown as BchConsumers_AbstractChain<unknown>,
+          );
+          vi.spyOn(
+            BchConsumers_chainHandlerInstance,
+            'getErgoChain',
+          ).mockReturnValue(
+            chain as unknown as ReturnType<
+              BchConsumers_ChainHandler['getErgoChain']
+            >,
+          );
+          vi.spyOn(BchConsumers_TxAgreement, 'getInstance').mockResolvedValue({
+            /** Provide the getChainPendingTransactions test seam for the current scenario without external requests. */
+            getChainPendingTransactions: () => [],
+          } as unknown as BchConsumers_TxAgreement);
+          vi.spyOn(
+            BchConsumers_EventOrder,
+            'createEventPaymentOrder',
+          ).mockResolvedValue([]);
+          vi.spyOn(
+            BchConsumers_EventOrder,
+            'createEventRewardOrder',
+          ).mockResolvedValue([]);
+          vi.spyOn(BchConsumers_EventBoxes, 'getEventBox').mockResolvedValue(
+            'unchanged-event-box',
+          );
+          vi.spyOn(BchConsumers_EventBoxes, 'getEventWIDs').mockResolvedValue([
+            'ab'.repeat(32),
+          ]);
+          vi.spyOn(
+            BchConsumers_EventBoxes,
+            'getEventValidCommitments',
+          ).mockResolvedValue([]);
+          const tx =
+            type === BchConsumers_TransactionType.payment
+              ? await TestBchConsumers_NamespaceProcessor.payment(
+                  event,
+                  'bch-trigger',
+                )
+              : await TestBchConsumers_NamespaceProcessor.reward(
+                  event,
+                  'bch-trigger',
+                );
+          expect(tx.eventId).toEqual(BchConsumers_EventSerializer.getId(event));
+          expect(generate.mock.calls[0][0]).toEqual(
+            BchConsumers_EventSerializer.getId(event),
+          );
+          expect(generate.mock.calls[0][1]).toEqual(type);
+          expect(
+            await BchConsumers_DatabaseAction.getInstance().getEventById(
+              event.sourceTxId,
+            ),
+          ).toBeNull();
+        },
+      );
+    });
+  });
 });
+
+class TestBchConsumers_NamespaceProcessor extends BchConsumers_EventProcessor {
+  static payment = (event: BchConsumers_EventTrigger, trigger: string) =>
+    this.createEventPayment(event, trigger, {} as BchConsumers_ChainMinimumFee);
+  static reward = (event: BchConsumers_EventTrigger, trigger: string) =>
+    this.createEventRewardDistribution(
+      event,
+      trigger,
+      {} as BchConsumers_ChainMinimumFee,
+      'actual-payment-id',
+    );
+}

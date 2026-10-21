@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "rootDir": "./lib" },
+  "exclude": ["tests", "vitest.config.ts"],
+  "references": [
+    { "path": "../../abstract-chain/tsconfig.build.json" },
+    { "path": "../../chains/bitcoin-cash/tsconfig.build.json" }
+  ]
+}

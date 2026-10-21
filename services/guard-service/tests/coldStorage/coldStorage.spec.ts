@@ -1,15 +1,25 @@
+import bchRegistration_originalConfig from 'config';
+
+import { TokenMap as bchRegistration_TokenMap } from '@rosen-bridge/tokens';
 import { AssetBalance, TransactionType } from '@rosen-chains/abstract-chain';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import ColdStorage from '../../src/coldStorage/coldStorage';
+import { rosenConfig as bchRegistration_originalRosenConfig } from '../../src/configs/rosenConfig';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import TxAgreementMock from '../agreement/mocked/txAgreement.mock';
 import {
   mockErgoPaymentTransaction,
   mockPaymentTransaction,
 } from '../agreement/testData';
+import {
+  bchContract as bchRegistration_bchContract,
+  bchTokenMap as bchRegistration_bchTokenMap,
+  bchValues as bchRegistration_bchValues,
+} from '../configs/bitcoinCashTestUtils';
+import { createBitcoinCashConfigMock } from '../configs/mocked/guardsBitcoinCashConfigs.mock';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { mockTokenPaymentFromErgoEvent } from '../event/testData';
 import ChainHandlerMock, {
@@ -788,6 +798,199 @@ describe('ColdStorage', () => {
       expect(
         TxAgreementMock.getMockedFunction('addTransactionToQueue'),
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('processLockAddressAssets', () => {
+    describe('BCH RCS bitcoinCashRegistration', () => {
+      let values: Record<string, unknown>;
+      let tokens: bchRegistration_TokenMap;
+      /** Read the synthetic BCH contract and delegate other chain configurations. */
+      const contractReader = vi.fn((chain: string) =>
+        chain === 'bitcoin-cash'
+          ? bchRegistration_bchContract()
+          : bchRegistration_originalRosenConfig.contractReader(
+              chain as Parameters<
+                typeof bchRegistration_originalRosenConfig.contractReader
+              >[0],
+            ),
+      );
+      const networkConstructor = vi.fn();
+      /** Record the requested curve-signing path and return a signer mock. */
+      const wrapCurve = vi.fn(
+        // Retain typed arguments for assertions on recorded TSS calls.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        (_chainCode: string, _derivationPath: number[]) => ({
+          sign: vi.fn(),
+          isInSign: vi.fn(),
+        }),
+      );
+      const fakeNetwork = {
+        logger: undefined,
+        /** Return the mutable native-asset response without external requests. */
+        getAddressAssets: vi.fn(async () => ({
+          nativeToken: 123n,
+          tokens: [],
+        })),
+      };
+      const mocks: string[] = [];
+      beforeEach(async () => {
+        vi.resetModules();
+        values = bchRegistration_bchValues();
+        tokens = await bchRegistration_bchTokenMap();
+        contractReader.mockClear();
+        networkConstructor.mockClear();
+        wrapCurve.mockClear();
+        const { DefaultLogger, DummyLogger } = await import(
+          '@rosen-bridge/abstract-logger'
+        );
+        DefaultLogger.init(new DummyLogger());
+        fakeNetwork.getAddressAssets.mockClear();
+        vi.doMock('config', () =>
+          createBitcoinCashConfigMock(
+            () => values,
+            bchRegistration_originalConfig,
+          ),
+        );
+        vi.doMock('../../src/configs/rosenConfig', () => ({
+          rosenConfig: {
+            ...bchRegistration_originalRosenConfig,
+            contractReader,
+          },
+        }));
+        vi.doMock('../../src/handlers/tokenHandler', () => ({
+          TokenHandler: {
+            /** Return the test singleton without production initialization. */
+            getInstance: () => ({
+              /** Return the mutable synthetic token map used by this scenario. */
+              getTokenMap: () => tokens,
+            }),
+          },
+        }));
+        vi.doMock('../../src/handlers/tssHandler', () => ({
+          default: {
+            /** Return the test singleton without production initialization. */
+            getInstance: () => ({
+              wrapCurveSignMediator: wrapCurve,
+              /** Provide the wrapEdwardSignMediator test seam for the current scenario without external requests. */
+              wrapEdwardSignMediator: vi.fn(() => ({
+                sign: vi.fn(),
+                isInSign: vi.fn(),
+              })),
+            }),
+          },
+        }));
+        vi.doMock('../../src/handlers/multiSigHandler', () => ({
+          default: {
+            /** Return the test singleton without production initialization. */
+            getInstance: () => ({
+              /** Return a signer mock without signing any transaction. */
+              getErgoMultiSig: () => ({ sign: vi.fn(), isInSign: vi.fn() }),
+            }),
+          },
+        }));
+        vi.doMock('@rosen-chains/bitcoin-cash-rpc', async (importOriginal) => ({
+          ...(await importOriginal<
+            typeof import('@rosen-chains/bitcoin-cash-rpc')
+          >()),
+          BitcoinCashRpcNetwork: class {
+            /** Record fixture constructor arguments without initializing external clients. */
+            constructor(config: unknown) {
+              networkConstructor(config);
+              return fakeNetwork;
+            }
+          },
+        }));
+        for (const [pkg, name] of [
+          ['binance', 'BinanceChain'],
+          ['bitcoin', 'BitcoinChain'],
+          ['bitcoin-runes', 'BitcoinRunesChain'],
+          ['cardano', 'CardanoChain'],
+          ['doge', 'DogeChain'],
+          ['ergo', 'ErgoChain'],
+          ['ethereum', 'EthereumChain'],
+          ['firo', 'FiroChain'],
+          ['handshake', 'HandshakeChain'],
+        ]) {
+          const id = `@rosen-chains/${pkg}`;
+          mocks.push(id);
+          vi.doMock(id, async () => ({
+            ...(await vi.importActual<Record<string, unknown>>(id)),
+            [name]: class {},
+            ...(pkg === 'doge' ? { CombinedDogeNetwork: class {} } : {}),
+          }));
+        }
+        for (const [pkg, name] of [
+          ['bitcoin-esplora', 'default'],
+          ['cardano-blockfrost-network', 'default'],
+          ['cardano-koios-network', 'default'],
+          ['doge-blockcypher', 'DogeBlockcypherNetwork'],
+          ['doge-esplora', 'DogeEsploraNetwork'],
+          ['doge-rpc', 'DogeRpcNetwork'],
+          ['ergo-explorer-network', 'default'],
+          ['ergo-node-network', 'default'],
+          ['evm-rpc', 'default'],
+          ['firo-electrumx', 'FiroElectrumXNetwork'],
+          ['handshake-rpc', 'HandshakeRpcNetwork'],
+          ['bitcoin-runes-rpc', 'BitcoinRunesRpcNetwork'],
+        ]) {
+          const id = `@rosen-chains/${pkg}`;
+          mocks.push(id);
+          vi.doMock(id, async () => ({
+            ...(await vi.importActual<Record<string, unknown>>(id)),
+            [name]: class {},
+          }));
+        }
+      });
+      afterEach(() => {
+        for (const id of [
+          ...mocks,
+          'config',
+          '@rosen-chains/bitcoin-cash-rpc',
+          '../../src/configs/rosenConfig',
+          '../../src/handlers/tokenHandler',
+          '../../src/handlers/tssHandler',
+          '../../src/handlers/multiSigHandler',
+          '../../src/handlers/chainHandler',
+          '../../src/db/databaseAction',
+          '../../src/utils/intervalTimer',
+        ])
+          vi.doUnmock(id);
+        vi.useRealTimers();
+        mocks.length = 0;
+      });
+      /**
+       * @target ColdStorage.processLockAddressAssets - schedules cold-storage
+       * processing only for active chains with BCH enabled %s
+       * @dependencies Mocked opt-in configuration, chain/network/TSS
+       * constructors and per-chain cold-storage processor; actual
+       * ACTIVE_CHAINS.
+       * @scenario Toggle BCH opt-in, invoke lock-address processing and
+       * inspect per-chain calls..
+       * @expected Invoke the mocked per-chain cold-storage processor exactly
+       * for ACTIVE_CHAINS, including BCH only when enabled.
+       */
+      it.each([false, true])(
+        'schedules cold-storage processing only for active chains with BCH enabled %s',
+        async (enabled) => {
+          values['bitcoinCash.enabled'] = enabled;
+          const { ACTIVE_CHAINS } = await import('../../src/utils/constants');
+          vi.useFakeTimers();
+          expect(ACTIVE_CHAINS.includes('bitcoin-cash')).toEqual(enabled);
+          const { default: ColdStorage } = await import(
+            '../../src/coldStorage/coldStorage'
+          );
+          const process = vi
+            .spyOn(ColdStorage, 'chainColdStorageProcess')
+            .mockResolvedValue(undefined);
+          await ColdStorage.processLockAddressAssets();
+          expect(process.mock.calls.map(([chain]) => chain)).toEqual(
+            ACTIVE_CHAINS,
+          );
+          expect(networkConstructor).not.toHaveBeenCalled();
+          process.mockRestore();
+        },
+      );
     });
   });
 });

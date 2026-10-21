@@ -1,13 +1,27 @@
 import { TransactionType } from '@rosen-chains/abstract-chain';
+import { TransactionType as bchPublicStatus_TransactionType } from '@rosen-chains/abstract-chain';
 
 import EventSerializer from '../../src/event/eventSerializer';
+import bchPublicStatus_EventSerializer from '../../src/event/eventSerializer';
 import { UpdateStatusDTO } from '../../src/handlers/publicStatusHandler';
+import { UpdateStatusDTO as bchPublicStatus_UpdateStatusDTO } from '../../src/handlers/publicStatusHandler';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import {
+  EventStatus as bchPublicStatus_EventStatus,
+  TransactionStatus as bchPublicStatus_TransactionStatus,
+} from '../../src/utils/constants';
 import * as TxTestData from '../agreement/testData';
+import { mockPaymentTransaction as bchPublicStatus_mockPaymentTransaction } from '../agreement/testData';
+import {
+  insertNamespaceEvent as bchPublicStatus_insertNamespaceEvent,
+  namespaceEvent as bchPublicStatus_namespaceEvent,
+} from '../db/bitcoinCashNamespaceTestUtils';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import bchPublicStatus_DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import * as EventTestData from '../event/testData';
 import TestUtils from '../testUtils/testUtils';
 import TestPublicStatusHandler from './testPublicStatusHandler';
+import bchPublicStatus_TestPublicStatusHandler from './testPublicStatusHandler';
 
 describe('PublicStatusHandler', () => {
   beforeEach(async () => {
@@ -343,6 +357,77 @@ describe('PublicStatusHandler', () => {
         tx: undefined,
       });
     });
+
+    describe('BCH RCS bitcoinCashPublicStatusNamespace', () => {
+      beforeEach(async () => bchPublicStatus_DatabaseActionMock.clearTables());
+
+      /**
+       * @target PublicStatusHandler.updatePublicEventStatus - looks up by
+       * guard identity and emits wire identity for a BCH %s status
+       * @dependencies SQLite namespace and transaction fixtures,
+       * TestPublicStatusHandler and mocked processor jobFn.
+       * @scenario looks up by guard identity and emits wire identity for a BCH
+       * %s status.
+       * @expected Resolve the BCH guard identity and publish the unchanged
+       * wire identity plus the selected transaction status.
+       */
+      it.each(['event'])(
+        'looks up by guard identity and emits wire identity for a BCH %s status',
+        async (kind) => {
+          await bchPublicStatus_insertNamespaceEvent(
+            bchPublicStatus_namespaceEvent('bitcoin'),
+            'btc-trigger',
+            bchPublicStatus_EventStatus.inPayment,
+          );
+          const bch = await bchPublicStatus_insertNamespaceEvent(
+            bchPublicStatus_namespaceEvent(),
+            'bch-trigger',
+            bchPublicStatus_EventStatus.inPayment,
+          );
+          const tx = bchPublicStatus_mockPaymentTransaction(
+            bchPublicStatus_TransactionType.payment,
+            'ergo',
+            bchPublicStatus_EventSerializer.getId(bch),
+          );
+          await bchPublicStatus_DatabaseActionMock.insertTxRecord(
+            tx,
+            bchPublicStatus_TransactionStatus.approved,
+          );
+          const handler = new bchPublicStatus_TestPublicStatusHandler(
+            bchPublicStatus_DatabaseActionMock.testDataSource,
+          );
+          const submit = vi
+            .spyOn(
+              handler.processor as unknown as {
+                jobFn(dto: bchPublicStatus_UpdateStatusDTO): Promise<void>;
+              },
+              'jobFn',
+            )
+            .mockResolvedValue(undefined);
+          if (kind === 'event')
+            await handler.updatePublicEventStatus(
+              bchPublicStatus_EventSerializer.getId(bch),
+              bchPublicStatus_EventStatus.inPayment,
+            );
+          else
+            await handler.updatePublicTxStatus(
+              tx.txId,
+              bchPublicStatus_TransactionStatus.approved,
+            );
+          expect(submit).toHaveBeenCalledExactlyOnceWith({
+            eventId: bch.eventId,
+            triggerTxId: bch.txId,
+            status: bchPublicStatus_EventStatus.inPayment,
+            tx: {
+              txId: tx.txId,
+              chain: 'ergo',
+              txType: bchPublicStatus_TransactionType.payment,
+              txStatus: bchPublicStatus_TransactionStatus.approved,
+            },
+          });
+        },
+      );
+    });
   });
 
   describe('updatePublicTxStatus', () => {
@@ -415,6 +500,77 @@ describe('PublicStatusHandler', () => {
           txStatus: tx.status,
         },
       });
+    });
+
+    describe('BCH RCS bitcoinCashPublicStatusNamespace', () => {
+      beforeEach(async () => bchPublicStatus_DatabaseActionMock.clearTables());
+
+      /**
+       * @target PublicStatusHandler.updatePublicTxStatus - looks up by guard
+       * identity and emits wire identity for a BCH %s status
+       * @dependencies SQLite namespace and transaction fixtures,
+       * TestPublicStatusHandler and mocked processor jobFn.
+       * @scenario looks up by guard identity and emits wire identity for a BCH
+       * %s status.
+       * @expected Resolve the BCH guard identity and publish the unchanged
+       * wire identity plus the selected transaction status.
+       */
+      it.each(['transaction'])(
+        'looks up by guard identity and emits wire identity for a BCH %s status',
+        async (kind) => {
+          await bchPublicStatus_insertNamespaceEvent(
+            bchPublicStatus_namespaceEvent('bitcoin'),
+            'btc-trigger',
+            bchPublicStatus_EventStatus.inPayment,
+          );
+          const bch = await bchPublicStatus_insertNamespaceEvent(
+            bchPublicStatus_namespaceEvent(),
+            'bch-trigger',
+            bchPublicStatus_EventStatus.inPayment,
+          );
+          const tx = bchPublicStatus_mockPaymentTransaction(
+            bchPublicStatus_TransactionType.payment,
+            'ergo',
+            bchPublicStatus_EventSerializer.getId(bch),
+          );
+          await bchPublicStatus_DatabaseActionMock.insertTxRecord(
+            tx,
+            bchPublicStatus_TransactionStatus.approved,
+          );
+          const handler = new bchPublicStatus_TestPublicStatusHandler(
+            bchPublicStatus_DatabaseActionMock.testDataSource,
+          );
+          const submit = vi
+            .spyOn(
+              handler.processor as unknown as {
+                jobFn(dto: bchPublicStatus_UpdateStatusDTO): Promise<void>;
+              },
+              'jobFn',
+            )
+            .mockResolvedValue(undefined);
+          if (kind === 'event')
+            await handler.updatePublicEventStatus(
+              bchPublicStatus_EventSerializer.getId(bch),
+              bchPublicStatus_EventStatus.inPayment,
+            );
+          else
+            await handler.updatePublicTxStatus(
+              tx.txId,
+              bchPublicStatus_TransactionStatus.approved,
+            );
+          expect(submit).toHaveBeenCalledExactlyOnceWith({
+            eventId: bch.eventId,
+            triggerTxId: bch.txId,
+            status: bchPublicStatus_EventStatus.inPayment,
+            tx: {
+              txId: tx.txId,
+              chain: 'ergo',
+              txType: bchPublicStatus_TransactionType.payment,
+              txStatus: bchPublicStatus_TransactionStatus.approved,
+            },
+          });
+        },
+      );
     });
   });
 
