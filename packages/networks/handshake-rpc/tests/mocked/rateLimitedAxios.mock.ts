@@ -16,6 +16,7 @@ export const mockAxiosPost = (result: any) => {
   axiosInstance.post.mockImplementationOnce((url, data) => {
     return Promise.resolve({
       data: {
+        jsonrpc: '2.0',
         result: result,
         error: null,
         id: data.id, // Return the same ID from the request
@@ -36,6 +37,7 @@ export const mockAxiosPostRpcError = (code: number, message: string) => {
   axiosInstance.post.mockImplementationOnce((url, data) => {
     return Promise.resolve({
       data: {
+        jsonrpc: '2.0',
         result: null,
         error: { code: code, message: message },
         id: data.id, // Return the same ID from the request

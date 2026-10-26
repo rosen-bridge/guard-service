@@ -111,6 +111,7 @@ export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
     let response;
     try {
       response = await this.client.post<JsonRpcResult<Result>>('', {
+        jsonrpc: '2.0',
         method: method,
         id: requestId,
         params: params,
