@@ -9,6 +9,7 @@ export const requestId =
 
 export const blockHeight = 911497;
 export const blockchainInfoResponse = {
+  jsonrpc: '2.0',
   result: {
     chain: 'main',
     blocks: 911497,
@@ -36,6 +37,7 @@ export const txId =
   '0dbf4436b3493c08b85f11755f672f2b40beddb8f2b65c6bb1e68074c85b53f3';
 export const txConfirmation = 78520;
 export const rawTransactionResponse = {
+  jsonrpc: '2.0',
   result: {
     txid: '0dbf4436b3493c08b85f11755f672f2b40beddb8f2b65c6bb1e68074c85b53f3',
     hash: '61591937f989b58d282f2967d02427a6b3d66170a7ea6144fcab54447b532a69',
@@ -99,6 +101,7 @@ export const rawTransactionResponse = {
 export const rawTransactionError = {
   response: {
     data: {
+      jsonrpc: '2.0',
       result: null,
       error: {
         code: -5,
@@ -283,6 +286,7 @@ export const addressMultiPagesBalance: AssetBalance = {
 export const blockHash =
   '0000000000000000000007f86cc74fc4a3b7919a8268c93b852e36004cc317cb';
 export const blockResponse = {
+  jsonrpc: '2.0',
   result: {
     hash: '0000000000000000000007f86cc74fc4a3b7919a8268c93b852e36004cc317cb',
     confirmations: 10,
@@ -332,6 +336,7 @@ export const blockInfo = {
 export const blockError = {
   response: {
     data: {
+      jsonrpc: '2.0',
       result: null,
       error: {
         code: -5,
@@ -347,6 +352,7 @@ export const lockTxId =
 export const lockTxBlockHash =
   '00000000000000000000a34330cefa5f08c714713b84a0595969c7e6b1326123';
 export const lockTxRawTransactionResponse = {
+  jsonrpc: '2.0',
   result: {
     txid: 'ac16759cc66ad1f4b9fe49e068d979728302ed6fb566d94665c76a654a93eeb2',
     hash: '862e6caff865b1dd174b05f761df3270623354c458a8a5c462f202a7bcbd1ec0',
@@ -928,6 +934,7 @@ export const unisatNullResponse = {
 };
 
 export const txOutResponse = {
+  jsonrpc: '2.0',
   result: {
     bestblock:
       '0000000000000000000042eb995658250686ad21277ca64e2fdbbc87aaae0515',
@@ -946,6 +953,7 @@ export const txOutResponse = {
   id: requestId,
 };
 export const spentTxOutResponse = {
+  jsonrpc: '2.0',
   result: null,
   error: null,
   id: requestId,
@@ -954,6 +962,7 @@ export const spentTxOutResponse = {
 export const utxoId =
   'a1dfdef4f618a2aa8fbc06628ec624a583e39a4c6af2aecaf6bbe4699a6a24a4.1';
 export const runeUtxoRawTransactionResponse = {
+  jsonrpc: '2.0',
   result: {
     txid: 'a1dfdef4f618a2aa8fbc06628ec624a583e39a4c6af2aecaf6bbe4699a6a24a4',
     hash: '3dcaacc6b046798fa41fa44cc5682f970c1093f825c982b566fff73765dc2ad0',
@@ -1072,6 +1081,7 @@ export const runesUtxo: BitcoinRunesUtxo = {
 };
 
 export const feeRatioResponse = {
+  jsonrpc: '2.0',
   result: {
     feerate: 0.00001,
     blocks: 6,
@@ -1082,6 +1092,7 @@ export const feeRatioResponse = {
 export const feeRatio = 1;
 
 export const mempoolEntryResponse = {
+  jsonrpc: '2.0',
   result: {
     vsize: 314,
     weight: 1253,
@@ -1109,6 +1120,7 @@ export const mempoolEntryResponse = {
 export const mempoolEntryError = {
   response: {
     data: {
+      jsonrpc: '2.0',
       result: null,
       error: { code: -5, message: 'Transaction not in mempool' },
       id: requestId,

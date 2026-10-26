@@ -131,6 +131,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.rpcClient.post<
         JsonRpcResult<BitcoinRpcChainInfo>
       >('', {
+        jsonrpc: '2.0',
         method: 'getblockchaininfo',
         id: randomId,
         params: [],
@@ -170,6 +171,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.rpcClient.post<
         JsonRpcResult<BitcoinRpcTransaction>
       >('', {
+        jsonrpc: '2.0',
         method: 'getrawtransaction',
         id: randomId,
         params: [transactionId, true],
@@ -298,6 +300,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.rpcClient.post<
         JsonRpcResult<BitcoinRpcBlockSummary>
       >('', {
+        jsonrpc: '2.0',
         method: 'getblock',
         id: randomId,
         params: [blockId, 1],
@@ -338,6 +341,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.rpcClient.post<
         JsonRpcResult<BitcoinRpcBlockSummary>
       >('', {
+        jsonrpc: '2.0',
         method: 'getblock',
         id: randomId,
         params: [blockId, 1],
@@ -388,6 +392,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.rpcClient.post<
         JsonRpcResult<BitcoinRpcTransaction>
       >('', {
+        jsonrpc: '2.0',
         method: 'getrawtransaction',
         id: randomId,
         params: [transactionId, true],
@@ -508,6 +513,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     const randomId = this.generateRandomId();
     try {
       const response = await this.rpcClient.post<JsonRpcResult<string>>('', {
+        jsonrpc: '2.0',
         method: 'sendrawtransaction',
         id: randomId,
         params: [txHex],
@@ -586,6 +592,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const listUnspentResponse = await this.rpcClient.post<
         JsonRpcResult<BitcoinRpcUtxo | null>
       >('', {
+        jsonrpc: '2.0',
         method: 'gettxout',
         id: randomId,
         params: [txId, outputIndex, false], // txid, n, include_mempool
@@ -630,6 +637,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.rpcClient.post<
         JsonRpcResult<BitcoinRpcTransaction>
       >('', {
+        jsonrpc: '2.0',
         method: 'getrawtransaction',
         id: randomId,
         params: [txId, true],
@@ -683,6 +691,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.rpcClient.post<
         JsonRpcResult<BitcoinRpcFeeRate>
       >('', {
+        jsonrpc: '2.0',
         method: 'estimatesmartfee',
         id: randomId,
         params: [CONFIRMATION_TARGET], // Number of blocks to target for confirmation
@@ -722,6 +731,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.rpcClient.post<
         JsonRpcResult<BitcoinRpcMempoolEntry>
       >('', {
+        jsonrpc: '2.0',
         method: 'getmempoolentry',
         id: randomId,
         params: [txId],
