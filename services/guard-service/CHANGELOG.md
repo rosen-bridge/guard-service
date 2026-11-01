@@ -1,5 +1,11 @@
 # guard-service
 
+## 11.0.2
+
+### Patch Changes
+
+- Patch a bug in `@rosen-bridge/ergo-multi-sig` package where nonce could be reused
+
 ## 11.0.1
 
 ### Patch Changes

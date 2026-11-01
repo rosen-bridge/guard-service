@@ -1,0 +1,161 @@
+diff --git a/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigHandler.d.ts b/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigHandler.d.ts
+index d33e12c..4f55030 100644
+--- a/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigHandler.d.ts
++++ b/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigHandler.d.ts
+@@ -62,6 +62,13 @@ export declare class MultiSigHandler extends Communicator {
+      * @param transaction transaction to clean
+      */
+     private cleanTxState;
++    /**
++     * check if committed indexes of an initiate sign payload are distinct valid
++     * peer indexes, each with exactly one commitment
++     * @param payload initiate sign payload
++     * @param peersCount number of peers
++     */
++    private isValidCommittedSet;
+     /**
+      * begin sign a multi-sig transaction.
+      * @param tx reduced transaction for multi-sig transaction
+diff --git a/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigHandler.js b/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigHandler.js
+index bfa2d40..c966b36 100644
+--- a/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigHandler.js
++++ b/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigHandler.js
+@@ -135,11 +135,26 @@ export class MultiSigHandler extends Communicator {
+      * @param transaction transaction to clean
+      */
+     cleanTxState = (transaction) => {
++        transaction.secret = undefined;
+         transaction.simulatedBag = wasm.TransactionHintsBag.empty();
+         transaction.commitments = {};
+         transaction.commitmentSigns = {};
+         transaction.signs = {};
+     };
++    /**
++     * check if committed indexes of an initiate sign payload are distinct valid
++     * peer indexes, each with exactly one commitment
++     * @param payload initiate sign payload
++     * @param peersCount number of peers
++     */
++    isValidCommittedSet = (payload, peersCount) => {
++        const { committedInds, cmts } = payload;
++        return (Array.isArray(committedInds) &&
++            Array.isArray(cmts) &&
++            committedInds.length === cmts.length &&
++            new Set(committedInds).size === committedInds.length &&
++            committedInds.every((ind) => Number.isInteger(ind) && ind >= 0 && ind < peersCount));
++    };
+     /**
+      * begin sign a multi-sig transaction.
+      * @param tx reduced transaction for multi-sig transaction
+@@ -292,7 +307,9 @@ export class MultiSigHandler extends Communicator {
+                             transaction.simulatedBag = simHints;
+                             const simHintsPublish = MultiSigUtils.toReducedPublishedCommitmentsArray(simHints, simulated);
+                             const simPublishedProofs = MultiSigUtils.toReducedPublishedProofsArray(simHints, simulated);
+-                            MultiSigUtils.add_hints(hints, transaction.secret, inputLen);
++                            const secret = transaction.secret;
++                            transaction.secret = undefined;
++                            MultiSigUtils.add_hints(hints, secret, inputLen);
+                             const signedTx = this.getProver().sign_reduced_transaction_multi(transaction.tx, hints);
+                             const myHint = await this.multiSigUtilsInstance.extract_hints(signedTx, transaction.boxes, transaction.dataBoxes, [myPub], []);
+                             transaction.signs[myPub] = MultiSigUtils.hintBagToPublishedProof(myHint, myPub);
+@@ -346,13 +363,32 @@ export class MultiSigHandler extends Communicator {
+             const { transaction, release } = await this.getQueuedTransaction(payload.txId);
+             let outgoingSignPayload;
+             try {
+-                if (transaction.tx === undefined || transaction.secret === undefined) {
++                if (transaction.tx === undefined) {
+                     this.logger.info(`Received initiate sign for tx [${payload.txId}] but the transaction is not properly in the queue yet.`);
+                     return;
+                 }
+-                this.logger.info(`Initiating sign for tx [${payload.txId}]...`);
++                if (transaction.secret === undefined) {
++                    this.logger.info(`Received initiate sign for tx [${payload.txId}] but this guard has no unused commitment for it (already signed or not committed).`);
++                    return;
++                }
++                if (transaction.coordinator !== index) {
++                    this.logger.warn(`Received initiate sign from [${sender}] for tx [${payload.txId}] but that guard is not the coordinator of this tx. Coordinator index: ${transaction.coordinator}, sender index: ${index}.`);
++                    return;
++                }
+                 const myPub = this.getPk();
+-                const signed = payload.committedInds.map((ind) => this.peers()[ind].pub);
++                const peerPubs = this.peers().map((peer) => peer.pub);
++                if (!this.isValidCommittedSet(payload, peerPubs.length)) {
++                    this.logger.warn(`Received initiate sign from [${sender}] for tx [${payload.txId}] with an invalid committed set.`);
++                    return;
++                }
++                const myPosition = payload.committedInds.indexOf(peerPubs.indexOf(myPub));
++                if (myPosition === -1 ||
++                    !MultiSigUtils.isSamePublishedCommitment(payload.cmts[myPosition], transaction.commitments[myPub])) {
++                    this.logger.warn(`Received initiate sign from [${sender}] for tx [${payload.txId}] that does not contain this guard's current commitment.`);
++                    return;
++                }
++                this.logger.info(`Initiating sign for tx [${payload.txId}]...`);
++                const signed = payload.committedInds.map((ind) => peerPubs[ind]);
+                 const simulated = this.peers()
+                     .filter((peer) => !signed.includes(peer.pub))
+                     .map((peer) => peer.pub);
+@@ -364,7 +400,9 @@ export class MultiSigHandler extends Communicator {
+                 MultiSigUtils.add_hints(hints, simHints, inputLen);
+                 const simProofs = MultiSigUtils.publishedProofsToHintBag(payload.simulatedProofs, simulated, inputLen, 'proofSimulated');
+                 MultiSigUtils.add_hints(hints, simProofs, inputLen);
+-                MultiSigUtils.add_hints(hints, transaction.secret, inputLen);
++                const secret = transaction.secret;
++                transaction.secret = undefined;
++                MultiSigUtils.add_hints(hints, secret, inputLen);
+                 const partial = this.getProver().sign_reduced_transaction_multi(transaction.tx, hints);
+                 const signer = [myPub];
+                 const myHints = await this.multiSigUtilsInstance.extract_hints(partial, transaction.boxes, transaction.dataBoxes, signer, []);
+diff --git a/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigUtils.d.ts b/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigUtils.d.ts
+index c17d46d..8680023 100644
+--- a/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigUtils.d.ts
++++ b/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigUtils.d.ts
+@@ -74,6 +74,12 @@ export declare class MultiSigUtils {
+      * @param pub public key
+      */
+     static toReducedPublishedCommitments: (hintBag: wasm.TransactionHintsBag, pub: string) => PublishedCommitment;
++    /**
++     * check if two published commitments are exactly the same
++     * @param first first published commitment
++     * @param second second published commitment
++     */
++    static isSamePublishedCommitment: (first: PublishedCommitment | undefined, second: PublishedCommitment | undefined) => boolean;
+     /**
+      * Convert hint bag to published commitments
+      * @param hintBag hint bag
+diff --git a/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigUtils.js b/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigUtils.js
+index 6a8c198..c2acd4a 100644
+--- a/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigUtils.js
++++ b/node_modules/@rosen-bridge/ergo-multi-sig/dist/multiSigUtils.js
+@@ -200,6 +200,32 @@ export class MultiSigUtils {
+         });
+         return publishCommitments;
+     };
++    /**
++     * check if two published commitments are exactly the same
++     * @param first first published commitment
++     * @param second second published commitment
++     */
++    static isSamePublishedCommitment = (first, second) => {
++        if (!first || !second)
++            return false;
++        const inputIndexes = Object.keys(first);
++        if (inputIndexes.length !== Object.keys(second).length)
++            return false;
++        return inputIndexes.every((inputIndex) => {
++            const firstHints = first[inputIndex];
++            const secondHints = second[inputIndex];
++            return (Array.isArray(firstHints) &&
++                Array.isArray(secondHints) &&
++                firstHints.length === secondHints.length &&
++                firstHints.every((hint, i) => {
++                    const otherHint = secondHints[i];
++                    return (!!hint &&
++                        !!otherHint &&
++                        hint.a === otherHint.a &&
++                        hint.position === otherHint.position);
++                }));
++        });
++    };
+     /**
+      * Convert hint bag to published commitments
+      * @param hintBag hint bag
