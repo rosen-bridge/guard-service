@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - Patch a bug in `@rosen-bridge/ergo-multi-sig` package where nonce could be reused
+- Remove `maxPriorityFeePerGas` verification from `EvmChain.verifyTransactionFee`
 
 ## 11.0.1
 
