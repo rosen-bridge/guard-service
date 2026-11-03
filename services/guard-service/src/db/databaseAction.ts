@@ -230,6 +230,105 @@ class DatabaseAction {
   };
 
   /**
+   * sets a tx as completed and moves its event/order to the next status in
+   * a single database transaction
+   *
+   * the two writes used to be separate: if the process or the database
+   * failed between them, the tx stayed `completed` (so it was never picked
+   * up again) while its event stayed `in-payment`/`in-reward` or its order
+   * stayed `in-process` forever. Running both updates in one transaction
+   * means a failure rolls the tx status back as well, and the tx is
+   * processed again on the next round.
+   * @param txId the transaction id
+   * @param eventId id of the event to move (if the tx has one to move)
+   * @param eventStatus the event status to set
+   * @param setEventFirstTry if true, the event firstTry column is also set
+   * to the current timestamp (used when moving an event to a pending status)
+   * @param orderId id of the order to move (if the tx has one to move)
+   * @param orderStatus the order status to set
+   */
+  setTxAsCompleted = async (
+    txId: string,
+    eventId?: string,
+    eventStatus?: string,
+    setEventFirstTry = false,
+    orderId?: string,
+    orderStatus?: string,
+  ): Promise<void> => {
+    let txAffected = false;
+    let eventAffected = false;
+    await this.dataSource.transaction(async (manager) => {
+      const txResult = await manager.getRepository(TransactionEntity).update(
+        { txId: txId },
+        {
+          status: TransactionStatus.completed,
+          lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+        },
+      );
+      txAffected = (txResult.affected ?? 0) > 0;
+      if (!txAffected) return;
+      if (eventId !== undefined && eventStatus !== undefined) {
+        const eventResult = await manager
+          .getRepository(ConfirmedEventEntity)
+          .update(
+            { id: eventId },
+            setEventFirstTry
+              ? {
+                  status: eventStatus,
+                  firstTry: String(Math.round(Date.now() / 1000)),
+                }
+              : { status: eventStatus },
+          );
+        eventAffected = (eventResult.affected ?? 0) > 0;
+      }
+      if (orderId !== undefined && orderStatus !== undefined) {
+        await manager
+          .getRepository(ArbitraryEntity)
+          .update({ id: orderId }, { status: orderStatus });
+      }
+    });
+    if (!txAffected) return;
+    PublicStatusHandler.getInstance().updatePublicTxStatus(
+      txId,
+      TransactionStatus.completed,
+    );
+    if (eventAffected)
+      PublicStatusHandler.getInstance().updatePublicEventStatus(
+        eventId!,
+        eventStatus!,
+      );
+  };
+
+  /**
+   * @return completed transactions whose event still waits for the
+   * post-completion move (`in-payment` or `in-reward`) or whose order is
+   * still `in-process`
+   *
+   * such rows are left behind by a stop between the two writes that used
+   * to complete a transaction (see `setTxAsCompleted`); the transaction
+   * processor re-drives them so the event/order can still move on
+   */
+  getCompletedTxsWithUnfinishedEventOrOrder = async (): Promise<
+    TransactionEntity[]
+  > => {
+    return await this.TransactionRepository.find({
+      relations: ['event', 'order'],
+      where: [
+        {
+          status: TransactionStatus.completed,
+          event: {
+            status: In([EventStatus.inPayment, EventStatus.inReward]),
+          },
+        },
+        {
+          status: TransactionStatus.completed,
+          order: { status: OrderStatus.inProcess },
+        },
+      ],
+    });
+  };
+
+  /**
    * updates tx info when failed in sign process
    * @param txId the transaction id
    */
