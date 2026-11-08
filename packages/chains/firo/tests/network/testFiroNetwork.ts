@@ -1,6 +1,6 @@
 import { AssetBalance } from '@rosen-chains/abstract-chain';
 
-import { AbstractFiroNetwork, FiroUtxo } from '../../lib';
+import { AbstractFiroNetwork, FiroTx, FiroUtxo } from '../../lib';
 
 export default class TestFiroNetwork extends AbstractFiroNetwork {
   notImplemented = () => {
@@ -35,12 +35,28 @@ export default class TestFiroNetwork extends AbstractFiroNetwork {
     throw Error('Not mocked');
   };
 
-  getTxConfirmation = this.notImplemented;
+  getTransactionSpendingInput = (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    index: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    txId: string,
+  ): Promise<FiroTx | undefined> => {
+    throw Error('Not mocked');
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getTxConfirmation = (txId: string): Promise<number> => {
+    throw Error('Not mocked');
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isTxInMempool = (txId: string): Promise<boolean> => {
+    throw Error('Not mocked');
+  };
+
   getBlockTransactionIds = this.notImplemented;
   getBlockInfo = this.notImplemented;
   getTransaction = this.notImplemented;
   submitTransaction = this.notImplemented;
-  getActualTxId = this.notImplemented;
   getAddressBoxes = this.notImplemented;
-  isTxInMempool = this.notImplemented;
 }

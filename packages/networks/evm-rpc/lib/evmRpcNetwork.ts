@@ -9,7 +9,6 @@ import {
 } from 'ethers';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { DataSource } from '@rosen-bridge/extended-typeorm';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
   AssetBalance,
@@ -22,21 +21,16 @@ import {
   AbstractEvmNetwork,
   EvmTxStatus,
   PartialERC20ABI,
-  TransactionHashes,
 } from '@rosen-chains/evm';
-
-import AddressTxAction from './addressTxAction';
 
 class EvmRpcNetwork extends AbstractEvmNetwork {
   readonly chain: string;
   protected readonly provider: JsonRpcProvider;
-  protected readonly dbAction: AddressTxAction;
   protected readonly lockAddress: string;
 
   constructor(
     chain: string,
     url: string,
-    dataSource: DataSource,
     lockAddress: string,
     authToken?: string,
     logger?: AbstractLogger,
@@ -46,7 +40,6 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
     this.provider = authToken
       ? new JsonRpcProvider(`${url}/${authToken}`)
       : new JsonRpcProvider(`${url}`);
-    this.dbAction = new AddressTxAction(lockAddress, dataSource, logger);
     this.lockAddress = lockAddress;
   }
 
@@ -65,17 +58,10 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
 
   /**
    * gets confirmation for a transaction (returns -1 if tx is not mined or found)
-   * Note: this function considers the hash as unsigned hash
-   *  if the tx was not found, considers it as TxId (signed hash)
-   * @param hash the unsigned hash or ID of the transaction
+   * @param transactionId the transaction id (signed hash)
    * @returns the transaction confirmation
    */
-  getTxConfirmation = async (hash: string): Promise<number> => {
-    // check if hash is representing signed or unsigned version of the tx
-    const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
-    const transactionId = txRecord === null ? hash : txRecord.signedHash;
-
-    // get transaction confirmation
+  getTxConfirmation = async (transactionId: string): Promise<number> => {
     const baseError = `Failed to get transaction [${transactionId}] from ${this.chain} RPC: `;
     let tx: TransactionResponse | null;
     try {
@@ -399,16 +385,12 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
 
   /**
    * gets the transaction status (mempool, succeed, failed)
-   * Note: this function considers the hash as unsigned hash
-   *  if the tx was not found, considers it as TxId (signed hash)
-   * @param hash the unsigned hash or ID of the transaction
+   * @param transactionId the transaction id (signed hash)
    * @returns the transaction status
    */
-  getTransactionStatus = async (hash: string): Promise<EvmTxStatus> => {
-    // check if hash is representing signed or unsigned version of the tx
-    const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
-    const transactionId = txRecord === null ? hash : txRecord.signedHash;
-
+  getTransactionStatus = async (
+    transactionId: string,
+  ): Promise<EvmTxStatus> => {
     const baseError = `Failed to get transaction [${transactionId}] from ${this.chain} RPC: `;
     let tx: TransactionResponse | null;
     try {
@@ -430,20 +412,6 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
   };
 
   /**
-   * gets id and unsigned hash of the transaction of the lock address with specific nonce
-   * throws error if NO tx is found for that nonce
-   * @param nonce
-   * @returns the transaction id and unsigned hash
-   */
-  getTransactionByNonce = async (nonce: number): Promise<TransactionHashes> => {
-    const txRecord = await this.dbAction.getTxByNonce(nonce);
-    return {
-      unsignedHash: txRecord.unsignedHash,
-      txId: txRecord.signedHash,
-    };
-  };
-
-  /**
    * gets the transaction status (mempool, succeed, failed) from TransactionResponse object
    * @param TransactionResponse
    */
@@ -458,29 +426,6 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
       if (isCallException(e)) return EvmTxStatus.failed;
       else throw e;
     }
-  };
-
-  /**
-   * gets the actual id of a transaction by its hash
-   * @param hash
-   */
-  getActualTxId = async (hash: string): Promise<string> => {
-    const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
-    const txId = txRecord === null ? hash : txRecord.signedHash;
-
-    const baseError = `Failed to get actual TxId for hash [${hash}]: `;
-
-    let tx: TransactionResponse | null;
-    try {
-      tx = await this.provider.getTransaction(txId);
-    } catch (e: unknown) {
-      throw new UnexpectedApiError(baseError + `${e}`);
-    }
-    if (!tx) {
-      throw new Error(baseError + `Transaction [${txId}] is not found`);
-    }
-
-    return txId;
   };
 }
 

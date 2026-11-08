@@ -9,7 +9,7 @@ import {
   NotEnoughValidBoxesError,
 } from '@rosen-chains/abstract-chain';
 
-import { FIRO_NETWORK, FiroTransaction, FiroUtxo } from '../lib';
+import { FIRO_NETWORK, FiroTransaction, FiroTx, FiroUtxo } from '../lib';
 import * as testData from './chainTestData';
 import * as testUtils from './firoTestUtils';
 import TestFiroNetwork from './network/testFiroNetwork';
@@ -705,6 +705,7 @@ describe('FiroChain', () => {
       testData.testFiroConfigs,
       tokenMap,
       null as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      async () => undefined,
     );
 
     /**
@@ -992,6 +993,548 @@ describe('FiroChain', () => {
 
       // check returned value
       expect(result).toEqual(false);
+    });
+  });
+
+  describe('getActualTxId', () => {
+    /**
+     * @target FiroChain.getActualTxId should return the signed tx id when it
+     * is found
+     * @dependencies
+     * @scenario
+     * - mock `resolveSignedTxId` to return the signed tx id
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return the signed tx id
+     */
+    it('should return the signed tx id when it is found', async () => {
+      const network = new TestFiroNetwork();
+      const firoChain = await testUtils.generateChainObject(network);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(firoChain as any, 'resolveSignedTxId').mockResolvedValue(
+        testData.transaction2SignedTxId,
+      );
+
+      // run test
+      const result = await firoChain.getActualTxId(
+        testData.transaction2UnsignedHash,
+      );
+
+      // check returned value
+      expect(result).toEqual(testData.transaction2SignedTxId);
+    });
+
+    /**
+     * @target FiroChain.getActualTxId should throw when the signed tx id is
+     * not found
+     * @dependencies
+     * @scenario
+     * - mock `resolveSignedTxId` to return undefined
+     * - run test and expect exception thrown
+     * @expected
+     * - it should throw Error
+     */
+    it('should throw when the signed tx id is not found', async () => {
+      const network = new TestFiroNetwork();
+      const firoChain = await testUtils.generateChainObject(network);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(firoChain as any, 'resolveSignedTxId').mockResolvedValue(
+        undefined,
+      );
+
+      // run test and expect exception thrown
+      await expect(
+        firoChain.getActualTxId(testData.transaction2UnsignedHash),
+      ).rejects.toThrow(Error);
+    });
+  });
+
+  describe('resolveSignedTxId', () => {
+    /**
+     * @target FiroChain.resolveSignedTxId should return the signed tx id
+     * when the saved PSBT is finalized
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return a signed transaction
+     * - mock network `getTransactionSpendingInput`
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return the signed tx id
+     * - network `getTransactionSpendingInput` should not have been called
+     */
+    it('should return the signed tx id when the saved PSBT is finalized', async () => {
+      const unsignedTx = FiroTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const savedTx = new FiroTransaction(
+        unsignedTx.txId,
+        unsignedTx.eventId,
+        Buffer.from(testData.transaction2SignedTxBytesHex, 'hex'),
+        unsignedTx.txType,
+        unsignedTx.inputUtxos,
+      );
+      const getSavedTransactionById = vi.fn(async (txId: string) =>
+        txId === testData.transaction2UnsignedHash ? savedTx : undefined,
+      );
+
+      const network = new TestFiroNetwork();
+      const spentTxSpy = vi.spyOn(network, 'getTransactionSpendingInput');
+      const firoChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        getSavedTransactionById,
+      );
+
+      // run test
+      const result = await firoChain.callResolveSignedTxId(
+        testData.transaction2UnsignedHash,
+      );
+
+      // check returned value
+      expect(result).toEqual(testData.transaction2SignedTxId);
+      expect(spentTxSpy).not.toHaveBeenCalled();
+    });
+
+    /**
+     * @target FiroChain.resolveSignedTxId should return the given hash
+     * when no saved transaction exists
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return undefined
+     * - mock network `getTransactionSpendingInput`
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return the given hash
+     * - network `getTransactionSpendingInput` should not have been called
+     */
+    it('should return the given hash when no saved transaction exists', async () => {
+      const network = new TestFiroNetwork();
+      const spentTxSpy = vi.spyOn(network, 'getTransactionSpendingInput');
+      const firoChain = await testUtils.generateChainObject(network);
+
+      // run test
+      const result = await firoChain.callResolveSignedTxId(
+        testData.transaction2SignedTxId,
+      );
+
+      // check returned value
+      expect(result).toEqual(testData.transaction2SignedTxId);
+      expect(spentTxSpy).not.toHaveBeenCalled();
+    });
+
+    /**
+     * @target FiroChain.resolveSignedTxId should return the spending tx id
+     * when the saved PSBT is not signed and the spending tx matches it
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return an unsigned transaction with 2 inputs
+     * - mock network `getTransactionSpendingInput` to return the matching tx
+     * - run test
+     * - check returned value and network call
+     * @expected
+     * - network `getTransactionSpendingInput` should have been called with
+     *   index and display-order tx id of input 0
+     * - saved transaction should have been read once
+     * - it should return the spending tx id
+     */
+    it('should return the spending tx id when the saved PSBT is not signed and the spending tx matches it', async () => {
+      const savedTx = FiroTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const getSavedTransactionById = vi.fn(async (txId: string) =>
+        txId === testData.transaction2UnsignedHash ? savedTx : undefined,
+      );
+      const network = new TestFiroNetwork();
+      const spentTxSpy = vi
+        .spyOn(network, 'getTransactionSpendingInput')
+        .mockResolvedValue(testData.transaction2SpendingTx);
+      const firoChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        getSavedTransactionById,
+      );
+
+      // run test
+      const result = await firoChain.callResolveSignedTxId(
+        testData.transaction2UnsignedHash,
+      );
+
+      // check returned value and network call
+      expect(spentTxSpy).toHaveBeenCalledExactlyOnceWith(
+        testData.transaction2SpendingTx.inputs[0].index,
+        testData.transaction2SpendingTx.inputs[0].txId,
+      );
+      expect(result).toEqual(testData.transaction2SignedTxId);
+      expect(getSavedTransactionById).toHaveBeenCalledExactlyOnceWith(
+        testData.transaction2UnsignedHash,
+      );
+    });
+
+    /**
+     * @target FiroChain.resolveSignedTxId should return undefined when the
+     * spending tx does not match the saved PSBT
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return an unsigned transaction
+     * - mock network `getTransactionSpendingInput` to return a tx with
+     *   one of these differences from the saved PSBT:
+     *   - different tx id of an input
+     *   - different index of an input
+     *   - different value of an output
+     *   - different script of an output
+     *   - extra input
+     *   - extra output
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return undefined
+     */
+    it.each([
+      [
+        'tx id of an input',
+        (tx: FiroTx) => {
+          tx.inputs[0].txId = testData.transaction2SignedTxId;
+        },
+      ],
+      [
+        'index of an input',
+        (tx: FiroTx) => {
+          tx.inputs[1].index = 0;
+        },
+      ],
+      [
+        'value of an output',
+        (tx: FiroTx) => {
+          tx.outputs[1].value -= 1n;
+        },
+      ],
+      [
+        'script of an output',
+        (tx: FiroTx) => {
+          tx.outputs[0].scriptPubKey = tx.outputs[1].scriptPubKey;
+        },
+      ],
+      [
+        'number of inputs',
+        (tx: FiroTx) => {
+          tx.inputs.push({ ...tx.inputs[1], index: tx.inputs[1].index + 1 });
+        },
+      ],
+      [
+        'number of outputs',
+        (tx: FiroTx) => {
+          tx.outputs.push({ ...tx.outputs[1] });
+        },
+      ],
+    ])(
+      'should return undefined when the spending tx has a different %s',
+      async (_, modify) => {
+        const savedTx = FiroTransaction.fromJson(
+          testData.transaction2PaymentTransaction,
+        );
+        const getSavedTransactionById = vi.fn(async (txId: string) =>
+          txId === testData.transaction2UnsignedHash ? savedTx : undefined,
+        );
+
+        const spendingTx = structuredClone(testData.transaction2SpendingTx);
+        modify(spendingTx);
+        const network = new TestFiroNetwork();
+        vi.spyOn(network, 'getTransactionSpendingInput').mockResolvedValue(
+          spendingTx,
+        );
+        const firoChain = await testUtils.generateChainObject(
+          network,
+          testUtils.mockedSignMediator,
+          getSavedTransactionById,
+        );
+
+        // run test
+        const result = await firoChain.callResolveSignedTxId(
+          testData.transaction2UnsignedHash,
+        );
+
+        // check returned value
+        expect(result).toBeUndefined();
+      },
+    );
+
+    /**
+     * @target FiroChain.resolveSignedTxId should return undefined when no
+     * spending tx is found
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return an unsigned transaction
+     * - mock network `getTransactionSpendingInput` to return undefined
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return undefined
+     */
+    it('should return undefined when no spending tx is found', async () => {
+      const savedTx = FiroTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const getSavedTransactionById = vi.fn(async (txId: string) =>
+        txId === testData.transaction2UnsignedHash ? savedTx : undefined,
+      );
+
+      const network = new TestFiroNetwork();
+      vi.spyOn(network, 'getTransactionSpendingInput').mockResolvedValue(
+        undefined,
+      );
+      const firoChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        getSavedTransactionById,
+      );
+
+      // run test
+      const result = await firoChain.callResolveSignedTxId(
+        testData.transaction2UnsignedHash,
+      );
+
+      // check returned value
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('isTxInMempool', () => {
+    /**
+     * @target FiroChain.isTxInMempool should check the network using
+     * the signed tx id of the saved PSBT
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return a signed transaction
+     * - mock network `isTxInMempool`
+     * - run test
+     * - check returned value and network call
+     * @expected
+     * - network `isTxInMempool` should have been called with the signed tx id
+     * - it should return the network result
+     */
+    it.each([
+      [true, 'in'],
+      [false, 'not in'],
+    ])(
+      'should return %s when the signed tx id of the saved PSBT is %s mempool',
+      async (inMempool) => {
+        const unsignedTx = FiroTransaction.fromJson(
+          testData.transaction2PaymentTransaction,
+        );
+        const savedTx = new FiroTransaction(
+          unsignedTx.txId,
+          unsignedTx.eventId,
+          Buffer.from(testData.transaction2SignedTxBytesHex, 'hex'),
+          unsignedTx.txType,
+          unsignedTx.inputUtxos,
+        );
+        const getSavedTransactionById = vi.fn(async (txId: string) =>
+          txId === testData.transaction2UnsignedHash ? savedTx : undefined,
+        );
+
+        const network = new TestFiroNetwork();
+        const isTxInMempoolSpy = vi
+          .spyOn(network, 'isTxInMempool')
+          .mockResolvedValue(inMempool);
+        const firoChain = await testUtils.generateChainObject(
+          network,
+          testUtils.mockedSignMediator,
+          getSavedTransactionById,
+        );
+
+        // run test
+        const result = await firoChain.isTxInMempool(
+          testData.transaction2UnsignedHash,
+        );
+
+        // check returned value and network call
+        expect(isTxInMempoolSpy).toHaveBeenCalledExactlyOnceWith(
+          testData.transaction2SignedTxId,
+        );
+        expect(result).toEqual(inMempool);
+      },
+    );
+
+    /**
+     * @target FiroChain.isTxInMempool should return false without
+     * calling the network when the saved PSBT is not signed
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return an unsigned transaction
+     * - mock network `isTxInMempool` and `getTransactionSpendingInput`
+     * - run test
+     * - check returned value and network calls
+     * @expected
+     * - it should return false
+     * - network functions should not have been called
+     */
+    it('should return false without calling the network when the saved PSBT is not signed', async () => {
+      const savedTx = FiroTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const getSavedTransactionById = vi.fn(async (txId: string) =>
+        txId === testData.transaction2UnsignedHash ? savedTx : undefined,
+      );
+
+      const network = new TestFiroNetwork();
+      const isTxInMempoolSpy = vi
+        .spyOn(network, 'isTxInMempool')
+        .mockResolvedValue(true);
+      const spentTxSpy = vi.spyOn(network, 'getTransactionSpendingInput');
+      const firoChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        getSavedTransactionById,
+      );
+
+      // run test
+      const result = await firoChain.isTxInMempool(
+        testData.transaction2UnsignedHash,
+      );
+
+      // check returned value and network calls
+      expect(result).toEqual(false);
+      expect(isTxInMempoolSpy).not.toHaveBeenCalled();
+      expect(spentTxSpy).not.toHaveBeenCalled();
+    });
+
+    /**
+     * @target FiroChain.isTxInMempool should check the network using
+     * the given hash when no saved transaction exists
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return undefined
+     * - mock network `isTxInMempool`
+     * - run test
+     * - check returned value and network call
+     * @expected
+     * - network `isTxInMempool` should have been called with the given hash
+     * - it should return the network result
+     */
+    it.each([
+      [true, 'in'],
+      [false, 'not in'],
+    ])(
+      'should return %s when no saved transaction exists and the given hash is %s mempool',
+      async (inMempool) => {
+        const network = new TestFiroNetwork();
+        const isTxInMempoolSpy = vi
+          .spyOn(network, 'isTxInMempool')
+          .mockResolvedValue(inMempool);
+        const firoChain = await testUtils.generateChainObject(network);
+
+        // run test
+        const result = await firoChain.isTxInMempool(
+          testData.transaction2SignedTxId,
+        );
+
+        // check returned value and network call
+        expect(isTxInMempoolSpy).toHaveBeenCalledExactlyOnceWith(
+          testData.transaction2SignedTxId,
+        );
+        expect(result).toEqual(inMempool);
+      },
+    );
+  });
+
+  describe('getTxConfirmation', () => {
+    /**
+     * @target FiroChain.getTxConfirmation should get confirmation of the
+     * signed tx id of the saved PSBT from the network
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return a signed transaction
+     * - mock network `getTxConfirmation`
+     * - run test
+     * - check returned value and network call
+     * @expected
+     * - network `getTxConfirmation` should have been called with the
+     *   signed tx id
+     * - it should return the network result
+     */
+    it('should get confirmation of the signed tx id of the saved PSBT from the network', async () => {
+      const unsignedTx = FiroTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const savedTx = new FiroTransaction(
+        unsignedTx.txId,
+        unsignedTx.eventId,
+        Buffer.from(testData.transaction2SignedTxBytesHex, 'hex'),
+        unsignedTx.txType,
+        unsignedTx.inputUtxos,
+      );
+      const getSavedTransactionById = vi.fn(async (txId: string) =>
+        txId === testData.transaction2UnsignedHash ? savedTx : undefined,
+      );
+
+      const network = new TestFiroNetwork();
+      const confirmation = 5;
+      const getTxConfirmationSpy = vi
+        .spyOn(network, 'getTxConfirmation')
+        .mockResolvedValue(confirmation);
+      const firoChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        getSavedTransactionById,
+      );
+
+      // run test
+      const result = await firoChain.callGetTxConfirmation(
+        testData.transaction2UnsignedHash,
+      );
+
+      // check returned value and network call
+      expect(getTxConfirmationSpy).toHaveBeenCalledExactlyOnceWith(
+        testData.transaction2SignedTxId,
+      );
+      expect(result).toEqual(confirmation);
+    });
+
+    /**
+     * @target FiroChain.getTxConfirmation should return -1 without calling
+     * the network when the saved PSBT is not signed and no matching tx
+     * is found
+     * @dependencies
+     * @scenario
+     * - mock saved transaction lookup to return an unsigned transaction
+     * - mock network `getTransactionSpendingInput` to return undefined
+     * - mock network `getTxConfirmation`
+     * - run test
+     * - check returned value and network call
+     * @expected
+     * - network `getTxConfirmation` should not have been called
+     * - it should return -1
+     */
+    it('should return -1 without calling the network when the saved PSBT is not signed and no matching tx is found', async () => {
+      const savedTx = FiroTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const getSavedTransactionById = vi.fn(async (txId: string) =>
+        txId === testData.transaction2UnsignedHash ? savedTx : undefined,
+      );
+
+      const network = new TestFiroNetwork();
+      vi.spyOn(network, 'getTransactionSpendingInput').mockResolvedValue(
+        undefined,
+      );
+      const getTxConfirmationSpy = vi.spyOn(network, 'getTxConfirmation');
+      const firoChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        getSavedTransactionById,
+      );
+
+      // run test
+      const result = await firoChain.callGetTxConfirmation(
+        testData.transaction2UnsignedHash,
+      );
+
+      // check returned value and network call
+      expect(getTxConfirmationSpy).not.toHaveBeenCalled();
+      expect(result).toEqual(-1);
     });
   });
 });

@@ -28,6 +28,7 @@ class TestChain extends AbstractChain<string> {
   PaymentTransactionFromJson = this.notImplemented;
   rawTxToPaymentTransaction = this.notImplemented;
   verifyPaymentTransaction = this.notImplemented;
+  getActualTxId = this.notImplemented;
   /* eslint-disable @typescript-eslint/no-explicit-any */
   /* eslint-disable @typescript-eslint/no-unused-vars */
   generateMultipleTransactions = (

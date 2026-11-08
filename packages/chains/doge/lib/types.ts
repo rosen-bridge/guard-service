@@ -64,7 +64,6 @@ export enum DogeNetworkFunction {
   getBlockInfo = 'getBlockInfo',
   getTransaction = 'getTransaction',
   submitTransaction = 'submitTransaction',
-  getActualTxId = 'getActualTxId',
 
   // AbstractUtxoChainNetwork functions
   getAddressBoxes = 'getAddressBoxes',
@@ -75,4 +74,5 @@ export enum DogeNetworkFunction {
   getFeeRatio = 'getFeeRatio',
   isTxInMempool = 'isTxInMempool',
   getTransactionHex = 'getTransactionHex',
+  getSpentTransactionByInputId = 'getSpentTransactionByInputId',
 }

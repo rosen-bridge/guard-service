@@ -6,7 +6,7 @@ import {
   TokenDetail,
 } from '@rosen-chains/abstract-chain';
 
-import { AbstractEvmNetwork, EvmTxStatus, TransactionHashes } from '../../lib';
+import { AbstractEvmNetwork, EvmTxStatus } from '../../lib';
 
 class TestEvmNetwork extends AbstractEvmNetwork {
   submitTransaction = async (): Promise<void> => {
@@ -85,16 +85,6 @@ class TestEvmNetwork extends AbstractEvmNetwork {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getTransactionStatus = (hash: string): Promise<EvmTxStatus> => {
-    throw Error('Not mocked');
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getTransactionByNonce = (nonce: number): Promise<TransactionHashes> => {
-    throw Error('Not mocked');
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getActualTxId = (hash: string): Promise<string> => {
     throw Error('Not mocked');
   };
 }

@@ -1,12 +1,9 @@
 import { randomBytes } from 'crypto';
 import { vi } from 'vitest';
 
-import { AddressTxsEntity } from '@rosen-bridge/evm-address-tx-extractor';
-import { Repository } from '@rosen-bridge/extended-typeorm';
 import { FailedError } from '@rosen-chains/abstract-chain';
 import { EvmTxStatus } from '@rosen-chains/evm';
 
-import { mockDataSource } from './mocked/dataSource.mock';
 import './mocked/ethers.mock';
 import { ContractInstance } from './mocked/ethers.mock';
 import * as testData from './testData';
@@ -14,18 +11,10 @@ import { TestEvmRpcNetwork } from './testEvmRpcNetwork';
 
 describe('EvmRpcNetwork', () => {
   let network: TestEvmRpcNetwork;
-  let addressTxRepository: Repository<AddressTxsEntity>;
   const generateRandomId = (): string => randomBytes(32).toString('hex');
 
   beforeEach(async () => {
-    const dataSource = await mockDataSource();
-    network = new TestEvmRpcNetwork(
-      'test',
-      'custom-url',
-      dataSource,
-      testData.lockAddress,
-    );
-    addressTxRepository = dataSource.getRepository(AddressTxsEntity);
+    network = new TestEvmRpcNetwork('test', 'custom-url', testData.lockAddress);
   });
 
   describe('getHeight', () => {
@@ -51,54 +40,6 @@ describe('EvmRpcNetwork', () => {
   });
 
   describe('getTxConfirmation', () => {
-    /**
-     * @target `EvmRpcNetwork.getTxConfirmation` should fetch confirmation using unsigned hash successfully
-     * @dependencies
-     * - database
-     * @scenario
-     * - insert transaction with expected unsigned hash into database
-     * - mock provider.`getTransaction`
-     *   - `wait` to return the transaction
-     *   - `confirmations` to return confirmation
-     * - run test
-     * - check returned value
-     * - check function is called
-     * @expected
-     * - it should be mocked confirmation
-     * - provider.`getTransaction` should have been called with signedHash
-     */
-    it('should fetch confirmation using unsigned hash successfully', async () => {
-      const unsignedHash = generateRandomId();
-      const signedHash = generateRandomId();
-
-      await addressTxRepository.insert({
-        unsignedHash: unsignedHash,
-        signedHash: signedHash,
-        nonce: 0,
-        address: testData.lockAddress,
-        blockId: 'blockId',
-        extractor: 'custom-extractor',
-        status: 'succeed',
-      });
-
-      const mockedConfirmation = 60;
-      const transactionInstance = {
-        wait: vi.fn(),
-        confirmations: vi.fn(),
-      };
-      transactionInstance.wait.mockResolvedValue(testData.transaction0);
-      transactionInstance.confirmations.mockResolvedValue(mockedConfirmation);
-      const getTransactionSpy = vi.spyOn(
-        network.getProvider(),
-        'getTransaction',
-      );
-      getTransactionSpy.mockResolvedValue(transactionInstance as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-
-      const result = await network.getTxConfirmation(unsignedHash);
-      expect(result).toEqual(mockedConfirmation);
-      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(signedHash);
-    });
-
     /**
      * @target `EvmRpcNetwork.getTxConfirmation` should fetch confirmation using txId successfully
      * @dependencies
@@ -159,54 +100,6 @@ describe('EvmRpcNetwork', () => {
       const result = await network.getTxConfirmation(txId);
       expect(result).toEqual(-1);
       expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(txId);
-    });
-
-    /**
-     * @target `EvmRpcNetwork.getTxConfirmation` should return -1 for failed tx using unsigned hash
-     * @dependencies
-     * - database
-     * @scenario
-     * - insert transaction with expected unsigned hash into database
-     * - mock provider.`getTransaction`
-     *   - `wait` to return null
-     *   - `confirmations` to return confirmation
-     * - run test
-     * - check returned value
-     * - check function is called
-     * @expected
-     * - it should be mocked confirmation
-     * - provider.`getTransaction` should have been called with signedHash
-     */
-    it('should return -1 for failed tx using unsigned hash', async () => {
-      const unsignedHash = generateRandomId();
-      const signedHash = generateRandomId();
-
-      await addressTxRepository.insert({
-        unsignedHash: unsignedHash,
-        signedHash: signedHash,
-        nonce: 0,
-        address: testData.lockAddress,
-        blockId: 'blockId',
-        extractor: 'custom-extractor',
-        status: 'failed',
-      });
-
-      const mockedConfirmation = 60;
-      const transactionInstance = {
-        wait: vi.fn(),
-        confirmations: vi.fn(),
-      };
-      transactionInstance.wait.mockResolvedValue(null);
-      transactionInstance.confirmations.mockResolvedValue(mockedConfirmation);
-      const getTransactionSpy = vi.spyOn(
-        network.getProvider(),
-        'getTransaction',
-      );
-      getTransactionSpy.mockResolvedValue(transactionInstance as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-
-      const result = await network.getTxConfirmation(unsignedHash);
-      expect(result).toEqual(-1);
-      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(signedHash);
     });
 
     /**
@@ -599,155 +492,6 @@ describe('EvmRpcNetwork', () => {
 
       const result = await network.getTransactionStatus(hash);
       expect(result).toEqual(EvmTxStatus.failed);
-    });
-  });
-
-  describe('getTransactionByNonce', () => {
-    /**
-     * @target `EvmRpcNetwork.getTransactionByNonce` should return hashes when tx is found in database
-     * @dependencies
-     * - database
-     * @scenario
-     * - insert transaction into database
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should be expected hashes
-     */
-    it('should return hashes when tx is found in database', async () => {
-      const unsignedHash = generateRandomId();
-      const signedHash = generateRandomId();
-
-      const nonce = 10;
-      await addressTxRepository.insert({
-        unsignedHash: unsignedHash,
-        signedHash: signedHash,
-        nonce: nonce,
-        address: testData.lockAddress,
-        blockId: 'blockId',
-        extractor: 'custom-extractor',
-        status: 'succeed',
-      });
-
-      const result = await network.getTransactionByNonce(nonce);
-      expect(result).toEqual({
-        unsignedHash: unsignedHash,
-        txId: signedHash,
-      });
-    });
-
-    /**
-     * @target `EvmRpcNetwork.getTransactionByNonce` should throw Error when tx is not found in database
-     * @dependencies
-     * - database
-     * @scenario
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should throw Error
-     */
-    it('should throw Error when tx is not found in database', async () => {
-      await expect(async () => {
-        await network.getTransactionByNonce(10);
-      }).rejects.toThrow(Error);
-    });
-  });
-
-  describe('getActualTxId', () => {
-    /**
-     * @target `EvmRpcNetwork.getActualTxId` should return signed hash from db when tx exists in db and network
-     * @dependencies
-     * @scenario
-     * - define a mock unsigned hash
-     * - define a mock tx
-     * - stub dbAction.getTxByUnsignedHash to return the mock tx
-     * - stub provider.getTransaction to return a mock response
-     * - call getActualTxId using the unsigned hash
-     * @expected
-     * - getActualTxId should have returned the signed hash of requested tx
-     * - getTxByUnsignedHash should have been called once with the unsigned hash
-     */
-    it('should return signed hash from db when tx exists in db and network', async () => {
-      // arrange
-      const unsignedHash = testData.transaction0.unsignedHash;
-      const mockTx = { signedHash: testData.transaction0Id };
-      const getTxByUnsignedHashSpy = vi
-        .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
-        .mockResolvedValue(mockTx as AddressTxsEntity);
-      vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
-        testData.transaction0Response,
-      );
-
-      // act
-      const txId = await network.getActualTxId(unsignedHash);
-
-      // assert
-      expect(txId).toEqual(testData.transaction0Id);
-      expect(getTxByUnsignedHashSpy).toHaveBeenCalledExactlyOnceWith(
-        unsignedHash,
-      );
-    });
-
-    /**
-     * @target `EvmRpcNetwork.getActualTxId` should return the same hash when tx exists in network but not in db
-     * @dependencies
-     * @scenario
-     * - define a mock unsigned hash
-     * - stub dbAction.getTxByUnsignedHash to return null
-     * - stub provider.getTransaction to return a mock response
-     * - call getActualTxId using the unsigned hash
-     * @expected
-     * - getActualTxId should have returned the the same hash
-     * - getTxByUnsignedHash should have been called once with the unsigned hash
-     */
-    it('should return the same hash when tx exists in network but not in db', async () => {
-      // arrange
-      const unsignedHash = testData.transaction0.unsignedHash;
-      const getTxByUnsignedHashSpy = vi
-        .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
-        .mockResolvedValue(null);
-      vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
-        testData.transaction0Response,
-      );
-
-      // act
-      const txId = await network.getActualTxId(unsignedHash);
-
-      // assert
-      expect(txId).toEqual(unsignedHash);
-      expect(getTxByUnsignedHashSpy).toHaveBeenCalledExactlyOnceWith(
-        unsignedHash,
-      );
-    });
-
-    /**
-     * @target `EvmRpcNetwork.getActualTxId` should throw when tx exists in db but not in network
-     * @dependencies
-     * @scenario
-     * - define a mock unsigned hash
-     * - stub dbAction.getTxByUnsignedHash to return a mock tx
-     * - stub provider.getTransaction to return null
-     * - call getActualTxId using the unsigned hash
-     * @expected
-     * - getActualTxId should have thrown
-     * - getTxByUnsignedHash should have been called once with the unsigned hash
-     */
-    it('should throw when tx exists in db but not in network', async () => {
-      // arrange
-      const unsignedHash = testData.transaction0.unsignedHash;
-      const getTxByUnsignedHashSpy = vi
-        .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
-        .mockResolvedValue({ signedHash: 'signedHash' } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-      vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(null);
-
-      // act and assert
-      await expect(async () => {
-        await network.getActualTxId(unsignedHash);
-      }).rejects.toThrow();
-
-      expect(getTxByUnsignedHashSpy).toHaveBeenCalledExactlyOnceWith(
-        unsignedHash,
-      );
     });
   });
 });

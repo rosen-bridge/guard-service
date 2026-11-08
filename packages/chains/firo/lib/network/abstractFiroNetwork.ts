@@ -63,6 +63,17 @@ abstract class AbstractFiroNetwork extends AbstractUtxoChainNetwork<
    * @returns transaction hex string
    */
   abstract getTransactionHex: (txId: string) => Promise<string>;
+
+  /**
+   * gets the transaction that spends a specific output
+   * @param index the output index
+   * @param txId the id of the transaction containing the output
+   * @returns the spending transaction, or undefined if the output is not spent
+   */
+  abstract getTransactionSpendingInput: (
+    index: number,
+    txId: string,
+  ) => Promise<FiroTx | undefined>;
 }
 
 export default AbstractFiroNetwork;

@@ -39,11 +39,6 @@ class TestUtxoChainNetwork extends AbstractChainNetwork<string> {
   getTxConfirmation = (transactionId: string): Promise<number> => {
     throw Error('Not mocked');
   };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getActualTxId = (hash: string): Promise<string> => {
-    throw Error('Not mocked');
-  };
 }
 
 export default TestUtxoChainNetwork;

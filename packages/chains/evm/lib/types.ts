@@ -14,8 +14,3 @@ export enum EvmTxStatus {
   mempool = 'mempool',
   notFound = 'not-found',
 }
-
-export interface TransactionHashes {
-  unsignedHash: string;
-  txId: string;
-}

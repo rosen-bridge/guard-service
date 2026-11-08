@@ -7,7 +7,6 @@ import {
   BlockInfo,
   FailedError,
   NetworkError,
-  PaymentTransaction,
   TokenInfo,
   UnexpectedApiError,
 } from '@rosen-chains/abstract-chain';
@@ -16,7 +15,6 @@ import {
   DogeNetworkFunction,
   DogeTx,
   DogeUtxo,
-  DOGE_NETWORK,
 } from '@rosen-chains/doge';
 import RateLimitedAxios, {
   Axios as RateLimitedAxiosClass,
@@ -31,9 +29,6 @@ import {
 
 class DogeBlockCypherNetwork extends PartialDogeNetwork {
   protected client: RateLimitedAxiosClass;
-  private getSavedTransactionById: (
-    txId: string,
-  ) => Promise<PaymentTransaction | undefined>;
 
   // Implement all DogeNetworkFunction functions
   readonly implements = [
@@ -50,22 +45,15 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
     DogeNetworkFunction.getFeeRatio,
     DogeNetworkFunction.isTxInMempool,
     DogeNetworkFunction.getTransactionHex,
-    DogeNetworkFunction.getActualTxId,
+    DogeNetworkFunction.getSpentTransactionByInputId,
   ] as DogeNetworkFunction[];
 
-  constructor(
-    url: string,
-    getSavedTransactionById: (
-      txId: string,
-    ) => Promise<PaymentTransaction | undefined>,
-    logger?: AbstractLogger,
-  ) {
+  constructor(url: string, logger?: AbstractLogger) {
     super(logger);
     // Use axios-rate-limit to limit to 3 requests per second
     this.client = RateLimitedAxios.create({
       baseURL: url,
     });
-    this.getSavedTransactionById = getSavedTransactionById;
   }
 
   /**
@@ -95,9 +83,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
    * @param transactionId the transaction id (only supports real signed tx id)
    * @returns the transaction confirmation
    */
-  protected getTxConfirmationSigned = async (
-    transactionId: string,
-  ): Promise<number> => {
+  getTxConfirmation = async (transactionId: string): Promise<number> => {
     try {
       const txInfo = (
         await this.client.get<BlockCypherTx>(
@@ -127,16 +113,6 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         throw new UnexpectedApiError(baseError + e.message);
       }
     }
-  };
-
-  /**
-   * gets confirmation for a transaction (returns -1 if tx is not mined or found)
-   * @param transactionId the transaction id (supports both real signed tx id and unsigned tx id)
-   * @returns the transaction confirmation (returns -1 if tx is not mined or found)
-   */
-  getTxConfirmation = async (transactionId: string): Promise<number> => {
-    const realTxId = await this.getActualTxId(transactionId);
-    return await this.getTxConfirmationSigned(realTxId);
   };
 
   /**
@@ -583,10 +559,10 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
   };
 
   /**
-   * gets the transaction that spent a specific input
-   * @param index the input index
-   * @param txId the transaction id
-   * @returns the transaction that spent the input
+   * gets the transaction that spent a specific output
+   * @param index the output index
+   * @param txId the id of the transaction containing the output
+   * @returns the spending transaction, or undefined if the output is not spent
    */
   getSpentTransactionByInputId = async (
     index: number,
@@ -619,61 +595,6 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
           throw new UnexpectedApiError(baseError + e.message);
         }
       });
-  };
-
-  /**
-   * gets the actual id of a transaction by its hash
-   * @param hash
-   */
-  getActualTxId = async (hash: string): Promise<string> => {
-    let actualTxId = hash;
-    try {
-      const realPaymentTx = await this.getSavedTransactionById(hash);
-
-      if (realPaymentTx) {
-        const realTx = Psbt.fromBuffer(Buffer.from(realPaymentTx.txBytes), {
-          network: DOGE_NETWORK,
-        });
-        try {
-          actualTxId = realTx.extractTransaction(true).getId();
-        } catch {
-          const spentTx = await this.getSpentTransactionByInputId(
-            realTx.txInputs[0].index,
-            Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex'),
-          );
-          if (spentTx) {
-            const sameInputs = realTx.txInputs.every(
-              (input, i) =>
-                spentTx.inputs[i].txId ===
-                  Buffer.from(input.hash.reverse()).toString('hex') &&
-                spentTx.inputs[i].index === input.index,
-            );
-            const sameOutputs = realTx.txOutputs.every(
-              (output, i) =>
-                spentTx.outputs[i].scriptPubKey ===
-                  Buffer.from(output.script).toString('hex') &&
-                spentTx.outputs[i].value === BigInt(output.value),
-            );
-            if (sameInputs && sameOutputs) {
-              actualTxId = spentTx.id;
-            }
-          }
-        }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      const baseError = `Failed to get confirmation for tx [${hash}] which was found in the database: `;
-      if (e.response) {
-        throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data),
-        );
-      } else if (e.request) {
-        throw new NetworkError(baseError + e.message);
-      } else {
-        throw new UnexpectedApiError(baseError + e.message);
-      }
-    }
-    return actualTxId;
   };
 }
 

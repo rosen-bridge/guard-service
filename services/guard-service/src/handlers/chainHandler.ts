@@ -3,7 +3,10 @@ import { DatabaseAction } from 'src/db/databaseAction';
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { chainDecoders, chainValidators } from '@rosen-bridge/address-codec';
 import { AddressManager } from '@rosen-bridge/address-manager';
-import { AbstractChain } from '@rosen-chains/abstract-chain';
+import {
+  AbstractChain,
+  PaymentTransaction,
+} from '@rosen-chains/abstract-chain';
 import { BINANCE_CHAIN, BinanceChain } from '@rosen-chains/binance';
 import {
   AbstractBitcoinNetwork,
@@ -219,6 +222,19 @@ class ChainHandler {
   };
 
   /**
+   * gets a saved transaction from the database by its id
+   * @param txId the transaction id (unsigned hash)
+   * @returns the saved PaymentTransaction, or undefined if not found
+   */
+  private getSavedTransactionById = async (
+    txId: string,
+  ): Promise<PaymentTransaction | undefined> => {
+    const tx = await DatabaseAction.getInstance().getTxById(txId);
+    if (tx === null) return undefined;
+    return TransactionSerializer.fromJson(tx.txJson, this.getChain);
+  };
+
+  /**
    * generates Doge network and chain objects using configs
    * @returns DogeChain object
    */
@@ -228,11 +244,6 @@ class ChainHandler {
       case 'esplora':
         network = new DogeEsploraNetwork(
           GuardsDogeConfigs.esplora.url,
-          async (txId: string) => {
-            const tx = await DatabaseAction.getInstance().getTxById(txId);
-            if (tx === null) return undefined;
-            return TransactionSerializer.fromJson(tx.txJson, this.getChain);
-          },
           DefaultLogger.getInstance().child('dogeEsploraNetwork'),
         );
         break;
@@ -248,11 +259,6 @@ class ChainHandler {
         );
         const blockcypher = new DogeBlockcypherNetwork(
           GuardsDogeConfigs.blockcypher.url,
-          async (txId: string) => {
-            const tx = await DatabaseAction.getInstance().getTxById(txId);
-            if (tx === null) return undefined;
-            return TransactionSerializer.fromJson(tx.txJson, this.getChain);
-          },
           DefaultLogger.getInstance().child('blockcypherNetwork'),
         );
         network = new CombinedDogeNetwork([rpc, blockcypher]);
@@ -288,6 +294,7 @@ class ChainHandler {
       GuardsDogeConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       dogeSignMediator,
+      this.getSavedTransactionById,
       DefaultLogger.getInstance().child('dogeChain'),
     );
   };
@@ -300,11 +307,6 @@ class ChainHandler {
     const network = new FiroElectrumXNetwork(
       GuardsFiroConfigs.electrumx.host,
       GuardsFiroConfigs.electrumx.port,
-      async (txId: string) => {
-        const tx = await DatabaseAction.getInstance().getTxById(txId);
-        if (tx === null) return undefined;
-        return TransactionSerializer.fromJson(tx.txJson, this.getChain);
-      },
       GuardsFiroConfigs.electrumx.reconnectDelay,
       GuardsFiroConfigs.electrumx.timeout,
       GuardsFiroConfigs.electrumx.useTls,
@@ -321,6 +323,7 @@ class ChainHandler {
       GuardsFiroConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       firoSignMediator,
+      this.getSavedTransactionById,
       DefaultLogger.getInstance().child('firoChain'),
     );
   };
@@ -370,7 +373,6 @@ class ChainHandler {
         network = new EvmRpcNetwork(
           ETHEREUM_CHAIN,
           GuardsEthereumConfigs.rpc.url,
-          dataSource,
           GuardsEthereumConfigs.ethereumContractConfig.addresses.lock,
           GuardsEthereumConfigs.rpc.authToken,
           DefaultLogger.getInstance().child('ethereumRpcNetwork'),
@@ -392,6 +394,7 @@ class ChainHandler {
       GuardsEthereumConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       ethereumSignMediator,
+      dataSource,
       DefaultLogger.getInstance().child('ethereumChain'),
     );
   };
@@ -407,7 +410,6 @@ class ChainHandler {
         network = new EvmRpcNetwork(
           BINANCE_CHAIN,
           GuardsBinanceConfigs.rpc.url,
-          dataSource,
           GuardsBinanceConfigs.binanceContractConfig.addresses.lock,
           GuardsBinanceConfigs.rpc.authToken,
           DefaultLogger.getInstance().child('binanceRpcNetwork'),
@@ -429,6 +431,7 @@ class ChainHandler {
       GuardsBinanceConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       binanceSignMediator,
+      dataSource,
       DefaultLogger.getInstance().child('binanceChain'),
     );
   };

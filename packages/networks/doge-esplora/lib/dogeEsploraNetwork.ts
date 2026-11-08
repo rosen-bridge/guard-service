@@ -7,7 +7,6 @@ import {
   BlockInfo,
   FailedError,
   NetworkError,
-  PaymentTransaction,
   TokenInfo,
   UnexpectedApiError,
 } from '@rosen-chains/abstract-chain';
@@ -16,7 +15,6 @@ import {
   DogeTx,
   DogeUtxo,
   CONFIRMATION_TARGET,
-  DOGE_NETWORK,
 } from '@rosen-chains/doge';
 import RateLimitedAxios, {
   Axios as RateLimitedAxiosClass,
@@ -33,23 +31,12 @@ import {
 class DogeEsploraNetwork extends AbstractDogeNetwork {
   protected client: RateLimitedAxiosClass;
   private apiPrefix: string;
-  private getSavedTransactionById: (
-    txId: string,
-  ) => Promise<PaymentTransaction | undefined>;
 
-  constructor(
-    url: string,
-    getSavedTransactionById: (
-      txId: string,
-    ) => Promise<PaymentTransaction | undefined>,
-    logger?: AbstractLogger,
-    apiPrefix?: string,
-  ) {
+  constructor(url: string, logger?: AbstractLogger, apiPrefix?: string) {
     super(logger);
     this.client = RateLimitedAxios.create({
       baseURL: url,
     });
-    this.getSavedTransactionById = getSavedTransactionById;
     this.apiPrefix = apiPrefix || '/api';
   }
 
@@ -78,9 +65,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
    * @param transactionId the transaction id (only supports real signed tx id)
    * @returns the transaction confirmation
    */
-  protected getTxConfirmationSigned = async (
-    transactionId: string,
-  ): Promise<number> => {
+  getTxConfirmation = async (transactionId: string): Promise<number> => {
     const currentHeight = await this.getHeight();
     let txHeight = -1;
     try {
@@ -112,16 +97,6 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     }
     if (txHeight === -1) return txHeight;
     return currentHeight - txHeight;
-  };
-
-  /**
-   * gets confirmation for a transaction (returns -1 if tx is not mined or found)
-   * @param transactionId the transaction id (supports both real signed tx id and unsigned tx id)
-   * @returns the transaction confirmation (returns -1 if tx is not mined or found)
-   */
-  getTxConfirmation = async (transactionId: string): Promise<number> => {
-    const realTxId = await this.getActualTxId(transactionId);
-    return await this.getTxConfirmationSigned(realTxId);
   };
 
   /**
@@ -497,61 +472,31 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
       });
   };
 
-  protected getSpentTransactionByInputId = async (
+  /**
+   * gets the transaction that spent a specific output
+   * @param index the output index
+   * @param txId the id of the transaction containing the output
+   * @returns the spending transaction, or undefined if the output is not spent
+   */
+  getSpentTransactionByInputId = async (
     index: number,
     txId: string,
   ): Promise<DogeTx | undefined> => {
-    const box = (
-      await this.client.get<EsploraUtxoInfo>(
-        `${this.apiPrefix}/tx/${txId}/outspends/${index}`,
-      )
-    ).data;
-    if (!box.spent) return undefined;
-    return this.getTransaction(box.txid!, box.status!.block_hash!);
-  };
-
-  /**
-   * gets the actual id of a transaction by its hash
-   * @param hash
-   */
-  getActualTxId = async (hash: string): Promise<string> => {
-    let actualTxId = hash;
+    let box: EsploraUtxoInfo;
     try {
-      const realPaymentTx = await this.getSavedTransactionById(hash);
-
-      if (realPaymentTx) {
-        const realTx = Psbt.fromBuffer(Buffer.from(realPaymentTx.txBytes), {
-          network: DOGE_NETWORK,
-        });
-        try {
-          actualTxId = realTx.extractTransaction(true).getId();
-        } catch {
-          const spentTx = await this.getSpentTransactionByInputId(
-            realTx.txInputs[0].index,
-            Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex'),
-          );
-          if (spentTx) {
-            const sameInputs = realTx.txInputs.every(
-              (input, i) =>
-                spentTx.inputs[i].txId ===
-                  Buffer.from(input.hash.reverse()).toString('hex') &&
-                spentTx.inputs[i].index === input.index,
-            );
-            const sameOutputs = realTx.txOutputs.every(
-              (output, i) =>
-                spentTx.outputs[i].scriptPubKey ===
-                  Buffer.from(output.script).toString('hex') &&
-                spentTx.outputs[i].value === BigInt(output.value),
-            );
-            if (sameInputs && sameOutputs) {
-              actualTxId = spentTx.id;
-            }
-          }
-        }
-      }
+      box = (
+        await this.client.get<EsploraUtxoInfo>(
+          `${this.apiPrefix}/tx/${txId}/outspends/${index}`,
+        )
+      ).data;
+      this.logger.debug(
+        `requested 'tx/:txid/outspends/:index' for output [${txId}.${index}]. res: ${JsonBigInt.stringify(
+          box,
+        )}`,
+      );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      const baseError = `Failed to get actual txId for tx [${hash}] which was found in the database: `;
+      const baseError = `Failed to get spending transaction of output [${txId}.${index}] from Esplora: `;
       if (e.response) {
         throw new FailedError(baseError + e.response.data);
       } else if (e.request) {
@@ -560,7 +505,8 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
         throw new UnexpectedApiError(baseError + e.message);
       }
     }
-    return actualTxId;
+    if (!box.spent) return undefined;
+    return this.getTransaction(box.txid!, box.status!.block_hash!);
   };
 }
 

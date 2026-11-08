@@ -108,9 +108,15 @@ abstract class PartialDogeNetwork extends AbstractDogeNetwork {
     return this.notImplemented(DogeNetworkFunction.getTransactionHex);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getActualTxId = async (hash: string): Promise<string> => {
-    return this.notImplemented(DogeNetworkFunction.getActualTxId);
+  getSpentTransactionByInputId = async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    index: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    txId: string,
+  ): Promise<DogeTx | undefined> => {
+    return this.notImplemented(
+      DogeNetworkFunction.getSpentTransactionByInputId,
+    );
   };
 }
 

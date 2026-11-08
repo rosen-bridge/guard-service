@@ -174,10 +174,13 @@ class CombinedDogeNetwork extends AbstractDogeNetwork {
     ).getTransactionHex(txId);
   };
 
-  getActualTxId = async (hash: string): Promise<string> => {
+  getSpentTransactionByInputId = async (
+    index: number,
+    txId: string,
+  ): Promise<DogeTx | undefined> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getActualTxId,
-    ).getActualTxId(hash);
+      DogeNetworkFunction.getSpentTransactionByInputId,
+    ).getSpentTransactionByInputId(index, txId);
   };
 }
 

@@ -2,7 +2,7 @@ import { FeeData, Transaction } from 'ethers';
 
 import { AbstractChainNetwork } from '@rosen-chains/abstract-chain';
 
-import { EvmTxStatus, TransactionHashes } from '../types';
+import { EvmTxStatus } from '../types';
 
 abstract class AbstractEvmNetwork extends AbstractChainNetwork<Transaction> {
   /**
@@ -60,18 +60,12 @@ abstract class AbstractEvmNetwork extends AbstractChainNetwork<Transaction> {
 
   /**
    * gets the transaction status (mempool, succeed, failed)
-   * @param hash the unsigned hash or ID of the transaction
+   * @param transactionId the transaction id (signed hash)
    * @returns the transaction status
    */
-  abstract getTransactionStatus: (hash: string) => Promise<EvmTxStatus>;
-
-  /**
-   * gets id and unsigned hash of the transaction of the lock address with specific nonce
-   * throws error if NO tx is found for that nonce
-   * @param nonce
-   * @returns the transaction id and unsigned hash
-   */
-  abstract getTransactionByNonce: (nonce: number) => Promise<TransactionHashes>;
+  abstract getTransactionStatus: (
+    transactionId: string,
+  ) => Promise<EvmTxStatus>;
 }
 
 export default AbstractEvmNetwork;

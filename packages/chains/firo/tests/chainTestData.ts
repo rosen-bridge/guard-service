@@ -1,6 +1,6 @@
 import { RosenTokens } from '@rosen-bridge/tokens';
 
-import { FiroConfigs } from '../lib/types';
+import { FiroConfigs, FiroTx } from '../lib/types';
 
 export const testFiroConfigs: FiroConfigs = {
   fee: 1000n,
@@ -208,3 +208,33 @@ export const transaction2WrappedExtractionOrder = [
     },
   },
 ];
+
+export const transaction2UnsignedHash =
+  'e7bb0677b2a0542e3ecb8d3f29ea91ae3500b05201f1e97e6bef7e724c4aa476';
+export const transaction2SignedTxId =
+  '5aeb5c966027a82ca773a626f240ee5e59bf19b5824d013264be01e66242910b';
+export const transaction2SpendingTx: FiroTx = {
+  id: transaction2SignedTxId,
+  inputs: [
+    {
+      txId: 'a2623a8e6358b44df7c672cee5a6ff1df2b45721b2f506d22ef59a0634f7641d',
+      index: 0,
+      scriptPubKey: '76a914872b67c8270a9eaf5c2abf632af3dea989d2e37188ac',
+    },
+    {
+      txId: 'f7fdbfcb582dd9e34997df257bfff291c1ea98a5622ba18400794f3337113b0e',
+      index: 2,
+      scriptPubKey: '76a914872b67c8270a9eaf5c2abf632af3dea989d2e37188ac',
+    },
+  ],
+  outputs: [
+    {
+      scriptPubKey: '76a9145d0e02100e393220f90ffce4485f809de4ff777c88ac',
+      value: 100000000n,
+    },
+    {
+      scriptPubKey: '76a914872b67c8270a9eaf5c2abf632af3dea989d2e37188ac',
+      value: 12494394312n,
+    },
+  ],
+};

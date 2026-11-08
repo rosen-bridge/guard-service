@@ -1,6 +1,7 @@
 import { Signature, Transaction } from 'ethers';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+import { DataSource } from '@rosen-bridge/extended-typeorm';
 import JSONBigInt from '@rosen-bridge/json-bigint';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { EvmRosenExtractor } from '@rosen-bridge/rosen-extractor';
@@ -25,6 +26,7 @@ import {
   EcdsaSignMediator,
 } from '@rosen-chains/abstract-chain';
 
+import AddressTxAction from './addressTxAction';
 import * as EvmUtils from './evmUtils';
 import AbstractEvmNetwork from './network/abstractEvmNetwork';
 import Serializer from './serializer';
@@ -39,12 +41,14 @@ abstract class EvmChain extends AbstractChain<Transaction> {
 
   supportedTokens: Array<string> = [];
   protected signMediator: EcdsaSignMediator;
+  protected dbAction: AddressTxAction;
 
   constructor(
     network: AbstractEvmNetwork,
     configs: EvmConfigs,
     tokens: TokenMap,
     signMediator: EcdsaSignMediator,
+    dataSource: DataSource,
     CHAIN: string,
     NATIVE_TOKEN_ID: string,
     evmTxType = 0,
@@ -53,6 +57,11 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     super(network, configs, tokens, logger);
     this.evmTxType = evmTxType;
     this.signMediator = signMediator;
+    this.dbAction = new AddressTxAction(
+      this.configs.addresses.lock,
+      dataSource,
+      logger,
+    );
     this.extractor = new EvmRosenExtractor(
       this.configs.addresses.lock,
       tokens,
@@ -564,7 +573,9 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     }
 
     // check if tx is failed
-    const txStatus = await this.network.getTransactionStatus(transaction.txId);
+    const txStatus = await this.network.getTransactionStatus(
+      await this.resolveSignedTxId(transaction.txId),
+    );
     if (txStatus === EvmTxStatus.failed) {
       this.logger.info(
         `Tx [${transaction.txId}] is invalid: tx is failed in blockchain`,
@@ -583,8 +594,8 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       this.configs.addresses.lock,
     );
     if (nextNonce > trx.nonce) {
-      const hashes = this.network.getTransactionByNonce(trx.nonce);
-      if ((await hashes).unsignedHash === trx.unsignedHash) {
+      const txRecord = await this.dbAction.getTxByNonce(trx.nonce);
+      if (txRecord.unsignedHash === trx.unsignedHash) {
         return {
           isValid: true,
           details: undefined,
@@ -747,6 +758,45 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     // we ignore mempool as it doesn't affect us
     return false;
   };
+
+  /**
+   * gets the actual id of a transaction by its txId
+   * - resolves the unsigned hash to the signed tx id
+   * - throws if the transaction is not found in the network
+   * @param txId the unsigned hash or ID of the transaction
+   * @returns the actual transaction id
+   */
+  getActualTxId = async (txId: string): Promise<string> => {
+    const signedTxId = await this.resolveSignedTxId(txId);
+    const status = await this.network.getTransactionStatus(signedTxId);
+    if (status === EvmTxStatus.notFound)
+      throw new Error(
+        `Failed to get actual TxId for hash [${txId}]: Transaction [${signedTxId}] is not found`,
+      );
+    return signedTxId;
+  };
+
+  /**
+   * resolves the signed id of a transaction
+   * @param hash the unsigned hash or ID of the transaction
+   * @returns the id of the lock address tx with this unsigned hash in database,
+   * or the given hash if no such tx is found
+   */
+  protected resolveSignedTxId = async (hash: string): Promise<string> => {
+    const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
+    return txRecord === null ? hash : txRecord.signedHash;
+  };
+
+  /**
+   * gets confirmation of a transaction from the network
+   * (resolves the signed tx id before the network call)
+   * @param transactionId the unsigned hash or ID of the transaction
+   * @returns the transaction confirmation or -1 if tx is not in the blockchain
+   */
+  protected getTxConfirmation = async (
+    transactionId: string,
+  ): Promise<number> =>
+    this.network.getTxConfirmation(await this.resolveSignedTxId(transactionId));
 
   /**
    * gets the minimum amount of native token for transferring asset

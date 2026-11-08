@@ -7,7 +7,6 @@ import {
 } from 'ethers';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { DataSource } from '@rosen-bridge/extended-typeorm';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { FailedError, UnexpectedApiError } from '@rosen-chains/abstract-chain';
 import { EvmTxStatus } from '@rosen-chains/evm';
@@ -19,12 +18,11 @@ class EvmOpStackRpcNetwork extends EvmRpcNetwork {
   constructor(
     chain: string,
     url: string,
-    dataSource: DataSource,
     lockAddress: string,
     authToken?: string,
     logger?: AbstractLogger,
   ) {
-    super(chain, url, dataSource, lockAddress, authToken, logger);
+    super(chain, url, lockAddress, authToken, logger);
   }
 
   /**
@@ -45,17 +43,12 @@ class EvmOpStackRpcNetwork extends EvmRpcNetwork {
 
   /**
    * gets confirmation for a transaction (returns -1 if tx is not mined or found)
-   * Note: this function considers the hash as unsigned hash
-   *  if the tx was not found, considers it as TxId (signed hash)
-   * @param hash the unsigned hash or ID of the transaction
+   * @param transactionId the transaction id (signed hash)
    * @returns the transaction confirmation
    */
-  override getTxConfirmation = async (hash: string): Promise<number> => {
-    // check if hash is representing signed or unsigned version of the tx
-    const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
-    const transactionId = txRecord === null ? hash : txRecord.signedHash;
-
-    // get transaction confirmation
+  override getTxConfirmation = async (
+    transactionId: string,
+  ): Promise<number> => {
     const baseError = `Failed to get transaction [${transactionId}] from ${this.chain} RPC: `;
     let tx: TransactionResponse | null;
     try {

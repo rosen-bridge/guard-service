@@ -1,10 +1,6 @@
 import { vi } from 'vitest';
 
-import {
-  FailedError,
-  PaymentTransaction,
-  TransactionType,
-} from '@rosen-chains/abstract-chain';
+import { FailedError } from '@rosen-chains/abstract-chain';
 
 import DogeEsploraNetwork from '../lib/dogeEsploraNetwork';
 import {
@@ -19,7 +15,7 @@ describe('DogeEsploraNetwork', () => {
 
   beforeEach(() => {
     resetAxiosMock();
-    network = new DogeEsploraNetwork('esplora-url', async () => undefined);
+    network = new DogeEsploraNetwork('esplora-url');
   });
 
   describe('getHeight', () => {
@@ -108,64 +104,6 @@ describe('DogeEsploraNetwork', () => {
       const result = await network.getTxConfirmation(testData.txId);
 
       expect(result).toEqual(-1);
-    });
-
-    /**
-     * @target `DogeEsploraNetwork.getTxConfirmation` should fetch confirmation using unsigned hash successfully
-     * @dependencies
-     * @scenario
-     * - create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should fetch confirmation using unsigned hash successfully
-     */
-    it('should fetch confirmation using unsigned hash successfully', async () => {
-      // Create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
-      const dogePayment = new PaymentTransaction(
-        'doge',
-        testData.unsignedTxId,
-        'eventId',
-        Buffer.from(testData.dogePaymentBytes, 'hex'),
-        TransactionType.payment,
-      );
-
-      const customNetwork = new DogeEsploraNetwork(
-        'esplora-url',
-        async (txId) => {
-          if (txId === testData.unsignedTxId) {
-            return dogePayment;
-          }
-          return undefined;
-        },
-      );
-
-      const getTxConfirmationSignedSpy = vi.spyOn(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        customNetwork as any,
-        'getTxConfirmationSigned',
-      );
-
-      // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
-      const getSpentTransactionByInputIdSpy = vi
-        .spyOn(customNetwork as any, 'getSpentTransactionByInputId') // eslint-disable-line @typescript-eslint/no-explicit-any
-        .mockResolvedValue(testData.dogeTx);
-
-      mockAxiosGet(testData.blockHeight);
-      mockAxiosGet(testData.txResponse);
-
-      const result = await customNetwork.getTxConfirmation(
-        testData.unsignedTxId,
-      );
-
-      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledExactlyOnceWith(
-        testData.dogeTx.inputs[0].index,
-        testData.dogeTx.inputs[0].txId,
-      );
-      expect(getTxConfirmationSignedSpy).toHaveBeenCalledExactlyOnceWith(
-        testData.txId,
-      );
-      expect(result).toEqual(testData.txConfirmation);
     });
   });
 
@@ -607,8 +545,7 @@ describe('DogeEsploraNetwork', () => {
         .spyOn(network, 'getTransaction')
         .mockResolvedValue(testData.dogeTx);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (network as any).getSpentTransactionByInputId(
+      const result = await network.getSpentTransactionByInputId(
         testData.spentIndex,
         testData.spentTxId,
       );
@@ -634,8 +571,7 @@ describe('DogeEsploraNetwork', () => {
     it('should return undefined when box is unspent', async () => {
       mockAxiosGet(testData.unspentResult);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (network as any).getSpentTransactionByInputId(
+      const result = await network.getSpentTransactionByInputId(
         testData.unspentIndex,
         testData.unspentTxId,
       );
@@ -686,54 +622,6 @@ describe('DogeEsploraNetwork', () => {
       await expect(async () => {
         await network.getTransactionHex(testData.txId);
       }).rejects.toThrow(FailedError);
-    });
-  });
-
-  describe('getActualTxId', () => {
-    /**
-     * @target `DogeEsploraNetwork.getActualTxId` should fetch txId using unsigned hash successfully
-     * @dependencies
-     * @scenario
-     * - create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should fetch txId using unsigned hash successfully
-     */
-    it('should fetch txId using unsigned hash successfully', async () => {
-      // Create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
-      const dogePayment = new PaymentTransaction(
-        'doge',
-        testData.unsignedTxId,
-        'eventId',
-        Buffer.from(testData.dogePaymentBytes, 'hex'),
-        TransactionType.payment,
-      );
-
-      const customNetwork = new DogeEsploraNetwork(
-        'blockcypher-url',
-        async (txId: string) => {
-          if (txId === testData.unsignedTxId) {
-            return dogePayment;
-          }
-          return undefined;
-        },
-      );
-
-      // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
-      const getSpentTransactionByInputIdSpy = vi
-        .spyOn(customNetwork as any, 'getSpentTransactionByInputId') // eslint-disable-line @typescript-eslint/no-explicit-any
-        .mockResolvedValue(testData.dogeTx);
-
-      mockAxiosGet(testData.txResponse);
-
-      const result = await customNetwork.getActualTxId(testData.unsignedTxId);
-
-      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledExactlyOnceWith(
-        testData.dogeTx.inputs[0].index,
-        testData.dogeTx.inputs[0].txId,
-      );
-      expect(result).toEqual(testData.txId);
     });
   });
 });

@@ -38,8 +38,10 @@ import DogeTransaction from './dogeTransaction';
 import {
   estimateTxFee,
   getPsbtTxInputBoxId,
+  inputHashToTxId,
   isPsbtFinalized,
 } from './dogeUtils';
+import { TxNotSignedError } from './errors';
 import AbstractDogeNetwork from './network/abstractDogeNetwork';
 import Serializer from './serializer';
 import { DogeConfigs, DogeTx, DogeUtxo } from './types';
@@ -53,15 +55,30 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   protected boxSelection: BitcoinBoxSelection;
   protected signMediator: EcdsaSignMediator;
   protected lockScript: string;
+  protected getSavedTransactionById: (
+    txId: string,
+  ) => Promise<PaymentTransaction | undefined>;
 
+  /**
+   * @param network the Doge network
+   * @param configs the Doge chain configs
+   * @param tokens the token map
+   * @param signMediator the sign mediator
+   * @param getSavedTransactionById saved transaction lookup callback (by unsigned hash)
+   * @param logger the logger
+   */
   constructor(
     network: AbstractDogeNetwork,
     configs: DogeConfigs,
     tokens: TokenMap,
     signMediator: EcdsaSignMediator,
+    getSavedTransactionById: (
+      txId: string,
+    ) => Promise<PaymentTransaction | undefined>,
     logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
+    this.getSavedTransactionById = getSavedTransactionById;
     this.extractor = new DogeRosenExtractor(
       configs.addresses.lock,
       tokens,
@@ -584,11 +601,141 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
 
   /**
    * checks if a transaction is in mempool (returns false if the chain has no mempool)
-   * @param transactionId the transaction id
+   * Note: the saved transaction is only resolved by its PSBT (no network lookup),
+   * so if the saved PSBT is not signed, its signed tx id is unknown and the
+   * transaction is assumed not to be in mempool
+   * @param transactionId the transaction id (unsigned hash or signed tx id)
    * @returns true if the transaction is in mempool
    */
   isTxInMempool = async (transactionId: string): Promise<boolean> => {
-    return await this.network.isTxInMempool(transactionId);
+    let signedTxId = transactionId;
+    const savedTx = await this.getSavedTransactionById(transactionId);
+    if (savedTx) {
+      try {
+        signedTxId = this.extractSignedTxId(
+          Serializer.deserialize(savedTx.txBytes),
+          transactionId,
+        );
+      } catch (e) {
+        if (e instanceof TxNotSignedError) {
+          this.logger.debug(
+            `cannot check mempool for tx [${transactionId}] since its saved PSBT is not signed, assuming it is not in mempool`,
+          );
+          return false;
+        }
+        throw e;
+      }
+    }
+    return await this.network.isTxInMempool(signedTxId);
+  };
+
+  /**
+   * extracts the signed tx id of a PSBT
+   * @param psbt the saved PSBT
+   * @param hash the hash used to find the PSBT (for error message)
+   * @returns the signed tx id
+   * @throws TxNotSignedError if the PSBT cannot be extracted
+   */
+  protected extractSignedTxId = (psbt: Psbt, hash: string): string => {
+    try {
+      return psbt.extractTransaction(true).getId();
+    } catch (e) {
+      throw new TxNotSignedError(
+        `failed to extract saved transaction [${hash}]: ${e}`,
+      );
+    }
+  };
+
+  /**
+   * gets the actual id of a transaction by its txId
+   * - throws if the saved PSBT is not signed and no transaction spending
+   *   its input with the same inputs and outputs is found in the network
+   * @param txId the unsigned hash or signed tx id
+   * @returns the actual transaction id
+   */
+  getActualTxId = async (txId: string): Promise<string> => {
+    const signedTxId = await this.resolveSignedTxId(txId);
+    if (signedTxId === undefined)
+      throw new Error(
+        `Failed to get actual TxId for hash [${txId}]: saved transaction is not signed and no transaction matching it is found`,
+      );
+    return signedTxId;
+  };
+
+  /**
+   * resolves the signed id of a transaction
+   * - if no saved transaction exists, returns the given hash
+   * - if the saved PSBT is signed, returns its signed tx id
+   * - if the saved PSBT is not signed, looks for the network transaction
+   *   that spends its first input and returns its id if it has the same
+   *   inputs and outputs as the saved PSBT
+   * @param hash the unsigned hash or signed tx id
+   * @returns the signed tx id, or undefined if the saved PSBT is not signed
+   * and no matching transaction is found
+   */
+  protected resolveSignedTxId = async (
+    hash: string,
+  ): Promise<string | undefined> => {
+    const savedTx = await this.getSavedTransactionById(hash);
+    if (!savedTx) return hash;
+    const psbt = Serializer.deserialize(savedTx.txBytes);
+    try {
+      return this.extractSignedTxId(psbt, hash);
+    } catch (e) {
+      if (!(e instanceof TxNotSignedError)) throw e;
+    }
+
+    const firstInput = psbt.txInputs[0];
+    const spentTx = await this.network.getSpentTransactionByInputId(
+      firstInput.index,
+      inputHashToTxId(firstInput.hash),
+    );
+    if (!spentTx) {
+      this.logger.debug(
+        `no tx is found spending the first input of tx [${hash}]`,
+      );
+      return undefined;
+    }
+
+    const sameInputs =
+      psbt.txInputs.length === spentTx.inputs.length &&
+      psbt.txInputs.every((input, i) => {
+        const spentInput = spentTx.inputs[i];
+        return (
+          spentInput.txId === inputHashToTxId(input.hash) &&
+          spentInput.index === input.index
+        );
+      });
+    const sameOutputs =
+      psbt.txOutputs.length === spentTx.outputs.length &&
+      psbt.txOutputs.every((output, i) => {
+        const spentOutput = spentTx.outputs[i];
+        return (
+          spentOutput.scriptPubKey ===
+            Buffer.from(output.script).toString('hex') &&
+          spentOutput.value === BigInt(output.value)
+        );
+      });
+    if (sameInputs && sameOutputs) return spentTx.id;
+
+    this.logger.debug(
+      `tx [${spentTx.id}] spends the first input of tx [${hash}] but does not match it`,
+    );
+    return undefined;
+  };
+
+  /**
+   * gets confirmation of a transaction from the network
+   * (resolves the signed tx id before the network call)
+   * @param transactionId the unsigned hash or signed tx id
+   * @returns the transaction confirmation or -1 if tx is not in the blockchain
+   */
+  protected getTxConfirmation = async (
+    transactionId: string,
+  ): Promise<number> => {
+    const signedTxId = await this.resolveSignedTxId(transactionId);
+    if (signedTxId === undefined) return -1;
+    return await this.network.getTxConfirmation(signedTxId);
   };
 
   /**

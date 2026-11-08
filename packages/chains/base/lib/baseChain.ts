@@ -1,4 +1,5 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+import { DataSource } from '@rosen-bridge/extended-typeorm';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
   EvmChain,
@@ -19,6 +20,7 @@ class BaseChain extends EvmChain {
     configs: EvmConfigs,
     tokens: TokenMap,
     signMediator: EvmChainSignMediator,
+    dataSource: DataSource,
     logger?: AbstractLogger,
   ) {
     super(
@@ -26,6 +28,7 @@ class BaseChain extends EvmChain {
       configs,
       tokens,
       signMediator,
+      dataSource,
       BASE_CHAIN,
       BASE_ETH,
       2,

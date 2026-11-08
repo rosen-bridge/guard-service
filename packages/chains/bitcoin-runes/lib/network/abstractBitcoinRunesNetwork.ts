@@ -44,12 +44,6 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
   };
 
   /**
-   * gets the actual id of a transaction by its hash
-   * @param hash
-   */
-  getActualTxId = async (hash: string): Promise<string> => hash;
-
-  /**
    * gets confirmed and unspent boxes of an address
    *
    * Note: This function is not implemented for any network of BitcoinRunesChain and should not be used!

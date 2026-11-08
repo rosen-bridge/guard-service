@@ -9,4 +9,8 @@ export class TestDogeChain extends DogeChain {
   ) => {
     return this.getTransactionsBoxMapping(serializedTransactions, address);
   };
+
+  callGetTxConfirmation = (txId: string) => this.getTxConfirmation(txId);
+
+  callResolveSignedTxId = (hash: string) => this.resolveSignedTxId(hash);
 }

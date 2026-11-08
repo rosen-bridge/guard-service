@@ -1,6 +1,7 @@
 import { FeeData, Transaction, TransactionLike } from 'ethers';
 import { expect, vi } from 'vitest';
 
+import { AddressTxsEntity } from '@rosen-bridge/evm-address-tx-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
   AssetNotSupportedError,
@@ -13,6 +14,7 @@ import {
 
 import { EvmTxStatus } from '../lib';
 import Serializer from '../lib/serializer';
+import { mockDataSource } from './mocked/dataSource.mock';
 import TestEvmNetwork from './network/testEvmNetwork';
 import TestChain from './testChain';
 import * as TestData from './testData';
@@ -40,6 +42,7 @@ describe('EvmChain', () => {
       testUtils.configs,
       tokenMap,
       testUtils.mockedSignMediator,
+      await mockDataSource(),
       2,
     );
     expect(chain.supportedTokens).toEqual([]);
@@ -68,6 +71,7 @@ describe('EvmChain', () => {
         testUtils.configs,
         tokenMap,
         testUtils.mockedSignMediator,
+        await mockDataSource(),
         2,
       );
       expect(chain.extractor?.chain).toEqual(chain.CHAIN);
@@ -92,6 +96,7 @@ describe('EvmChain', () => {
         testUtils.configs,
         tokenMap,
         testUtils.mockedSignMediator,
+        await mockDataSource(),
         2,
       );
       expect(chain.supportedTokens).toEqual(
@@ -2376,11 +2381,12 @@ describe('EvmChain', () => {
      * @target EvmChain.isTxValid should return false when nonce is
      * already used by another transaction
      * @dependencies
+     * - database
      * @scenario
      * - mock PaymentTransaction
      * - mock getTransactionStatus
      * - mock getAddressNextAvailableNonce
-     * - mock getTransactionByNonce
+     * - insert the transaction with this nonce into database
      * - call the function
      * - check returned value
      * @expected
@@ -2389,7 +2395,14 @@ describe('EvmChain', () => {
     it('should return false when nonce is already used by another transaction', async () => {
       // mock PaymentTransaction
       const network = new TestEvmNetwork();
-      const evmChain = await testUtils.generateChainObject(network);
+      const dataSource = await mockDataSource();
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        2,
+        TestData.testTokenMap,
+        dataSource,
+      );
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2408,11 +2421,17 @@ describe('EvmChain', () => {
       // mock getAddressNextAvailableNonce
       testUtils.mockGetAddressNextAvailableNonce(network, tx.nonce + 1);
 
-      // mock getTransactionByNonce
-      testUtils.mockGetTransactionByNonce(network, {
+      // insert the transaction with this nonce into database
+      await dataSource.getRepository(AddressTxsEntity).insert({
         unsignedHash:
           'b129a7ff43fa447edcd87dc596cd8788742d9f395a84e4b5863e7e9d266acf9c',
-        txId: '568722d20aabcc3102affe9bcd2637f3b8b46429b93154ec7f42649f9844b85e',
+        signedHash:
+          '568722d20aabcc3102affe9bcd2637f3b8b46429b93154ec7f42649f9844b85e',
+        nonce: tx.nonce,
+        address: testUtils.configs.addresses.lock,
+        blockId: 'blockId',
+        extractor: 'custom-extractor',
+        status: 'succeed',
       });
 
       // run test
@@ -2432,11 +2451,12 @@ describe('EvmChain', () => {
      * @target EvmChain.isTxValid should return true when nonce is
      * used by current transaction
      * @dependencies
+     * - database
      * @scenario
      * - mock PaymentTransaction
      * - mock getTransactionStatus
      * - mock getAddressNextAvailableNonce
-     * - mock getTransactionByNonce
+     * - insert the transaction with this nonce into database
      * - call the function
      * - check returned value
      * @expected
@@ -2445,7 +2465,14 @@ describe('EvmChain', () => {
     it('should return true when nonce is used by current transaction', async () => {
       // mock PaymentTransaction
       const network = new TestEvmNetwork();
-      const evmChain = await testUtils.generateChainObject(network);
+      const dataSource = await mockDataSource();
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        2,
+        TestData.testTokenMap,
+        dataSource,
+      );
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2464,10 +2491,15 @@ describe('EvmChain', () => {
       // mock getAddressNextAvailableNonce
       testUtils.mockGetAddressNextAvailableNonce(network, tx.nonce + 1);
 
-      // mock getTransactionByNonce
-      testUtils.mockGetTransactionByNonce(network, {
+      // insert the transaction with this nonce into database
+      await dataSource.getRepository(AddressTxsEntity).insert({
         unsignedHash: tx.unsignedHash,
-        txId: tx.hash!,
+        signedHash: tx.hash!,
+        nonce: tx.nonce,
+        address: testUtils.configs.addresses.lock,
+        blockId: 'blockId',
+        extractor: 'custom-extractor',
+        status: 'succeed',
       });
 
       // run test
@@ -2526,6 +2558,74 @@ describe('EvmChain', () => {
           unexpected: true,
         },
       });
+    });
+
+    /**
+     * @target EvmChain.isTxValid should check the tx status using
+     * the signed tx id
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock PaymentTransaction
+     * - insert the signed transaction into database
+     * - mock getTransactionStatus
+     * - mock getAddressNextAvailableNonce
+     * - call the function
+     * - check network call
+     * @expected
+     * - network `getTransactionStatus` should have been called with the
+     *   signed tx id
+     */
+    it('should check the tx status using the signed tx id', async () => {
+      // mock PaymentTransaction
+      const network = new TestEvmNetwork();
+      const dataSource = await mockDataSource();
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        2,
+        TestData.testTokenMap,
+        dataSource,
+      );
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
+
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType,
+      );
+
+      // insert the signed transaction into database
+      const signedTxId = 'signed-tx-id';
+      await dataSource.getRepository(AddressTxsEntity).insert({
+        unsignedHash: tx.unsignedHash,
+        signedHash: signedTxId,
+        nonce: 0,
+        address: testUtils.configs.addresses.lock,
+        blockId: 'blockId',
+        extractor: 'custom-extractor',
+        status: 'succeed',
+      });
+
+      // mock getTransactionStatus
+      const getTransactionStatusSpy = vi
+        .spyOn(network, 'getTransactionStatus')
+        .mockResolvedValue(EvmTxStatus.notFound);
+
+      // mock getAddressNextAvailableNonce
+      testUtils.mockGetAddressNextAvailableNonce(network, tx.nonce);
+
+      // run test
+      await evmChain.isTxValid(paymentTx, SigningStatus.Signed);
+
+      // check network call
+      expect(getTransactionStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        signedTxId,
+      );
     });
   });
 
@@ -3071,6 +3171,172 @@ describe('EvmChain', () => {
 
       // check returned value
       expect(result).toEqual(false);
+    });
+  });
+
+  describe('getActualTxId', () => {
+    /**
+     * @target EvmChain.getActualTxId should return the signed tx id when
+     * a tx with the given unsigned hash is found in database
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert the signed transaction into database
+     * - mock getTransactionStatus to return succeed
+     * - run test
+     * - check returned value and network call
+     * @expected
+     * - network `getTransactionStatus` should have been called with the
+     *   signed tx id
+     * - it should return the signed tx id
+     */
+    it('should return the signed tx id when a tx with the given unsigned hash is found in database', async () => {
+      const network = new TestEvmNetwork();
+      const dataSource = await mockDataSource();
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        2,
+        TestData.testTokenMap,
+        dataSource,
+      );
+      const unsignedHash = 'unsigned-hash';
+      const signedTxId = 'signed-tx-id';
+      await dataSource.getRepository(AddressTxsEntity).insert({
+        unsignedHash: unsignedHash,
+        signedHash: signedTxId,
+        nonce: 0,
+        address: testUtils.configs.addresses.lock,
+        blockId: 'blockId',
+        extractor: 'custom-extractor',
+        status: 'succeed',
+      });
+      const getTransactionStatusSpy = vi
+        .spyOn(network, 'getTransactionStatus')
+        .mockResolvedValue(EvmTxStatus.succeed);
+
+      // run test
+      const result = await evmChain.getActualTxId(unsignedHash);
+
+      // check returned value and network call
+      expect(getTransactionStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        signedTxId,
+      );
+      expect(result).toEqual(signedTxId);
+    });
+
+    /**
+     * @target EvmChain.getActualTxId should return the given hash when
+     * no tx with it as unsigned hash is found in database
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock getTransactionStatus to return succeed
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return the given hash
+     */
+    it('should return the given hash when no tx with it as unsigned hash is found in database', async () => {
+      const network = new TestEvmNetwork();
+      const evmChain = await testUtils.generateChainObject(network);
+      const signedTxId = 'signed-tx-id';
+      testUtils.mockGetTransactionStatus(network, EvmTxStatus.succeed);
+
+      // run test
+      const result = await evmChain.getActualTxId(signedTxId);
+
+      // check returned value
+      expect(result).toEqual(signedTxId);
+    });
+
+    /**
+     * @target EvmChain.getActualTxId should throw when the transaction
+     * is not found in the network
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert the signed transaction into database
+     * - mock getTransactionStatus to return notFound
+     * - run test and expect exception thrown
+     * @expected
+     * - it should throw Error
+     */
+    it('should throw when the transaction is not found in the network', async () => {
+      const network = new TestEvmNetwork();
+      const dataSource = await mockDataSource();
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        2,
+        TestData.testTokenMap,
+        dataSource,
+      );
+      const unsignedHash = 'unsigned-hash';
+      await dataSource.getRepository(AddressTxsEntity).insert({
+        unsignedHash: unsignedHash,
+        signedHash: 'signed-tx-id',
+        nonce: 0,
+        address: testUtils.configs.addresses.lock,
+        blockId: 'blockId',
+        extractor: 'custom-extractor',
+        status: 'succeed',
+      });
+      testUtils.mockGetTransactionStatus(network, EvmTxStatus.notFound);
+
+      // run test and expect exception thrown
+      await expect(evmChain.getActualTxId(unsignedHash)).rejects.toThrow(Error);
+    });
+  });
+
+  describe('getTxConfirmation', () => {
+    /**
+     * @target EvmChain.getTxConfirmation should get confirmation of the
+     * signed tx id from the network
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert the signed transaction into database
+     * - mock network `getTxConfirmation`
+     * - run test
+     * - check returned value and network call
+     * @expected
+     * - network `getTxConfirmation` should have been called with the
+     *   signed tx id
+     * - it should return the network result
+     */
+    it('should get confirmation of the signed tx id from the network', async () => {
+      const network = new TestEvmNetwork();
+      const dataSource = await mockDataSource();
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        testUtils.mockedSignMediator,
+        2,
+        TestData.testTokenMap,
+        dataSource,
+      );
+      const unsignedHash = 'unsigned-hash';
+      const signedTxId = 'signed-tx-id';
+      await dataSource.getRepository(AddressTxsEntity).insert({
+        unsignedHash: unsignedHash,
+        signedHash: signedTxId,
+        nonce: 0,
+        address: testUtils.configs.addresses.lock,
+        blockId: 'blockId',
+        extractor: 'custom-extractor',
+        status: 'succeed',
+      });
+      const confirmation = 5;
+      const getTxConfirmationSpy = vi
+        .spyOn(network, 'getTxConfirmation')
+        .mockResolvedValue(confirmation);
+
+      // run test
+      const result = await evmChain.callGetTxConfirmation(unsignedHash);
+
+      // check returned value and network call
+      expect(getTxConfirmationSpy).toHaveBeenCalledExactlyOnceWith(signedTxId);
+      expect(result).toEqual(confirmation);
     });
   });
 });

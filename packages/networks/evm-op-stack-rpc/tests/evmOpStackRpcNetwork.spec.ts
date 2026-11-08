@@ -1,6 +1,5 @@
 import { EvmTxStatus } from '@rosen-chains/evm';
 
-import { mockDataSource } from './mocked/dataSource.mock';
 import * as ethersMock from './mocked/ethers.mock';
 import * as testData from './testData';
 import { TestEvmOpStackRpcNetwork } from './testEvmOpStackRpcNetwork';
@@ -9,11 +8,9 @@ describe('EvmOpStackRpcNetwork', () => {
   let network: TestEvmOpStackRpcNetwork;
 
   beforeEach(async () => {
-    const dataSource = await mockDataSource();
     network = new TestEvmOpStackRpcNetwork(
       'test',
       'custom-url',
-      dataSource,
       testData.lockAddress,
     );
   });
@@ -23,7 +20,6 @@ describe('EvmOpStackRpcNetwork', () => {
      * @target `EvmOpStackRpcNetwork.getTxConfirmation` should fetch tx confirmation count successfully
      * @dependencies
      * @scenario
-     * - stub dbAction.getTxByUnsignedHash to resolve to null
      * - stub provider.getTransaction to resolve to a mock tx object
      * - stub getStatus to resolve to EvmTxStatus.succeed
      * - stub getBlock to resolve to a mock block object
@@ -34,9 +30,6 @@ describe('EvmOpStackRpcNetwork', () => {
      */
     it('should fetch tx confirmation count successfully', async () => {
       // arrange
-      vi.spyOn(network.getDbAction(), 'getTxByUnsignedHash').mockResolvedValue(
-        null,
-      );
       vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
         testData.tx0Response,
       );

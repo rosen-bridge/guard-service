@@ -13,6 +13,15 @@ export const getPsbtTxInputBoxId = (input: PsbtTxInput) =>
   `${input.hash.reverse().toString('hex')}.${input.index}`;
 
 /**
+ * converts a PSBT input hash (little-endian) to tx id (display order)
+ * without mutating the given buffer
+ * @param hash the input hash
+ * @returns the tx id
+ */
+export const inputHashToTxId = (hash: Buffer): string =>
+  Buffer.from(hash).reverse().toString('hex');
+
+/**
  * estimates required fee for tx based on number of inputs, outputs and current network fee ratio
  * uses standard non-SegWit transaction size calculation
  * @param inputSize number of inputs

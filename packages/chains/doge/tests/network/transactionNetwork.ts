@@ -14,7 +14,7 @@ export class TransactionNetwork extends PartialDogeNetwork {
     DogeNetworkFunction.submitTransaction,
     DogeNetworkFunction.getTxConfirmation,
     DogeNetworkFunction.getTransactionHex,
-    DogeNetworkFunction.getActualTxId,
+    DogeNetworkFunction.getSpentTransactionByInputId,
   ];
 
   mockTx: DogeTx = {
@@ -49,7 +49,12 @@ export class TransactionNetwork extends PartialDogeNetwork {
     return this.mockTxHex;
   };
 
-  getActualTxId = async (hash: string): Promise<string> => {
-    return hash;
+  getSpentTransactionByInputId = async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _index: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _txId: string,
+  ): Promise<DogeTx | undefined> => {
+    return this.mockTx;
   };
 }

@@ -790,6 +790,14 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
   };
 
   /**
+   * gets the actual id of a transaction by its txId
+   * Note: transaction id is known before signing in this chain, so it is returned unchanged
+   * @param txId
+   * @returns the same transaction id
+   */
+  getActualTxId = async (txId: string): Promise<string> => txId;
+
+  /**
    * checks if a transaction is in mempool (returns false if the chain has no mempool)
    * @param transactionId the transaction id
    * @returns true if the transaction is in mempool

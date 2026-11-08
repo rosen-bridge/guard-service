@@ -1,11 +1,15 @@
 import { randomBytes } from 'crypto';
 
 import { TokenMap } from '@rosen-bridge/tokens';
-import { EcdsaSignMediator } from '@rosen-chains/abstract-chain';
+import {
+  EcdsaSignMediator,
+  PaymentTransaction,
+} from '@rosen-chains/abstract-chain';
 
 import { DogeChain, DogeConfigs } from '../lib';
 import TestDogeNetwork from './network/testDogeNetwork';
 import * as testData from './testData';
+import { TestDogeChain } from './testDogeChain';
 
 export const generateRandomId = (): string => randomBytes(32).toString('hex');
 
@@ -42,16 +46,34 @@ export const mockedSignMediator = {
 export const generateChainObject = async (
   network: TestDogeNetwork,
   signMediator: EcdsaSignMediator = mockedSignMediator,
+  getSavedTransactionById: (
+    txId: string,
+  ) => Promise<PaymentTransaction | undefined> = async () => undefined,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.testTokenMap);
-  return new DogeChain(network, configs, tokenMap, signMediator);
+  return new TestDogeChain(
+    network,
+    configs,
+    tokenMap,
+    signMediator,
+    getSavedTransactionById,
+  );
 };
 export const generateChainObjectWithMultiDecimalTokenMap = async (
   network: TestDogeNetwork,
   signMediator: EcdsaSignMediator = mockedSignMediator,
+  getSavedTransactionById: (
+    txId: string,
+  ) => Promise<PaymentTransaction | undefined> = async () => undefined,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.multiDecimalTokenMap);
-  return new DogeChain(network, configs, tokenMap, signMediator);
+  return new DogeChain(
+    network,
+    configs,
+    tokenMap,
+    signMediator,
+    getSavedTransactionById,
+  );
 };

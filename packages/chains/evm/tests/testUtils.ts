@@ -1,12 +1,14 @@
 import { FeeData } from 'ethers';
 import { vi } from 'vitest';
 
+import { DataSource } from '@rosen-bridge/extended-typeorm';
 import { TokenMap, RosenTokens } from '@rosen-bridge/tokens';
 import { EcdsaSignMediator } from '@rosen-chains/abstract-chain';
 
 import { AbstractEvmNetwork } from '../lib';
 import EvmChain from '../lib/evmChain';
-import { EvmConfigs, EvmTxStatus, TransactionHashes } from '../lib/types';
+import { EvmConfigs, EvmTxStatus } from '../lib/types';
+import { mockDataSource } from './mocked/dataSource.mock';
 import TestEvmNetwork from './network/testEvmNetwork';
 import TestChain from './testChain';
 import * as testData from './testData';
@@ -77,22 +79,23 @@ export const mockGetAddressNextAvailableNonce = (
   spyOn(network, 'getAddressNextAvailableNonce').mockResolvedValue(value);
 };
 
-export const mockGetTransactionByNonce = (
-  network: AbstractEvmNetwork,
-  value: TransactionHashes,
-) => {
-  spyOn(network, 'getTransactionByNonce').mockResolvedValue(value);
-};
-
 export const generateChainObject = async (
   network: TestEvmNetwork,
   signMediator: EcdsaSignMediator = mockedSignMediator,
   evmTxType = 2,
   rosenTokens: RosenTokens = testData.testTokenMap,
+  dataSource?: DataSource,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(rosenTokens);
-  return new TestChain(network, configs, tokenMap, signMediator, evmTxType);
+  return new TestChain(
+    network,
+    configs,
+    tokenMap,
+    signMediator,
+    dataSource ?? (await mockDataSource()),
+    evmTxType,
+  );
 };
 
 export const mockGetTransactionStatus = (

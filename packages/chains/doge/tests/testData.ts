@@ -1,6 +1,8 @@
 import { RosenTokens } from '@rosen-bridge/tokens';
 import { EventTrigger, PaymentOrder } from '@rosen-chains/abstract-chain';
 
+import { DogeTx } from '../lib';
+
 export const testTokenMap: RosenTokens = [];
 
 export const multiDecimalTokenMap: RosenTokens = [
@@ -311,3 +313,33 @@ export const transaction3InputIds = [
   '1f9a63b47a0518812c28922f101d9e5d96490a25eb01d4e8ecb4d29b66f7873c.0',
   '290a2fe6d3e96300c4e000ebe3824c5b9d09f9cbb6cf59326c5c9147d07400b3.2',
 ];
+
+export const transaction0UnsignedHash =
+  'e7bb0677b2a0542e3ecb8d3f29ea91ae3500b05201f1e97e6bef7e724c4aa476';
+export const transaction0SignedTxId =
+  '5aeb5c966027a82ca773a626f240ee5e59bf19b5824d013264be01e66242910b';
+export const transaction0SpendingTx: DogeTx = {
+  id: transaction0SignedTxId,
+  inputs: [
+    {
+      txId: 'a2623a8e6358b44df7c672cee5a6ff1df2b45721b2f506d22ef59a0634f7641d',
+      index: 0,
+      scriptPubKey: '76a914872b67c8270a9eaf5c2abf632af3dea989d2e37188ac',
+    },
+    {
+      txId: 'f7fdbfcb582dd9e34997df257bfff291c1ea98a5622ba18400794f3337113b0e',
+      index: 2,
+      scriptPubKey: '76a914872b67c8270a9eaf5c2abf632af3dea989d2e37188ac',
+    },
+  ],
+  outputs: [
+    {
+      scriptPubKey: '76a9145d0e02100e393220f90ffce4485f809de4ff777c88ac',
+      value: 100000000n,
+    },
+    {
+      scriptPubKey: '76a914872b67c8270a9eaf5c2abf632af3dea989d2e37188ac',
+      value: 12494394312n,
+    },
+  ],
+};

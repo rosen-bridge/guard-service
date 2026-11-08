@@ -9,4 +9,8 @@ export class TestFiroChain extends FiroChain {
   ) => {
     return this.getTransactionsBoxMapping(serializedTransactions, address);
   };
+
+  callGetTxConfirmation = (txId: string) => this.getTxConfirmation(txId);
+
+  callResolveSignedTxId = (hash: string) => this.resolveSignedTxId(hash);
 }

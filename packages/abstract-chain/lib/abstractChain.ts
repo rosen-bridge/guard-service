@@ -343,12 +343,21 @@ abstract class AbstractChain<TxType> {
   ): Promise<ConfirmationStatus> => {
     const requiredConfirmation =
       this.getTxRequiredConfirmation(transactionType);
-    const confirmation = await this.network.getTxConfirmation(transactionId);
+    const confirmation = await this.getTxConfirmation(transactionId);
     if (confirmation >= requiredConfirmation)
       return ConfirmationStatus.ConfirmedEnough;
     else if (confirmation === -1) return ConfirmationStatus.NotFound;
     else return ConfirmationStatus.NotConfirmedEnough;
   };
+
+  /**
+   * gets confirmation of a transaction from the network (-1 if tx is not in the blockchain)
+   * Note: chains can override this to resolve the transaction id before the network call
+   * @param transactionId the transaction id
+   * @returns the transaction confirmation or -1 if tx is not in the blockchain
+   */
+  protected getTxConfirmation = (transactionId: string): Promise<number> =>
+    this.network.getTxConfirmation(transactionId);
 
   /**
    * gets the amount of each asset in the address
@@ -503,9 +512,11 @@ abstract class AbstractChain<TxType> {
 
   /**
    * gets the actual id of a transaction by its txId
+   * (e.g. resolves the unsigned hash to the signed transaction id)
    * @param txId
+   * @returns the actual transaction id
    */
-  getActualTxId = (txId: string) => this.network.getActualTxId(txId);
+  abstract getActualTxId: (txId: string) => Promise<string>;
 }
 
 export default AbstractChain;

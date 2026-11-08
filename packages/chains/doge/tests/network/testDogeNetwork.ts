@@ -85,18 +85,15 @@ class TestDogeNetwork extends AbstractDogeNetwork {
 
   getSpentTransactionByInputId = (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    boxId: string,
+    index: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    txId: string,
   ): Promise<DogeTx | undefined> => {
     throw Error('Not mocked');
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isTxInMempool = (txId: string): Promise<boolean> => {
-    throw Error('Not mocked');
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getActualTxId = (hash: string): Promise<string> => {
     throw Error('Not mocked');
   };
 }

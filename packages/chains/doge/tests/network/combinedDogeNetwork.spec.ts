@@ -48,6 +48,12 @@ describe('CombinedDogeNetwork', () => {
     const txHex = await combinedNetwork.getTransactionHex('txId');
     expect(txHex).toBe(transactionNetwork.mockTxHex);
 
+    const spentTx = await combinedNetwork.getSpentTransactionByInputId(
+      0,
+      'txId',
+    );
+    expect(spentTx).toEqual(transactionNetwork.mockTx);
+
     // Test functions from BlockAndUtxoNetwork
     const blockInfo = await combinedNetwork.getBlockInfo('blockId');
     expect(blockInfo).toEqual(blockAndUtxoNetwork.mockBlockInfo);

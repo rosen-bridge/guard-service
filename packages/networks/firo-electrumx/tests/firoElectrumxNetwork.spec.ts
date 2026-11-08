@@ -1,12 +1,6 @@
-import { Psbt } from 'bitcoinjs-lib';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import {
-  FailedError,
-  PaymentTransaction,
-  TransactionType,
-  UnexpectedApiError,
-} from '@rosen-chains/abstract-chain';
+import { FailedError, UnexpectedApiError } from '@rosen-chains/abstract-chain';
 
 import FiroElectrumXNetwork from '../lib/firoElectrumxNetwork';
 import {
@@ -26,14 +20,10 @@ vi.mock('@rosen-bridge/firo-scanner', async (importOriginal) => {
 describe('FiroElectrumXNetwork', () => {
   const HOST = 'address';
   const PORT = 50002;
-  const mockGetSavedTransactionById = vi.fn().mockReturnValue(undefined);
-  const createNetwork = () =>
-    new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+  const createNetwork = () => new FiroElectrumXNetwork(HOST, PORT);
 
   beforeEach(() => {
     resetMock();
-    mockGetSavedTransactionById.mockReset();
-    mockGetSavedTransactionById.mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -566,67 +556,6 @@ describe('FiroElectrumXNetwork', () => {
 
       expect(result).toEqual(-1);
     });
-
-    /**
-     * @target `FiroElectrumXNetwork.getTxConfirmation` should handle tx with unsigned hash
-     * @dependencies
-     * - tls, bitcoinjs-lib Psbt
-     * @scenario
-     * - create custom getSavedTransactionById returning a payment tx
-     * - mock bitcoinjs-lib Psbt.fromBuffer to return a finalized transaction id
-     * - mock verbose get confirmation response
-     * @expected
-     * - it should resolve unsigned hash and return confirmations
-     */
-    it('should fetch confirmation using unsigned hash successfully', async () => {
-      const firoPayment = new PaymentTransaction(
-        'firo',
-        testData.unsignedTxId,
-        'eventId',
-        Buffer.from(testData.firoPaymentBytes, 'hex'),
-        TransactionType.payment,
-      );
-
-      const customNetwork = new FiroElectrumXNetwork(
-        HOST,
-        PORT,
-        async (txId: string) => {
-          if (txId === testData.unsignedTxId) {
-            return firoPayment;
-          }
-          return undefined;
-        },
-      );
-
-      vi.spyOn(Psbt, 'fromBuffer').mockReturnValue({
-        extractTransaction: vi.fn().mockReturnValue({
-          getId: vi.fn().mockReturnValue(testData.txId),
-        }),
-      } as unknown as Psbt);
-
-      const getTxConfirmationSignedSpy = vi.spyOn(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        customNetwork as any,
-        'getTxConfirmationSigned',
-      );
-
-      setMockResponses([
-        {
-          hex: testData.txHex,
-          blockhash: testData.txBlockHash,
-          confirmations: testData.expectedTxConfirmation,
-        },
-      ]);
-
-      const result = await customNetwork.getTxConfirmation(
-        testData.unsignedTxId,
-      );
-
-      expect(getTxConfirmationSignedSpy).toHaveBeenCalledExactlyOnceWith(
-        testData.txId,
-      );
-      expect(result).toEqual(testData.expectedTxConfirmation);
-    });
   });
 
   describe('getAddressAssets', () => {
@@ -670,126 +599,123 @@ describe('FiroElectrumXNetwork', () => {
     });
   });
 
-  describe('getActualTxId', () => {
-    /**
-     * @target `FiroElectrumXNetwork.getActualTxId` should return same hash when no saved tx
-     * @dependencies
-     * - none
-     * @scenario
-     * - call getActualTxId with hash, no saved tx in DB
-     * @expected
-     * - it should return the same hash
-     */
-    it('should return the same hash when no saved transaction exists', async () => {
-      const network = createNetwork();
-      const result = await network.getActualTxId(testData.txId);
-
-      expect(result).toEqual(testData.txId);
-    });
+  describe('getTransactionSpendingInput', () => {
+    const spendingTx = {
+      id: 'spending_tx_id',
+      inputs: [
+        { txId: 'other_tx_id', index: 1, scriptPubKey: '' },
+        { txId: testData.txId, index: 0, scriptPubKey: '' },
+      ],
+      outputs: [],
+    };
+    const unrelatedTx = {
+      id: 'unrelated_tx_id',
+      inputs: [{ txId: testData.txId, index: 1, scriptPubKey: '' }],
+      outputs: [],
+    };
 
     /**
-     * @target `FiroElectrumXNetwork.getActualTxId` should extract signed txId from PSBT
+     * @target `FiroElectrumXNetwork.getTransactionSpendingInput` should return
+     * the transaction spending the output
      * @dependencies
-     * - bitcoinjs-lib Psbt
+     * - ElectrumXSocket
      * @scenario
-     * - create custom getSavedTransactionById returning payment tx
-     * - mock bitcoinjs-lib Psbt.fromBuffer to return a finalized transaction id
+     * - mock ElectrumX transaction hex and output script history responses
+     * - mock getTransaction to return history transactions
+     * - run test
+     * - check returned value and requests
      * @expected
-     * - it should return signed txId
+     * - it should return the transaction which spends the output
+     * - it should not fetch the transaction containing the output itself
      */
-    it('should extract signed txId from PSBT', async () => {
-      const firoPayment = new PaymentTransaction(
-        'firo',
-        testData.unsignedTxId,
-        'eventId',
-        Buffer.from(testData.firoPaymentBytes, 'hex'),
-        TransactionType.payment,
-      );
-
-      const customNetwork = new FiroElectrumXNetwork(
-        HOST,
-        PORT,
-        async (txId: string) => {
-          if (txId === testData.unsignedTxId) {
-            return firoPayment;
-          }
-          return undefined;
-        },
-      );
-
-      const fromBufferSpy = vi.spyOn(Psbt, 'fromBuffer').mockReturnValue({
-        extractTransaction: vi.fn().mockReturnValue({
-          getId: vi.fn().mockReturnValue(testData.txId),
-        }),
-      } as unknown as Psbt);
-
-      const result = await customNetwork.getActualTxId(testData.unsignedTxId);
-
-      expect(fromBufferSpy).toHaveBeenCalledWith(
-        Buffer.from(testData.firoPaymentBytes, 'hex'),
-        expect.objectContaining({ network: expect.any(Object) }),
-      );
-      expect(result).toEqual(testData.txId);
-    });
-
-    /**
-     * @target `FiroElectrumXNetwork.getActualTxId` should use spent tx when PSBT is not finalized
-     * @dependencies
-     * - bitcoinjs-lib Psbt
-     * @scenario
-     * - create custom getSavedTransactionById returning an unfinalized payment tx
-     * - mock spent transaction lookup to return matching signed transaction
-     * @expected
-     * - it should return the matching signed tx id
-     */
-    it('should use spent tx when PSBT is not finalized', async () => {
-      const firoPayment = new PaymentTransaction(
-        'firo',
-        testData.unsignedTxId,
-        'eventId',
-        Buffer.from(testData.firoPaymentBytes, 'hex'),
-        TransactionType.payment,
-      );
-
-      const customNetwork = new FiroElectrumXNetwork(
-        HOST,
-        PORT,
-        async (txId: string) => {
-          if (txId === testData.unsignedTxId) {
-            return firoPayment;
-          }
-          return undefined;
-        },
-      );
-
-      vi.spyOn(Psbt, 'fromBuffer').mockReturnValue({
-        extractTransaction: vi.fn().mockImplementation(() => {
-          throw new Error('Not finalized');
-        }),
-        txInputs: [
-          {
-            index: 0,
-            hash: Buffer.from(testData.firoTx.inputs[0]!.txId, 'hex').reverse(),
-          },
+    it('should return the transaction spending the output', async () => {
+      setMockResponses([
+        testData.txHex,
+        [
+          { tx_hash: testData.txId, height: 100 },
+          { tx_hash: unrelatedTx.id, height: 101 },
+          { tx_hash: spendingTx.id, height: 0 },
         ],
-        txOutputs: testData.firoTx.outputs.map((output) => ({
-          script: Buffer.from(output.scriptPubKey, 'hex'),
-          value: Number(output.value),
-        })),
-      } as unknown as Psbt);
+      ]);
+      const network = createNetwork();
+      const getTransactionSpy = vi
+        .spyOn(network, 'getTransaction')
+        .mockImplementation(async (txId: string) =>
+          txId === spendingTx.id ? spendingTx : unrelatedTx,
+        );
 
-      const getTransactionSpendingInputSpy = vi
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(customNetwork as any, 'getTransactionSpendingInput')
-        .mockResolvedValue(testData.firoTx);
-
-      const result = await customNetwork.getActualTxId(testData.unsignedTxId);
-
-      expect(getTransactionSpendingInputSpy).toHaveBeenCalledExactlyOnceWith(
+      const result = await network.getTransactionSpendingInput(
         0,
-        testData.firoTx.inputs[0]!.txId,
+        testData.txId,
       );
-      expect(result).toEqual(testData.txId);
+
+      expect(result).toEqual(spendingTx);
+      expect(getTransactionSpy).toHaveBeenCalledTimes(2);
+      expect(getTransactionSpy).not.toHaveBeenCalledWith(testData.txId, '');
+      expect(getMockRequests().map((request) => request.method)).toEqual([
+        'blockchain.transaction.get',
+        'blockchain.scripthash.get_history',
+      ]);
+    });
+
+    /**
+     * @target `FiroElectrumXNetwork.getTransactionSpendingInput` should return
+     * undefined when no transaction spends the output
+     * @dependencies
+     * - ElectrumXSocket
+     * @scenario
+     * - mock ElectrumX transaction hex and output script history responses
+     * - mock getTransaction to return a tx which does not spend the output
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return undefined
+     */
+    it('should return undefined when no transaction spends the output', async () => {
+      setMockResponses([
+        testData.txHex,
+        [
+          { tx_hash: testData.txId, height: 100 },
+          { tx_hash: unrelatedTx.id, height: 101 },
+        ],
+      ]);
+      const network = createNetwork();
+      vi.spyOn(network, 'getTransaction').mockResolvedValue(unrelatedTx);
+
+      const result = await network.getTransactionSpendingInput(
+        0,
+        testData.txId,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    /**
+     * @target `FiroElectrumXNetwork.getTransactionSpendingInput` should return
+     * undefined when the output does not exist
+     * @dependencies
+     * - ElectrumXSocket
+     * @scenario
+     * - mock ElectrumX transaction hex response
+     * - run test with an out of range output index
+     * - check returned value and requests
+     * @expected
+     * - it should return undefined
+     * - it should not request the output script history
+     */
+    it('should return undefined when the output does not exist', async () => {
+      setMockResponses([testData.txHex]);
+      const network = createNetwork();
+
+      const result = await network.getTransactionSpendingInput(
+        testData.firoTx.outputs.length,
+        testData.txId,
+      );
+
+      expect(result).toBeUndefined();
+      expect(getMockRequests().map((request) => request.method)).toEqual([
+        'blockchain.transaction.get',
+      ]);
     });
   });
 });
