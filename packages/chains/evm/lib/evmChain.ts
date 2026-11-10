@@ -828,6 +828,14 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       return false;
     }
 
+    if (tx.chainId !== this.CHAIN_ID) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified: unexpected chainId ` +
+          `[expected ${this.CHAIN_ID} found ${tx.chainId}]`,
+      );
+      return false;
+    }
+
     if (tx.to === null) {
       this.logger.warn(
         `Tx [${transaction.txId}] is not verified. \`to\` is null`,

@@ -2088,6 +2088,38 @@ describe('EvmChain', () => {
 
     /**
      * @target EvmChain.verifyTransactionExtraConditions should return false
+     * when tx chainId differs from the chain CHAIN_ID
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction with chainId different from CHAIN_ID
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when tx chainId differs from the chain CHAIN_ID', async () => {
+      // mock PaymentTransaction
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
+      tx.chainId = 56n;
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType,
+      );
+
+      // run test
+      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target EvmChain.verifyTransactionExtraConditions should return false
      * when `to` is null
      * @dependencies
      * @scenario
