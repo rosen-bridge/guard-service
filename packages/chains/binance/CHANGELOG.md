@@ -1,5 +1,12 @@
 # @rosen-chains/binance
 
+## 4.0.3
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/evm@10.0.3
+
 ## 4.0.2
 
 ### Patch Changes

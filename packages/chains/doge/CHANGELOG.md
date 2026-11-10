@@ -1,5 +1,13 @@
 # @rosen-chains/doge
 
+## 5.0.1
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/rosen-extractor@12.1.2
+  - @rosen-chains/abstract-chain@17.0.1
+
 ## 5.0.0
 
 ### Major Changes

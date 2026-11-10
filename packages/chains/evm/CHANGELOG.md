@@ -1,5 +1,14 @@
 # @rosen-chains/evm
 
+## 10.0.3
+
+### Patch Changes
+
+- Remove `maxPriorityFeePerGas` verification from `EvmChain.verifyTransactionFee`
+- Update dependencies
+  - @rosen-bridge/rosen-extractor@12.1.2
+  - @rosen-chains/abstract-chain@17.0.1
+
 ## 10.0.2
 
 ### Patch Changes
