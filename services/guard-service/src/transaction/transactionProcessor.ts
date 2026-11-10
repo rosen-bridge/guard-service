@@ -26,6 +26,43 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class TransactionProcessor {
   /**
+   * Persists a verified recovered signed body before advancing its status.
+   * Chains without a recovery hook retain their existing envelope.
+   */
+  private static persistRecoveredTransaction = async (
+    tx: TransactionEntity,
+    chain: Pick<
+      AbstractChain<unknown>,
+      'getRecoveredTransaction' | 'verifyTransactionExtraConditions'
+    >,
+    transaction: PaymentTransaction,
+  ): Promise<PaymentTransaction> => {
+    if (!chain.getRecoveredTransaction) return transaction;
+    const recovered = await chain.getRecoveredTransaction(transaction);
+    if (
+      !recovered ||
+      recovered.txId !== tx.txId ||
+      recovered.network !== tx.chain ||
+      recovered.eventId !== transaction.eventId ||
+      recovered.txType !== transaction.txType ||
+      !chain.verifyTransactionExtraConditions(recovered, SigningStatus.Signed)
+    )
+      throw new ImpossibleBehavior(
+        'Recovered transaction envelope is unavailable or inconsistent',
+      );
+    const json = recovered.toJson();
+    if (json !== tx.txJson) {
+      await DatabaseAction.getInstance().updateWithSignedTx(
+        tx.txId,
+        json,
+        tx.status,
+      );
+      tx.txJson = json;
+    }
+    return recovered;
+  };
+
+  /**
    * processes all active transactions in the database
    */
   static processTransactions = async (): Promise<void> => {
@@ -160,14 +197,30 @@ class TransactionProcessor {
         logger.info(`Checking confirmation status for Doge tx [${tx.txId}]...`);
       }
     }
-    const txConfirmation = await chain.getTxConfirmationStatus(
-      tx.txId,
-      tx.type as TransactionType,
-    );
+    const paymentTx = chain.getRecoveredTransaction
+      ? TransactionSerializer.fromJson(
+          tx.txJson,
+          ChainHandler.getInstance().getChain,
+        )
+      : undefined;
+    const txConfirmation = paymentTx
+      ? await chain.getTxConfirmationStatus(
+          tx.txId,
+          tx.type as TransactionType,
+          paymentTx,
+        )
+      : await chain.getTxConfirmationStatus(
+          tx.txId,
+          tx.type as TransactionType,
+        );
     if (
       txConfirmation !== ConfirmationStatus.NotFound ||
-      (await chain.isTxInMempool(tx.txId))
+      (paymentTx
+        ? await chain.isTxInMempool(tx.txId, paymentTx)
+        : await chain.isTxInMempool(tx.txId))
     ) {
+      if (paymentTx)
+        await this.persistRecoveredTransaction(tx, chain, paymentTx);
       // tx found in network. set status as sent
       logger.info(
         `Tx [${tx.txId}] found in blockchain. Updating status to 'sent'`,
@@ -178,12 +231,14 @@ class TransactionProcessor {
       );
     } else {
       // tx is not found, checking if tx is still valid
-      const paymentTx = TransactionSerializer.fromJson(
-        tx.txJson,
-        ChainHandler.getInstance().getChain,
-      );
+      const unsignedTx =
+        paymentTx ??
+        TransactionSerializer.fromJson(
+          tx.txJson,
+          ChainHandler.getInstance().getChain,
+        );
       const validityStatus = await chain.isTxValid(
-        paymentTx,
+        unsignedTx,
         SigningStatus.UnSigned,
       );
       if (validityStatus.isValid) {
@@ -236,10 +291,24 @@ class TransactionProcessor {
         logger.info(`Checking confirmation status for Doge tx [${tx.txId}]...`);
       }
     }
-    const txConfirmation = await chain.getTxConfirmationStatus(
-      tx.txId,
-      tx.type as TransactionType,
-    );
+    let paymentTx = chain.getRecoveredTransaction
+      ? TransactionSerializer.fromJson(
+          tx.txJson,
+          ChainHandler.getInstance().getChain,
+        )
+      : undefined;
+    const txConfirmation = paymentTx
+      ? await chain.getTxConfirmationStatus(
+          tx.txId,
+          tx.type as TransactionType,
+          paymentTx,
+        )
+      : await chain.getTxConfirmationStatus(
+          tx.txId,
+          tx.type as TransactionType,
+        );
+    if (paymentTx && txConfirmation !== ConfirmationStatus.NotFound)
+      paymentTx = await this.persistRecoveredTransaction(tx, chain, paymentTx);
     switch (txConfirmation) {
       case ConfirmationStatus.ConfirmedEnough: {
         // tx confirmed enough, proceed to next process
@@ -308,14 +377,24 @@ class TransactionProcessor {
       }
       case ConfirmationStatus.NotFound: {
         // tx is not mined, checking mempool...
-        if (await chain.isTxInMempool(tx.txId)) {
+        if (
+          paymentTx
+            ? await chain.isTxInMempool(tx.txId, paymentTx)
+            : await chain.isTxInMempool(tx.txId)
+        ) {
+          if (paymentTx)
+            paymentTx = await this.persistRecoveredTransaction(
+              tx,
+              chain,
+              paymentTx,
+            );
           // tx is in mempool, updating last check...
           const height = await chain.getHeight();
           await DatabaseAction.getInstance().updateTxLastCheck(tx.txId, height);
           logger.info(`Tx [${tx.txId}] is in mempool`);
         } else {
           // tx is not in mempool, checking if tx is still valid
-          const paymentTx = TransactionSerializer.fromJson(
+          paymentTx ??= TransactionSerializer.fromJson(
             tx.txJson,
             ChainHandler.getInstance().getChain,
           );

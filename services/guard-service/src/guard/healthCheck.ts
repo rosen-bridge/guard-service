@@ -23,6 +23,7 @@ import {
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
+import { BitcoinCashRpcNetwork } from '@rosen-chains/bitcoin-cash-rpc';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
@@ -34,6 +35,7 @@ import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 import Configs from '../configs/configs';
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
+import GuardsBitcoinCashConfigs from '../configs/guardsBitcoinCashConfigs';
 import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
@@ -41,6 +43,7 @@ import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import { rosenConfig } from '../configs/rosenConfig';
 import { DatabaseAction } from '../db/databaseAction';
 import { NotificationHandler } from '../handlers/notificationHandler';
+import { TokenHandler } from '../handlers/tokenHandler';
 import {
   ADA_DECIMALS,
   ERG_DECIMALS,
@@ -49,6 +52,7 @@ import {
   BINANCE_BLOCK_TIME,
   ERGO_BLOCK_TIME,
 } from '../utils/constants';
+import { BitcoinCashHealthCheckParam } from './bitcoinCashHealthCheck';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -59,6 +63,22 @@ let healthCheck: HealthCheck | undefined;
  */
 const getHealthCheck = async () => {
   if (!healthCheck) {
+    const bitcoinCashConfigs =
+      GuardsBitcoinCashConfigs.enabled && GuardsBitcoinCashConfigs.healthEnabled
+        ? GuardsBitcoinCashConfigs.load(
+            TokenHandler.getInstance().getTokenMap(),
+          )
+        : undefined;
+    let bitcoinCashHealthParam: BitcoinCashHealthCheckParam | undefined;
+    if (bitcoinCashConfigs?.health) {
+      const network = new BitcoinCashRpcNetwork(bitcoinCashConfigs.rpc);
+      network.logger = logger;
+      bitcoinCashHealthParam = new BitcoinCashHealthCheckParam(
+        network,
+        bitcoinCashConfigs.chainConfigs.addresses.lock,
+        bitcoinCashConfigs.health,
+      );
+    }
     // initialize HealthCheck
     const notificationHandler = NotificationHandler.getInstance();
     const notificationConfig = {
@@ -81,6 +101,8 @@ const getHealthCheck = async () => {
       notificationHandler.notify,
       notificationConfig,
     );
+
+    if (bitcoinCashHealthParam) healthCheck.register(bitcoinCashHealthParam);
 
     // TODO: local:ergo/rosen-bridge/health-check/55
     //  should replace p2p healthcheck param with detected active guards in detection scenario

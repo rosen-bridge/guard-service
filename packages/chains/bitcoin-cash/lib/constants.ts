@@ -1,0 +1,10 @@
+export const BITCOIN_CASH_CHAIN = 'bitcoin-cash';
+export const BCH = 'bch';
+export const BCH_SIGHASH_ALL_FORKID = 0x41;
+export const BCH_MAX_MONEY = 2_100_000_000_000_000n;
+export const BCH_MAX_TRANSACTION_BYTES = 100_000;
+export const BCH_MAX_PARENT_TRANSACTION_BYTES = 1_000_000;
+export const BCH_MAX_INPUTS = 100;
+export const BCH_MAX_OUTPUTS = 100;
+export const BCH_MAX_ENVELOPE_CHARACTERS = 4_000_000;
+export const BCH_MAX_METADATA_CHARACTERS = 256;

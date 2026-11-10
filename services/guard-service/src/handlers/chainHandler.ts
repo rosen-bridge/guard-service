@@ -10,6 +10,11 @@ import {
   BITCOIN_CHAIN,
   BitcoinChain,
 } from '@rosen-chains/bitcoin';
+import {
+  BitcoinCashChain,
+  BITCOIN_CASH_CHAIN,
+} from '@rosen-chains/bitcoin-cash';
+import { BitcoinCashRpcNetwork } from '@rosen-chains/bitcoin-cash-rpc';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
 import {
   BitcoinRunesChain,
@@ -52,6 +57,7 @@ import { HandshakeRpcNetwork } from '@rosen-chains/handshake-rpc';
 import { RateLimitedAxiosConfig } from '@rosen-clients/rate-limited-axios';
 
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
+import GuardsBitcoinCashConfigs from '../configs/guardsBitcoinCashConfigs';
 import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
@@ -73,6 +79,7 @@ class ChainHandler {
   private readonly ergoChain: ErgoChain;
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
+  private readonly bitcoinCashChain?: BitcoinCashChain;
   private readonly dogeChain: DogeChain;
   private readonly firoChain: FiroChain;
   private readonly handshakeChain: HandshakeChain;
@@ -95,6 +102,8 @@ class ChainHandler {
     this.ethereumChain = this.generateEthereumChain();
     this.binanceChain = this.generateBinanceChain();
     this.bitcoinRunesChain = this.generateBitcoinRunesChain();
+    if (GuardsBitcoinCashConfigs.enabled)
+      this.bitcoinCashChain = this.generateBitcoinCashChain();
     logger.info('ChainHandler instantiated');
   }
 
@@ -215,6 +224,25 @@ class ChainHandler {
       TokenHandler.getInstance().getTokenMap(),
       bitcoinSignMediator,
       DefaultLogger.getInstance().child('bitcoinChain'),
+    );
+  };
+
+  /** Constructs the configured BCH chain, RPC provider and signing mediator. */
+  private generateBitcoinCashChain = (): BitcoinCashChain => {
+    const tokens = TokenHandler.getInstance().getTokenMap();
+    const configs = GuardsBitcoinCashConfigs.load(tokens);
+    const network = new BitcoinCashRpcNetwork(configs.rpc);
+    network.logger = DefaultLogger.getInstance().child('bitcoinCashRpcNetwork');
+    const signMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      configs.tssChainCode,
+      configs.derivationPath,
+    );
+    return new BitcoinCashChain(
+      network,
+      configs.chainConfigs,
+      tokens,
+      signMediator,
+      DefaultLogger.getInstance().child('bitcoinCashChain'),
     );
   };
 
@@ -502,6 +530,9 @@ class ChainHandler {
         return this.cardanoChain;
       case BITCOIN_CHAIN:
         return this.bitcoinChain;
+      case BITCOIN_CASH_CHAIN:
+        if (!this.bitcoinCashChain) throw Error('Bitcoin Cash is disabled');
+        return this.bitcoinCashChain;
       case DOGE_CHAIN:
         return this.dogeChain;
       case FIRO_CHAIN:

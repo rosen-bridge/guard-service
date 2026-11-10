@@ -2,6 +2,7 @@ import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 
 import { DatabaseAction } from '../db/databaseAction';
+import EventSerializer from '../event/eventSerializer';
 import { Event, OngoingEvents, TokenData } from '../types/api';
 import { EventStatus } from '../utils/constants';
 import { getTokenData } from '../utils/getTokenData';
@@ -128,7 +129,7 @@ const ongoingEventsRoute = (server: FastifyWithZod) => {
       );
 
       const txs = await dbAction.getValidTxsForEvents(
-        results.items.map((event) => event.eventId),
+        results.items.map((event) => EventSerializer.getId(event)),
       );
 
       const events = results.items.map((event): OngoingEvents => {
@@ -156,7 +157,7 @@ const ongoingEventsRoute = (server: FastifyWithZod) => {
           ) {
             const txStatus = txs.find(
               (tx) =>
-                tx.event?.id === event.eventId &&
+                tx.event?.id === EventSerializer.getId(event) &&
                 tx.type ===
                   (status === EventStatus.inPayment
                     ? TransactionType.payment

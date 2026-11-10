@@ -201,7 +201,7 @@ class PublicStatusHandler {
 
       const dto: UpdateStatusDTO = {
         triggerTxId: event.eventData.txId,
-        eventId,
+        eventId: event.eventData.eventId,
         status,
         tx: txDto,
       };
@@ -256,7 +256,7 @@ class PublicStatusHandler {
 
       const dto: UpdateStatusDTO = {
         triggerTxId: tx.event.eventData.txId,
-        eventId: tx.event.id,
+        eventId: tx.event.eventData.eventId,
         status:
           tx.type === TransactionType.payment
             ? EventStatus.inPayment

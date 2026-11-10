@@ -2,27 +2,48 @@ import {
   ConfirmationStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import {
+  ConfirmationStatus as bchRecovery_ConfirmationStatus,
+  SigningStatus as bchRecovery_SigningStatus,
+  TransactionType as bchRecovery_TransactionType,
+} from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { DOGE_CHAIN } from '@rosen-chains/doge';
 
+import { DatabaseAction as bchRecovery_DatabaseAction } from '../../src/db/databaseAction';
+import bchOwnedEventOrder from '../../src/event/eventOrder';
 import EventSerializer from '../../src/event/eventSerializer';
+import bchRecovery_ChainHandler from '../../src/handlers/chainHandler';
+import bchOwnedMinimumFeeHandler from '../../src/handlers/minimumFeeHandler';
 import TransactionProcessor from '../../src/transaction/transactionProcessor';
+import bchRecovery_TransactionProcessor from '../../src/transaction/transactionProcessor';
+import * as bchRecovery_TransactionSerializer from '../../src/transaction/transactionSerializer';
 import {
   EventStatus,
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
+import { TransactionStatus as bchRecovery_TransactionStatus } from '../../src/utils/constants';
 import {
   mockErgoPaymentTransaction,
   mockPaymentTransaction,
 } from '../agreement/testData';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import bchRecovery_DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { mockCreateEventPaymentOrder as bchRecovery_mockCreateEventPaymentOrder } from '../event/mocked/eventOrder.mock';
+import { mockGetEventFeeConfig as bchRecovery_mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
 import * as EventTestData from '../event/testData';
 import ChainHandlerMock, {
   chainHandlerInstance,
 } from '../handlers/chainHandler.mock';
+import { chainHandlerInstance as bchRecovery_chainHandlerInstance } from '../handlers/chainHandler.mock';
 import NotificationHandlerMock from '../handlers/notificationHandler.mock';
+import bchRecovery_TestEventSynchronization from '../synchronization/testEventSynchronization';
+import { preserveBitcoinCashMocks } from '../testUtils/mocked/bitcoinCashMockScope.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TransactionProcessorMock from './transactionProcessor.mock';
+import { malformedLegacyFixture } from './transactionProcessorLegacyTestUtils';
+import { bchRecovery_setup } from './transactionProcessorTestUtils';
 
 describe('TransactionProcessor', () => {
   const currentTimeStampSeconds = Math.round(
@@ -719,6 +740,469 @@ describe('TransactionProcessor', () => {
         TransactionProcessorMock.getMockedSpy('setTransactionAsInvalid'),
       ).toHaveBeenCalledOnce();
     });
+
+    describe('BCH RCS bitcoinCashRecovery', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [bchRecovery_ChainHandler, ['getInstance']],
+          [bchRecovery_chainHandlerInstance, ['getChain']],
+          [bchRecovery_TransactionSerializer, ['fromJson']],
+          [
+            bchRecovery_DatabaseAction.getInstance(),
+            ['updateWithSignedTx', 'setTxStatus'],
+          ],
+          [bchOwnedMinimumFeeHandler, ['getEventFeeConfig']],
+          [bchOwnedEventOrder, ['createEventPaymentOrder']],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx - persists an
+       * unconfirmed recovered signature before advancing sign-failed state
+       * @dependencies
+       * - Real BCH chain and test database; mocked network history and mempool
+       * @scenario
+       * - Recover valid signed bytes while confirmation is absent but mempool
+       * is true
+       * @expected
+       * - The row becomes sent with the signed envelope retained
+       */
+      it('persists an unconfirmed recovered signature before advancing sign-failed state', async () => {
+        const { network, unsigned, signed, action } = await bchRecovery_setup();
+        network.getTxConfirmation.mockResolvedValue(-1);
+        network.isTxInMempool.mockResolvedValue(true);
+        await bchRecovery_DatabaseActionMock.insertTxRecord(
+          unsigned,
+          bchRecovery_TransactionStatus.signFailed,
+        );
+        await bchRecovery_TransactionProcessor.processSignFailedTx(
+          (await action.getTxById(unsigned.txId))!,
+        );
+        const row = (await action.getTxById(unsigned.txId))!;
+        expect(row.status).toEqual(bchRecovery_TransactionStatus.sent);
+        expect(row.txJson).toEqual(signed.toJson());
+      });
+      /**
+       * @target TransactionProcessor.processSignFailedTx - resumes after
+       * interruption between signed-byte persistence and sent-state
+       * advancement
+       * @dependencies
+       * - Real BCH chain and test database; one failing status-write spy
+       * @scenario
+       * - Persist recovered signed bytes and fail the following status update
+       * - Retry from the retained row after restoring the status writer
+       * @expected
+       * - The first attempt retains bytes in sign-failed state
+       * - Retry advances to sent without rescanning wallet history
+       */
+      it('resumes after interruption between signed-byte persistence and sent-state advancement', async () => {
+        const { network, unsigned, signed, action } = await bchRecovery_setup();
+        await bchRecovery_DatabaseActionMock.insertTxRecord(
+          unsigned,
+          bchRecovery_TransactionStatus.signFailed,
+        );
+        const status = vi
+          .spyOn(action, 'setTxStatus')
+          .mockRejectedValueOnce(Error('Synthetic interruption'));
+        await expect(
+          bchRecovery_TransactionProcessor.processSignFailedTx(
+            (await action.getTxById(unsigned.txId))!,
+          ),
+        ).rejects.toThrow('Synthetic interruption');
+        const retained = (await action.getTxById(unsigned.txId))!;
+        expect(retained.status).toEqual(
+          bchRecovery_TransactionStatus.signFailed,
+        );
+        expect(retained.txJson).toEqual(signed.toJson());
+        network.findSignedTransaction.mockClear();
+        status.mockRestore();
+        await bchRecovery_TransactionProcessor.processSignFailedTx(retained);
+        expect((await action.getTxById(unsigned.txId))!.status).toEqual(
+          bchRecovery_TransactionStatus.sent,
+        );
+        expect(network.findSignedTransaction).not.toHaveBeenCalled();
+      });
+      /**
+       * @target TransactionProcessor.processSignFailedTx - does not advance
+       * the row when recovered materialization fails: %s
+       * @dependencies
+       * - Real BCH chain and test database; mocked recovery and confirmation
+       * - A failing signed-envelope database update for the database vector
+       * @scenario
+       * - Fix confirmed inclusion and isolate missing bytes, invalid
+       * signature,
+       * - wrong context or identity, and a database persistence failure
+       * @expected
+       * - Every attempt throws and retains the unsigned sign-failed row
+       */
+      it.each([
+        'missing',
+        'bad-signature',
+        'wrong-event',
+        'wrong-type',
+        'wrong-chain',
+        'wrong-approval',
+        'database',
+      ])(
+        'does not advance the row when recovered materialization fails: %s',
+        async (fault) => {
+          const { chain, unsigned, signed, action } = await bchRecovery_setup();
+          await bchRecovery_DatabaseActionMock.insertTxRecord(
+            unsigned,
+            bchRecovery_TransactionStatus.signFailed,
+          );
+          const candidate = chain.PaymentTransactionFromJson(signed.toJson());
+          if (fault === 'wrong-event') candidate.eventId = 'different-event';
+          if (fault === 'wrong-type')
+            candidate.txType = bchRecovery_TransactionType.manual;
+          if (fault === 'wrong-chain') candidate.network = 'bitcoin';
+          if (fault === 'wrong-approval') candidate.txId = '11'.repeat(32);
+          vi.spyOn(chain, 'getRecoveredTransaction').mockResolvedValue(
+            fault === 'missing'
+              ? undefined
+              : fault === 'bad-signature'
+                ? unsigned
+                : candidate,
+          );
+          // Keep observed inclusion fixed so this isolates persistence materialization.
+          vi.spyOn(chain, 'getTxConfirmationStatus').mockResolvedValue(
+            bchRecovery_ConfirmationStatus.ConfirmedEnough,
+          );
+          if (fault === 'database')
+            vi.spyOn(action, 'updateWithSignedTx').mockRejectedValue(
+              Error('Synthetic database failure'),
+            );
+          await expect(
+            bchRecovery_TransactionProcessor.processSignFailedTx(
+              (await action.getTxById(unsigned.txId))!,
+            ),
+          ).rejects.toThrow();
+          const row = (await action.getTxById(unsigned.txId))!;
+          expect(row.status).toEqual(bchRecovery_TransactionStatus.signFailed);
+          expect(row.txJson).toEqual(unsigned.toJson());
+        },
+      );
+    });
+
+    describe('BCH RCS bitcoinCashRecovery actual RPC provider', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [bchRecovery_ChainHandler, ['getInstance']],
+          [bchRecovery_chainHandlerInstance, ['getChain']],
+          [bchRecovery_TransactionSerializer, ['fromJson']],
+          [bchRecovery_DatabaseAction.getInstance(), ['setTxStatus']],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx persists actual RPC
+       * recovery before advancing the row to sent
+       * @dependencies
+       * - Real SQLite, serializer, BCH chain and RPC provider; deterministic read-only transport
+       * @scenario
+       * - Seed a sign-failed unsigned row and recover the published synthetic signed fixture
+       * - Inspect the database immediately before the call-through sent-status update
+       * @expected
+       * - Exact signed bytes are retained in sign-failed state before advancement to sent
+       * - No signing or broadcast is dispatched during recovery
+       */
+      it('persists actual RPC recovery before advancing the row to sent', async () => {
+        const { unsigned, signed, action, rpcCalls, forbiddenSign } =
+          await bchRecovery_setup('actual-rpc');
+        await bchRecovery_DatabaseActionMock.insertTxRecord(
+          unsigned,
+          bchRecovery_TransactionStatus.signFailed,
+        );
+        const writeStatus = action.setTxStatus.bind(action);
+        const statusObserver = vi
+          .spyOn(action, 'setTxStatus')
+          .mockImplementation(async (id, status) => {
+            const retained = (await action.getTxById(id))!;
+            expect(retained.status).toEqual(
+              bchRecovery_TransactionStatus.signFailed,
+            );
+            expect(retained.txJson).toEqual(signed.toJson());
+            await writeStatus(id, status);
+          });
+        await bchRecovery_TransactionProcessor.processTransactions();
+        const row = (await action.getTxById(unsigned.txId))!;
+        expect(statusObserver).toHaveBeenCalledExactlyOnceWith(
+          unsigned.txId,
+          bchRecovery_TransactionStatus.sent,
+        );
+        expect(row.status).toEqual(bchRecovery_TransactionStatus.sent);
+        expect(row.txJson).toEqual(signed.toJson());
+        expect(
+          rpcCalls.filter((call) => call.method === 'gettransaction'),
+        ).toHaveLength(2);
+        expect(forbiddenSign).not.toHaveBeenCalled();
+        expect(
+          rpcCalls.some((call) => call.method === 'sendrawtransaction'),
+        ).toEqual(false);
+      });
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx retains the unsigned row
+       * when wallet recovery raw bytes mismatch its advertised ID
+       * @dependencies
+       * - Same real SQLite, serializer, BCH chain and RPC provider as the positive case
+       * @scenario
+       * - Change one raw locktime byte while retaining the advertised signed transaction ID
+       * - Run the processor with every other history and database field unchanged
+       * @expected
+       * - The actual provider rejects raw identity before any status write or signing request
+       * - The unsigned sign-failed row remains available for a later valid recovery
+       */
+      it('retains the unsigned row when wallet recovery raw bytes mismatch its advertised ID', async () => {
+        const { unsigned, action, rpcCalls, rpcErrors, forbiddenSign } =
+          await bchRecovery_setup('actual-rpc-raw-mismatch');
+        await bchRecovery_DatabaseActionMock.insertTxRecord(
+          unsigned,
+          bchRecovery_TransactionStatus.signFailed,
+        );
+        const statusObserver = vi.spyOn(action, 'setTxStatus');
+        await bchRecovery_TransactionProcessor.processTransactions();
+        const row = (await action.getTxById(unsigned.txId))!;
+        expect(rpcErrors).toEqual([
+          'Wallet recovery raw identity or cardinality mismatch',
+        ]);
+        expect(row.status).toEqual(bchRecovery_TransactionStatus.signFailed);
+        expect(row.txJson).toEqual(unsigned.toJson());
+        expect(statusObserver).not.toHaveBeenCalled();
+        expect(rpcCalls.at(-1)?.method).toEqual('gettransaction');
+        expect(forbiddenSign).not.toHaveBeenCalled();
+        expect(
+          rpcCalls.some((call) => call.method === 'sendrawtransaction'),
+        ).toEqual(false);
+      });
+    });
+
+    describe('BCH RCS bitcoinCashRecovery downstream materialization', () => {
+      let restoreBchMocks: () => void;
+
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [bchRecovery_ChainHandler, ['getInstance']],
+          [bchRecovery_chainHandlerInstance, ['getChain']],
+          [bchRecovery_TransactionSerializer, ['fromJson']],
+          [
+            bchRecovery_DatabaseAction.getInstance(),
+            ['updateWithSignedTx', 'setTxStatus'],
+          ],
+          [bchOwnedMinimumFeeHandler, ['getEventFeeConfig']],
+          [bchOwnedEventOrder, ['createEventPaymentOrder']],
+        ]);
+      });
+
+      afterEach(() => restoreBchMocks());
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx - materializes a
+       * recovered %s row before completion and remote synchronization
+       * @dependencies
+       * - Real BCH chain, serializer and test database; mocked network and
+       * signer
+       * - Mocked fee/order seams and synchronization test class
+       * @scenario
+       * - Recover a sign-failed or sent unsigned row into its signed envelope
+       * - Process confirmation and verify a remote synchronization response
+       * @expected
+       * - The row completes with its approval ID and complete signed envelope
+       * - Signed-condition and synchronization checks succeed
+       */
+      it.each([bchRecovery_TransactionStatus.signFailed])(
+        'materializes a recovered %s row before completion and remote synchronization',
+        async (status) => {
+          const { chain, unsigned, signed, eventId, action } =
+            await bchRecovery_setup();
+          await bchRecovery_DatabaseActionMock.insertTxRecord(unsigned, status);
+          let row = (await action.getTxById(unsigned.txId))!;
+          if (status === bchRecovery_TransactionStatus.signFailed) {
+            await bchRecovery_TransactionProcessor.processSignFailedTx(row);
+            row = (await action.getTxById(unsigned.txId))!;
+            expect(row.status).toEqual(bchRecovery_TransactionStatus.sent);
+            expect(row.txJson).toEqual(signed.toJson());
+          }
+          await bchRecovery_TransactionProcessor.processSentTx(row);
+          row = (await action.getTxById(unsigned.txId))!;
+          expect(row.status).toEqual(bchRecovery_TransactionStatus.completed);
+          expect(row.txId).toEqual(unsigned.txId);
+          expect(row.txJson).toEqual(signed.toJson());
+          const restored = chain.PaymentTransactionFromJson(row.txJson);
+          expect(
+            chain.verifyTransactionExtraConditions(
+              restored,
+              bchRecovery_SigningStatus.Signed,
+            ),
+          ).toEqual(true);
+          bchRecovery_mockGetEventFeeConfig({
+            bridgeFee: 0n,
+            networkFee: 0n,
+            rsnRatio: 0n,
+            feeRatio: 100n,
+            rsnRatioDivisor: 1000000000000n,
+            feeRatioDivisor: 10000n,
+          });
+          bchRecovery_mockCreateEventPaymentOrder(
+            chain.extractTransactionOrder(unsigned),
+          );
+          const sync = new bchRecovery_TestEventSynchronization();
+          sync.insertEventIntoActiveSync(eventId, {
+            timestamp: Date.now() / 1000,
+            responses: [],
+          });
+          expect(
+            await sync.callVerifySynchronizationResponse(
+              restored,
+              signed.getActualTxId()!,
+            ),
+          ).toEqual(true);
+        },
+      );
+    });
+
+    describe('legacy envelope timing', () => {
+      const status = TransactionStatus.signFailed;
+      let restoreLegacyMocks: () => void;
+      beforeEach(() => {
+        restoreLegacyMocks = preserveBitcoinCashMocks([
+          [bchRecovery_ChainHandler, ['getInstance']],
+          [chainHandlerInstance, ['getChain']],
+          [bchRecovery_TransactionSerializer, ['fromJson']],
+          [TransactionProcessor, ['processApprovedTx']],
+          [Math, ['random']],
+          [
+            bchRecovery_DatabaseAction.getInstance(),
+            ['setTxStatus', 'updateTxLastCheck'],
+          ],
+        ]);
+      });
+      afterEach(() => restoreLegacyMocks());
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx preserves
+       * malformed legacy envelopes for provider outcome %s with mempool=%s
+       * @dependencies Actual serializer; controlled legacy provider and persistence ports
+       * @scenario Find the malformed row on chain or in mempool without a recovery hook
+       * @expected Preserve provider argument shape and advance state without deserialization
+       */
+      it.each([
+        [ConfirmationStatus.NotConfirmedEnough, false],
+        [ConfirmationStatus.ConfirmedEnough, false],
+        [ConfirmationStatus.NotFound, true],
+      ])(
+        'preserves malformed legacy envelopes for provider outcome %s with mempool=%s',
+        async (confirmation, mempool) => {
+          const fixture = await malformedLegacyFixture(
+            status,
+            confirmation,
+            mempool,
+          );
+          await TransactionProcessor.processSignFailedTx(fixture.row);
+          expect(fixture.deserialize).not.toHaveBeenCalled();
+          expect(
+            fixture.chain.getTxConfirmationStatus,
+          ).toHaveBeenCalledExactlyOnceWith(fixture.row.txId, fixture.row.type);
+          if (confirmation === ConfirmationStatus.NotFound)
+            expect(fixture.chain.isTxInMempool).toHaveBeenCalledExactlyOnceWith(
+              fixture.row.txId,
+            );
+          else expect(fixture.chain.isTxInMempool).not.toHaveBeenCalled();
+          expect(fixture.setStatus).toHaveBeenCalledExactlyOnceWith(
+            fixture.row.txId,
+            TransactionStatus.sent,
+          );
+        },
+      );
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx rejects a
+       * malformed legacy envelope only after both providers report absence
+       * @dependencies Actual serializer; controlled legacy provider and persistence ports
+       * @scenario Return NotFound and false mempool membership for the malformed row
+       * @expected Query both provider ports first, then reject without changing persistence
+       */
+      it('rejects a malformed legacy envelope only after both providers report absence', async () => {
+        const fixture = await malformedLegacyFixture(
+          status,
+          ConfirmationStatus.NotFound,
+        );
+        await expect(
+          TransactionProcessor.processSignFailedTx(fixture.row),
+        ).rejects.toThrow(SyntaxError);
+        expect(
+          fixture.chain.getTxConfirmationStatus,
+        ).toHaveBeenCalledExactlyOnceWith(fixture.row.txId, fixture.row.type);
+        expect(fixture.chain.isTxInMempool).toHaveBeenCalledExactlyOnceWith(
+          fixture.row.txId,
+        );
+        expect(fixture.deserialize).toHaveBeenCalledOnce();
+        expect(fixture.setStatus).not.toHaveBeenCalled();
+        expect(fixture.updateHeight).not.toHaveBeenCalled();
+      });
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx keeps
+       * the Doge cooldown ahead of legacy deserialization and provider reads
+       * @dependencies Actual serializer; controlled Doge cooldown and provider ports
+       * @scenario Select the existing skip branch for a malformed Doge envelope
+       * @expected Skip provider/deserializer calls and retain the existing signing retry
+       */
+      it('keeps the Doge cooldown ahead of legacy deserialization and provider reads', async () => {
+        const fixture = await malformedLegacyFixture(
+          status,
+          ConfirmationStatus.NotFound,
+        );
+        fixture.row.chain = DOGE_CHAIN;
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+        const retry = vi
+          .spyOn(TransactionProcessor, 'processApprovedTx')
+          .mockResolvedValue(undefined);
+        await TransactionProcessor.processSignFailedTx(fixture.row);
+        expect(fixture.deserialize).not.toHaveBeenCalled();
+        expect(fixture.chain.getTxConfirmationStatus).not.toHaveBeenCalled();
+        expect(retry).toHaveBeenCalledExactlyOnceWith(fixture.row);
+        expect(fixture.setStatus).not.toHaveBeenCalled();
+        expect(fixture.updateHeight).not.toHaveBeenCalled();
+      });
+
+      /**
+       * @target TransactionProcessor.processSignFailedTx rejects
+       * BCH row identity mismatch before provider or recovery calls
+       * @dependencies Actual BCH chain, authenticated unsigned envelope and migrated database
+       * @scenario Keep the exact envelope but change only its persisted approval ID
+       * @expected Refuse the context without provider reads or status advancement
+       */
+      it('rejects BCH row identity mismatch before provider or recovery calls', async () => {
+        const fixture = await bchRecovery_setup();
+        const row = Object.assign(
+          new (
+            await import('../../src/db/entities/transactionEntity')
+          ).TransactionEntity(),
+          {
+            txId: '00'.repeat(32),
+            chain: fixture.unsigned.network,
+            type: fixture.unsigned.txType,
+            status,
+            txJson: fixture.unsigned.toJson(),
+          },
+        );
+        const recover = vi.spyOn(fixture.chain, 'getRecoveredTransaction');
+        const setStatus = vi.spyOn(fixture.action, 'setTxStatus');
+        await expect(
+          TransactionProcessor.processSignFailedTx(row),
+        ).rejects.toThrow();
+        expect(fixture.network.getTxConfirmation).not.toHaveBeenCalled();
+        expect(fixture.network.findSignedTransaction).not.toHaveBeenCalled();
+        expect(fixture.network.isTxInMempool).not.toHaveBeenCalled();
+        expect(recover).not.toHaveBeenCalled();
+        expect(setStatus).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('processSignedTx', () => {
@@ -1369,6 +1853,287 @@ describe('TransactionProcessor', () => {
       expect(
         TransactionProcessorMock.getMockedSpy('setTransactionAsInvalid'),
       ).toHaveBeenCalledOnce();
+    });
+
+    describe('BCH RCS bitcoinCashRecovery', () => {
+      let restoreBchMocks: () => void;
+      beforeEach(() => {
+        restoreBchMocks = preserveBitcoinCashMocks([
+          [bchRecovery_ChainHandler, ['getInstance']],
+          [bchRecovery_chainHandlerInstance, ['getChain']],
+          [bchRecovery_TransactionSerializer, ['fromJson']],
+          [
+            bchRecovery_DatabaseAction.getInstance(),
+            ['updateWithSignedTx', 'setTxStatus'],
+          ],
+          [bchOwnedMinimumFeeHandler, ['getEventFeeConfig']],
+          [bchOwnedEventOrder, ['createEventPaymentOrder']],
+        ]);
+      });
+      afterEach(() => restoreBchMocks());
+
+      /**
+       * @target TransactionProcessor.processSentTx - materializes a recovered
+       * %s row before completion and remote synchronization
+       * @dependencies
+       * - Real BCH chain, serializer and test database; mocked network and
+       * signer
+       * - Mocked fee/order seams and synchronization test class
+       * @scenario
+       * - Recover a sign-failed or sent unsigned row into its signed envelope
+       * - Process confirmation and verify a remote synchronization response
+       * @expected
+       * - The row completes with its approval ID and complete signed envelope
+       * - Signed-condition and synchronization checks succeed
+       */
+      it.each([bchRecovery_TransactionStatus.sent])(
+        'materializes a recovered %s row before completion and remote synchronization',
+        async (status) => {
+          const { chain, unsigned, signed, eventId, action } =
+            await bchRecovery_setup();
+          await bchRecovery_DatabaseActionMock.insertTxRecord(unsigned, status);
+          let row = (await action.getTxById(unsigned.txId))!;
+          if (status === bchRecovery_TransactionStatus.signFailed) {
+            await bchRecovery_TransactionProcessor.processSignFailedTx(row);
+            row = (await action.getTxById(unsigned.txId))!;
+            expect(row.status).toEqual(bchRecovery_TransactionStatus.sent);
+            expect(row.txJson).toEqual(signed.toJson());
+          }
+          await bchRecovery_TransactionProcessor.processSentTx(row);
+          row = (await action.getTxById(unsigned.txId))!;
+          expect(row.status).toEqual(bchRecovery_TransactionStatus.completed);
+          expect(row.txId).toEqual(unsigned.txId);
+          expect(row.txJson).toEqual(signed.toJson());
+          const restored = chain.PaymentTransactionFromJson(row.txJson);
+          expect(
+            chain.verifyTransactionExtraConditions(
+              restored,
+              bchRecovery_SigningStatus.Signed,
+            ),
+          ).toEqual(true);
+          bchRecovery_mockGetEventFeeConfig({
+            bridgeFee: 0n,
+            networkFee: 0n,
+            rsnRatio: 0n,
+            feeRatio: 100n,
+            rsnRatioDivisor: 1000000000000n,
+            feeRatioDivisor: 10000n,
+          });
+          bchRecovery_mockCreateEventPaymentOrder(
+            chain.extractTransactionOrder(unsigned),
+          );
+          const sync = new bchRecovery_TestEventSynchronization();
+          sync.insertEventIntoActiveSync(eventId, {
+            timestamp: Date.now() / 1000,
+            responses: [],
+          });
+          expect(
+            await sync.callVerifySynchronizationResponse(
+              restored,
+              signed.getActualTxId()!,
+            ),
+          ).toEqual(true);
+        },
+      );
+      /**
+       * @target TransactionProcessor.processSentTx - keeps an already signed
+       * sent envelope without a wallet-history scan or rewrite
+       * @dependencies
+       * - Real BCH chain and test database; mocked network and database-update
+       * spy
+       * @scenario
+       * - Process a sent row that already stores complete signed bytes
+       * @expected
+       * - No history scan or signed-envelope rewrite occurs
+       */
+      it('keeps an already signed sent envelope without a wallet-history scan or rewrite', async () => {
+        const { network, signed, action } = await bchRecovery_setup();
+        await bchRecovery_DatabaseActionMock.insertTxRecord(
+          signed,
+          bchRecovery_TransactionStatus.sent,
+        );
+        const update = vi.spyOn(action, 'updateWithSignedTx');
+        await bchRecovery_TransactionProcessor.processSentTx(
+          (await action.getTxById(signed.txId))!,
+        );
+        expect(update).not.toHaveBeenCalled();
+        expect(network.findSignedTransaction).not.toHaveBeenCalled();
+        expect((await action.getTxById(signed.txId))!.txJson).toEqual(
+          signed.toJson(),
+        );
+      });
+      /**
+       * @target TransactionProcessor.processSentTx - preserves sent state
+       * while persisting unconfirmed bytes (confirmations %s)
+       * @dependencies
+       * - Real BCH chain and test database; mocked network history and mempool
+       * @scenario
+       * - Recover valid signed bytes with zero or absent confirmation
+       * @expected
+       * - The row remains sent and persists the recovered signed envelope
+       */
+      it.each([0, -1])(
+        'preserves sent state while persisting unconfirmed bytes (confirmations %s)',
+        async (confirmation) => {
+          const { network, unsigned, signed, action } =
+            await bchRecovery_setup();
+          network.getTxConfirmation.mockResolvedValue(confirmation);
+          network.isTxInMempool.mockResolvedValue(true);
+          await bchRecovery_DatabaseActionMock.insertTxRecord(
+            unsigned,
+            bchRecovery_TransactionStatus.sent,
+          );
+          await bchRecovery_TransactionProcessor.processSentTx(
+            (await action.getTxById(unsigned.txId))!,
+          );
+          const row = (await action.getTxById(unsigned.txId))!;
+          expect(row.status).toEqual(bchRecovery_TransactionStatus.sent);
+          expect(row.txJson).toEqual(signed.toJson());
+        },
+      );
+    });
+
+    describe('legacy envelope timing', () => {
+      const status = TransactionStatus.sent;
+      let restoreLegacyMocks: () => void;
+      beforeEach(() => {
+        restoreLegacyMocks = preserveBitcoinCashMocks([
+          [bchRecovery_ChainHandler, ['getInstance']],
+          [chainHandlerInstance, ['getChain']],
+          [bchRecovery_TransactionSerializer, ['fromJson']],
+          [TransactionProcessor, ['processApprovedTx']],
+          [Math, ['random']],
+          [
+            bchRecovery_DatabaseAction.getInstance(),
+            ['setTxStatus', 'updateTxLastCheck'],
+          ],
+        ]);
+      });
+      afterEach(() => restoreLegacyMocks());
+
+      /**
+       * @target TransactionProcessor.processSentTx preserves
+       * malformed legacy envelopes for provider outcome %s with mempool=%s
+       * @dependencies Actual serializer; controlled legacy provider and persistence ports
+       * @scenario Find the malformed row on chain or in mempool without a recovery hook
+       * @expected Preserve provider argument shape and advance state without deserialization
+       */
+      it.each([
+        [ConfirmationStatus.NotConfirmedEnough, false],
+        [ConfirmationStatus.ConfirmedEnough, false],
+        [ConfirmationStatus.NotFound, true],
+      ])(
+        'preserves malformed legacy envelopes for provider outcome %s with mempool=%s',
+        async (confirmation, mempool) => {
+          const fixture = await malformedLegacyFixture(
+            status,
+            confirmation,
+            mempool,
+          );
+          await TransactionProcessor.processSentTx(fixture.row);
+          expect(fixture.deserialize).not.toHaveBeenCalled();
+          expect(
+            fixture.chain.getTxConfirmationStatus,
+          ).toHaveBeenCalledExactlyOnceWith(fixture.row.txId, fixture.row.type);
+          if (confirmation === ConfirmationStatus.NotFound)
+            expect(fixture.chain.isTxInMempool).toHaveBeenCalledExactlyOnceWith(
+              fixture.row.txId,
+            );
+          else expect(fixture.chain.isTxInMempool).not.toHaveBeenCalled();
+          if (confirmation === ConfirmationStatus.ConfirmedEnough)
+            expect(fixture.setStatus).toHaveBeenCalledExactlyOnceWith(
+              fixture.row.txId,
+              TransactionStatus.completed,
+            );
+          else
+            expect(fixture.updateHeight).toHaveBeenCalledExactlyOnceWith(
+              fixture.row.txId,
+              321,
+            );
+        },
+      );
+
+      /**
+       * @target TransactionProcessor.processSentTx rejects a
+       * malformed legacy envelope only after both providers report absence
+       * @dependencies Actual serializer; controlled legacy provider and persistence ports
+       * @scenario Return NotFound and false mempool membership for the malformed row
+       * @expected Query both provider ports first, then reject without changing persistence
+       */
+      it('rejects a malformed legacy envelope only after both providers report absence', async () => {
+        const fixture = await malformedLegacyFixture(
+          status,
+          ConfirmationStatus.NotFound,
+        );
+        await expect(
+          TransactionProcessor.processSentTx(fixture.row),
+        ).rejects.toThrow(SyntaxError);
+        expect(
+          fixture.chain.getTxConfirmationStatus,
+        ).toHaveBeenCalledExactlyOnceWith(fixture.row.txId, fixture.row.type);
+        expect(fixture.chain.isTxInMempool).toHaveBeenCalledExactlyOnceWith(
+          fixture.row.txId,
+        );
+        expect(fixture.deserialize).toHaveBeenCalledOnce();
+        expect(fixture.setStatus).not.toHaveBeenCalled();
+        expect(fixture.updateHeight).not.toHaveBeenCalled();
+      });
+
+      /**
+       * @target TransactionProcessor.processSentTx keeps
+       * the Doge cooldown ahead of legacy deserialization and provider reads
+       * @dependencies Actual serializer; controlled Doge cooldown and provider ports
+       * @scenario Select the existing skip branch for a malformed Doge envelope
+       * @expected Skip provider/deserializer calls and retain the existing signing retry
+       */
+      it('keeps the Doge cooldown ahead of legacy deserialization and provider reads', async () => {
+        const fixture = await malformedLegacyFixture(
+          status,
+          ConfirmationStatus.NotFound,
+        );
+        fixture.row.chain = DOGE_CHAIN;
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+        const retry = vi
+          .spyOn(TransactionProcessor, 'processApprovedTx')
+          .mockResolvedValue(undefined);
+        await TransactionProcessor.processSentTx(fixture.row);
+        expect(fixture.deserialize).not.toHaveBeenCalled();
+        expect(fixture.chain.getTxConfirmationStatus).not.toHaveBeenCalled();
+        expect(retry).not.toHaveBeenCalled();
+        expect(fixture.setStatus).not.toHaveBeenCalled();
+        expect(fixture.updateHeight).not.toHaveBeenCalled();
+      });
+
+      /**
+       * @target TransactionProcessor.processSentTx rejects
+       * BCH row identity mismatch before provider or recovery calls
+       * @dependencies Actual BCH chain, authenticated unsigned envelope and migrated database
+       * @scenario Keep the exact envelope but change only its persisted approval ID
+       * @expected Refuse the context without provider reads or status advancement
+       */
+      it('rejects BCH row identity mismatch before provider or recovery calls', async () => {
+        const fixture = await bchRecovery_setup();
+        const row = Object.assign(
+          new (
+            await import('../../src/db/entities/transactionEntity')
+          ).TransactionEntity(),
+          {
+            txId: '00'.repeat(32),
+            chain: fixture.unsigned.network,
+            type: fixture.unsigned.txType,
+            status,
+            txJson: fixture.unsigned.toJson(),
+          },
+        );
+        const recover = vi.spyOn(fixture.chain, 'getRecoveredTransaction');
+        const setStatus = vi.spyOn(fixture.action, 'setTxStatus');
+        await expect(TransactionProcessor.processSentTx(row)).rejects.toThrow();
+        expect(fixture.network.getTxConfirmation).not.toHaveBeenCalled();
+        expect(fixture.network.findSignedTransaction).not.toHaveBeenCalled();
+        expect(fixture.network.isTxInMempool).not.toHaveBeenCalled();
+        expect(recover).not.toHaveBeenCalled();
+        expect(setStatus).not.toHaveBeenCalled();
+      });
     });
   });
 

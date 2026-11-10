@@ -27,17 +27,18 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 
+import EventSerializer from '../event/eventSerializer';
 import PublicStatusHandler from '../handlers/publicStatusHandler';
 import { ReprocessStatus } from '../reprocess/interfaces';
 import { AddressType, Page, SortRequest } from '../types/api';
 import { SupportedChain } from '../types/config';
 import {
   EventStatus,
+  ChainConfigKey,
   OrderStatus,
   RevenuePeriod,
   TransactionStatus,
 } from '../utils/constants';
-import Utils from '../utils/utils';
 import { AddressEntity } from './entities/addressEntity';
 import { ArbitraryEntity } from './entities/arbitraryEntity';
 import { ChainAddressBalanceEntity } from './entities/chainAddressBalanceEntity';
@@ -299,24 +300,33 @@ class DatabaseAction {
   };
 
   /**
-   * updates the tx and set status as signed
+   * updates signed bytes and status together
    * @param txId the transaction id
    * @param txJson tx json
    */
-  updateWithSignedTx = async (txId: string, txJson: string): Promise<void> => {
+  updateWithSignedTx = async (
+    txId: string,
+    txJson: string,
+    status: string = TransactionStatus.signed,
+  ): Promise<void> => {
+    if (
+      ![
+        TransactionStatus.signed,
+        TransactionStatus.signFailed,
+        TransactionStatus.sent,
+      ].includes(status)
+    )
+      throw Error('Invalid signed-envelope persistence status');
     const result: UpdateResult = await this.TransactionRepository.update(
       { txId: txId },
       {
         txJson: txJson,
-        status: TransactionStatus.signed,
+        status,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       },
     );
     if ((result.affected ?? 0) === 0) return;
-    PublicStatusHandler.getInstance().updatePublicTxStatus(
-      txId,
-      TransactionStatus.signed,
-    );
+    PublicStatusHandler.getInstance().updatePublicTxStatus(txId, status);
   };
 
   /**
@@ -472,9 +482,11 @@ class DatabaseAction {
     eventId: string,
     eventBoxHeight: number,
   ): Promise<CommitmentEntity[]> => {
+    const { requestId, extractor } = await this.getCommitmentEvent(eventId);
     return await this.CommitmentRepository.find({
       where: {
-        eventId: eventId,
+        eventId: requestId,
+        extractor,
         height: LessThan(eventBoxHeight),
         spendBlock: IsNull(),
       },
@@ -500,7 +512,7 @@ class DatabaseAction {
   insertConfirmedEvent = async (
     eventData: EventTriggerEntity,
   ): Promise<void> => {
-    const eventId = Utils.txIdToEventId(eventData.sourceTxId);
+    const eventId = EventSerializer.getId(eventData);
     const status = EventStatus.pendingPayment;
 
     await this.ConfirmedEventRepository.insert({
@@ -522,7 +534,7 @@ class DatabaseAction {
     eventData: EventTriggerEntity,
     reason: string,
   ): Promise<void> => {
-    const eventId = Utils.txIdToEventId(eventData.sourceTxId);
+    const eventId = EventSerializer.getId(eventData);
 
     await this.RejectedEventRepository.insert({
       id: eventId,
@@ -903,19 +915,44 @@ class DatabaseAction {
   };
 
   /**
-   * @param eventId
-   * @return commitments that are merged into event trigger
+   * resolves a guard identity to its verified source and on-chain request
    */
-  getEventCommitments = (eventId: string): Promise<CommitmentEntity[]> => {
+  private getCommitmentEvent = async (eventId: string) => {
+    const event = await this.getEventById(eventId);
+    if (event === null) throw new Error(`Event [${eventId}] not found`);
+    const eventData = event.eventData;
+    if (EventSerializer.getId(eventData) !== eventId)
+      throw new Error(`Event [${eventId}] has incompatible guard identity`);
+    const sourceKey = ChainConfigKey[eventData.fromChain];
+    if (typeof sourceKey !== 'string')
+      throw new Error(
+        `Unknown commitment source chain [${eventData.fromChain}]`,
+      );
+    const requestId = EventSerializer.getRequestId(eventData);
+    if (requestId !== eventData.eventId)
+      throw new Error(`Event [${eventId}] has inconsistent request identity`);
+    return {
+      eventData,
+      requestId,
+      extractor: `${sourceKey}Commitment`,
+    };
+  };
+
+  /**
+   * @param eventId the guard event identity
+   * @return commitments merged into the selected source event trigger
+   */
+  getEventCommitments = async (
+    eventId: string,
+  ): Promise<CommitmentEntity[]> => {
+    const { eventData, requestId, extractor } =
+      await this.getCommitmentEvent(eventId);
     return this.CommitmentRepository.createQueryBuilder('commitment')
-      .leftJoin(
-        'confirmed_event_entity',
-        'cee',
-        'commitment."eventId" = cee."id"',
-      )
-      .leftJoin('event_trigger_entity', 'ete', 'ete."id" = cee."eventDataId"')
-      .where('commitment."eventId" = :eventId', { eventId })
-      .andWhere('commitment."spendTxId" = ete."txId"')
+      .where('commitment."eventId" = :requestId', { requestId })
+      .andWhere('commitment."extractor" = :extractor', { extractor })
+      .andWhere('commitment."spendTxId" = :triggerTxId', {
+        triggerTxId: eventData.txId,
+      })
       .orderBy('commitment."spendIndex"', 'ASC')
       .getMany();
   };

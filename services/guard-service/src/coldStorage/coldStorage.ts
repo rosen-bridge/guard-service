@@ -19,7 +19,7 @@ import ChainHandler from '../handlers/chainHandler';
 import GuardPkHandler from '../handlers/guardPkHandler';
 import { TokenHandler } from '../handlers/tokenHandler';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
-import { SUPPORTED_CHAINS } from '../utils/constants';
+import { ACTIVE_CHAINS } from '../utils/constants';
 import GuardTurn from '../utils/guardTurn';
 import Utils from '../utils/utils';
 
@@ -31,7 +31,7 @@ class ColdStorage {
    */
   static processLockAddressAssets = async (): Promise<void> => {
     await Promise.all(
-      SUPPORTED_CHAINS.map((chain) => this.chainColdStorageProcess(chain)),
+      ACTIVE_CHAINS.map((chain) => this.chainColdStorageProcess(chain)),
     );
   };
 

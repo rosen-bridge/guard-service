@@ -114,7 +114,13 @@ class TransactionVerifier {
         );
       const paymentTxId = await ChainHandler.getInstance()
         .getChain(event.toChain)
-        .getActualTxId(eventTxs[0].txId);
+        .getActualTxId(
+          eventTxs[0].txId,
+          TransactionSerializer.fromJson(
+            eventTxs[0].txJson,
+            ChainHandler.getInstance().getChain,
+          ),
+        );
       expectedOrder = await EventOrder.createEventRewardOrder(
         event,
         eventTxId,

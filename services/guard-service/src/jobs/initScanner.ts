@@ -18,6 +18,7 @@ import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 import Configs from '../configs/configs';
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
+import GuardsBitcoinCashConfigs from '../configs/guardsBitcoinCashConfigs';
 import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
@@ -427,6 +428,36 @@ const initScanner = () => {
   ergoScanner.registerExtractor(binanceEventTriggerExtractor);
   ergoScanner.registerExtractor(bitcoinRunesCommitmentExtractor);
   ergoScanner.registerExtractor(bitcoinRunesEventTriggerExtractor);
+
+  if (GuardsBitcoinCashConfigs.enabled) {
+    const contract = GuardsBitcoinCashConfigs.bitcoinCashContractConfig;
+    const bitcoinCashCommitmentExtractor = new CommitmentExtractor(
+      'bitcoinCashCommitment',
+      [contract.addresses.Commitment],
+      contract.tokens.RWTId,
+      dataSource,
+      TokenHandler.getInstance().getTokenMap(),
+      {
+        ...commitmentInitialization,
+        address: contract.addresses.Commitment,
+      },
+      DefaultLogger.getInstance().child('bitcoin-cash-commitment-extractor'),
+    );
+    const bitcoinCashEventTriggerExtractor = new EventTriggerExtractor(
+      'bitcoinCashEventTrigger',
+      dataSource,
+      networkType,
+      networkUrl,
+      contract.addresses.WatcherTriggerEvent,
+      contract.tokens.RWTId,
+      contract.addresses.WatcherPermit,
+      contract.addresses.Fraud,
+      DefaultLogger.getInstance().child('bitcoin-cash-event-trigger-extractor'),
+      initialization,
+    );
+    ergoScanner.registerExtractor(bitcoinCashCommitmentExtractor);
+    ergoScanner.registerExtractor(bitcoinCashEventTriggerExtractor);
+  }
 
   ergoScannerJob();
 

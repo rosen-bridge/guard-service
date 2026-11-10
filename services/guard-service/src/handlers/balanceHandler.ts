@@ -3,6 +3,7 @@ import { chunk } from 'lodash-es';
 import { RosenTokens } from '@rosen-bridge/tokens';
 import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
+import { BITCOIN_CASH_CHAIN, BCH } from '@rosen-chains/bitcoin-cash';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
@@ -23,7 +24,7 @@ import { AddressBalance, Page } from '../types/api';
 import {
   ChainConfigKey,
   ChainNativeToken,
-  SUPPORTED_CHAINS,
+  ACTIVE_CHAINS,
 } from '../utils/constants';
 import { getTokenData } from '../utils/getTokenData';
 import ChainHandler from './chainHandler';
@@ -39,7 +40,7 @@ class BalanceHandler {
    * @returns BalanceHandler instance
    */
   protected constructor() {
-    for (const chain of SUPPORTED_CHAINS) {
+    for (const chain of ACTIVE_CHAINS) {
       switch (chain) {
         case ERGO_CHAIN:
           this.nativeTokenIds[chain] = ERG;
@@ -59,6 +60,11 @@ class BalanceHandler {
           this.nativeTokenIds[chain] = BTC;
           this.chainsTokensPerIteration[chain] =
             Configs.balanceHandler.bitcoin.tokensPerIteration.esplora;
+          break;
+        case BITCOIN_CASH_CHAIN:
+          this.nativeTokenIds[chain] = BCH;
+          this.chainsTokensPerIteration[chain] =
+            Configs.balanceHandler.bitcoinCash.tokensPerIteration.rpc;
           break;
         case DOGE_CHAIN:
           this.nativeTokenIds[chain] = DOGE;
@@ -125,7 +131,7 @@ class BalanceHandler {
   getNativeTokenBalances = async (): Promise<AddressBalance[]> => {
     const nativeTokenIds: Set<string> = new Set();
 
-    for (const chain of SUPPORTED_CHAINS) {
+    for (const chain of ACTIVE_CHAINS) {
       nativeTokenIds.add(ChainNativeToken[chain]);
     }
 
@@ -155,7 +161,7 @@ class BalanceHandler {
   ): Promise<Page<AddressBalance>> => {
     const addresses: string[] = [];
 
-    const chains = chain ? [chain] : SUPPORTED_CHAINS;
+    const chains = chain ? [chain] : ACTIVE_CHAINS;
     for (const chain of chains) {
       const chainConfig = ChainHandler.getInstance()
         .getChain(chain)

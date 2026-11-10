@@ -44,7 +44,9 @@ class EventProcessor {
           )
         ) {
           // check if any other valid trigger is confirmed and verified for this event
-          const eventEntity = await dbAction.getEventById(event.eventId);
+          const eventEntity = await dbAction.getEventById(
+            EventSerializer.getId(event),
+          );
           if (eventEntity && eventEntity.eventData.id !== event.id) {
             logger.warn(
               `Event [${event.eventId}] is already confirmed and verified in tx [${eventEntity.eventData.txId}]. Marking trigger tx [${event.txId}] as rejected`,
@@ -301,7 +303,13 @@ class EventProcessor {
       );
 
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
-    const paymentTxId = await targetChain.getActualTxId(eventTxs[0].txId);
+    const paymentTxId = await targetChain.getActualTxId(
+      eventTxs[0].txId,
+      TransactionSerializer.fromJson(
+        eventTxs[0].txJson,
+        ChainHandler.getInstance().getChain,
+      ),
+    );
 
     // get minimum-fee and verify event
     const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
