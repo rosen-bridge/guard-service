@@ -1,5 +1,14 @@
 # @rosen-chains/doge-rpc
 
+## 1.0.6
+
+### Patch Changes
+
+- Add `jsonrpc: '2.0'` to JSON-RPC requests so providers that require it no longer reject them
+- Update dependencies
+  - @rosen-chains/abstract-chain@17.0.1
+  - @rosen-chains/doge@5.0.1
+
 ## 1.0.5
 
 ### Patch Changes

@@ -33,7 +33,7 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/tokens": "^6.0.2",
-    "@rosen-chains/evm": "^10.0.0"
+    "@rosen-chains/evm": "^10.0.3"
   },
   "engines": {
     "node": ">=22.18.0",
