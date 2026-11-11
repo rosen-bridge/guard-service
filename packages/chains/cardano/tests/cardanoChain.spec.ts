@@ -1324,7 +1324,8 @@ describe('CardanoChain', () => {
 
       // call the function
       const cardanoChain = await TestUtils.generateChainObject(network);
-      const result = cardanoChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await cardanoChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1361,7 +1362,8 @@ describe('CardanoChain', () => {
       );
 
       // call the function
-      const result = cardanoChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await cardanoChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);

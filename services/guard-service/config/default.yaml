@@ -25,6 +25,7 @@ binance:
       heightGap: 1600 # number of blocks in each batch in fast-forward feature (it has no effect if `isEnabled` is false)
       checkNonceAtHeight: false # checks the address nonce at the batch height. Enable this only when your RPC API supports historical requests (it has no effect if `isEnabled` is false)
   maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
+  activeNonceLengthLimit: 10 # maximum number of distinct nonces that can be in flight at once (orthogonal to maxParallelTx, which limits txs per nonce). Total in-flight txs <= maxParallelTx * activeNonceLengthLimit
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
   gasLimitMultiplier: 3 # a multiplication of current gas limit will be used in txs
@@ -192,6 +193,7 @@ ethereum:
       heightGap: 100 # number of blocks in each batch in fast-forward feature (it has no effect if `isEnabled` is false)
       checkNonceAtHeight: false # checks the address nonce at the batch height. Enable this only when your RPC API supports historical requests (it has no effect if `isEnabled` is false)
   maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
+  activeNonceLengthLimit: 10 # maximum number of distinct nonces that can be in flight at once (orthogonal to maxParallelTx, which limits txs per nonce). Total in-flight txs <= maxParallelTx * activeNonceLengthLimit
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
   gasLimitMultiplier: 3 # a multiplication of current gas limit will be used in txs

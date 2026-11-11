@@ -494,7 +494,8 @@ describe('HandshakeChain', () => {
 
       // run test
       const handshakeChain = await testUtils.generateChainObject(network);
-      const result = handshakeChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await handshakeChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
@@ -527,7 +528,7 @@ describe('HandshakeChain', () => {
         // run test
         const handshakeChain = await testUtils.generateChainObject(network);
         const result =
-          handshakeChain.verifyTransactionExtraConditions(paymentTx);
+          await handshakeChain.verifyTransactionExtraConditions(paymentTx);
 
         // check returned value
         expect(result).toEqual(false);
@@ -567,7 +568,8 @@ describe('HandshakeChain', () => {
       );
 
       // run test
-      const result = handshakeChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await handshakeChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);

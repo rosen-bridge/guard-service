@@ -384,11 +384,11 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
    * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
-  verifyTransactionExtraConditions = (
+  verifyTransactionExtraConditions = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     signingStatus: SigningStatus = SigningStatus.UnSigned,
-  ): boolean => {
+  ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
     // check change box

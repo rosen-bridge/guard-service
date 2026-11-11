@@ -4,3 +4,4 @@ export { EcdsaSignMediator as EvmChainSignMediator } from '@rosen-chains/abstrac
 
 export * from './types';
 export * from './constants';
+export * from './errors';

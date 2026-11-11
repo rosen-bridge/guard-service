@@ -465,7 +465,8 @@ describe('BitcoinChain', () => {
 
       // run test
       const bitcoinChain = await testUtils.generateChainObject(network);
-      const result = bitcoinChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await bitcoinChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
@@ -502,7 +503,8 @@ describe('BitcoinChain', () => {
       );
 
       // run test
-      const result = bitcoinChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await bitcoinChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);

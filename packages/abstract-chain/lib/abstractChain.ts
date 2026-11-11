@@ -153,7 +153,7 @@ abstract class AbstractChain<TxType> {
   abstract verifyTransactionExtraConditions: (
     transaction: PaymentTransaction,
     signingStatus: SigningStatus,
-  ) => boolean;
+  ) => Promise<boolean>;
 
   /**
    * verifies an event data with its corresponding lock transaction

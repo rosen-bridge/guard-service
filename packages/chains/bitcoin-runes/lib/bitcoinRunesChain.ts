@@ -891,11 +891,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
-  verifyTransactionExtraConditions = (
+  verifyTransactionExtraConditions = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     signingStatus: SigningStatus = SigningStatus.UnSigned,
-  ): boolean => {
+  ): Promise<boolean> => {
     const psbt = Serializer.deserialize(transaction.txBytes);
     const bitcoinTx = transaction as BitcoinRunesTransaction;
     const baseError = `Tx [${transaction.txId}] is not verified: `;

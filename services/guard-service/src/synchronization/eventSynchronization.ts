@@ -494,7 +494,9 @@ class EventSynchronization extends Communicator {
     }
 
     // check chain-specific conditions
-    if (!chain.verifyTransactionExtraConditions(tx, SigningStatus.Signed)) {
+    if (
+      !(await chain.verifyTransactionExtraConditions(tx, SigningStatus.Signed))
+    ) {
       logger.warn(baseError + `extra conditions are not verified`);
       return false;
     }

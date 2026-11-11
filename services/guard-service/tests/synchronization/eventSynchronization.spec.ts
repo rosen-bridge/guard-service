@@ -979,7 +979,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'verifyTransactionExtraConditions',
         true,
-        false,
+        true,
       );
       // mock `getActualTxId`
       ChainHandlerMock.mockChainFunction(
@@ -1116,7 +1116,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'verifyTransactionExtraConditions',
         true,
-        false,
+        true,
       );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
@@ -1217,7 +1217,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'verifyTransactionExtraConditions',
         true,
-        false,
+        true,
       );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
@@ -1317,7 +1317,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'verifyTransactionExtraConditions',
         true,
-        false,
+        true,
       );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
@@ -1417,7 +1417,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'verifyTransactionExtraConditions',
         true,
-        false,
+        true,
       );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
@@ -1525,7 +1525,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'verifyTransactionExtraConditions',
         true,
-        false,
+        true,
       );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
@@ -1625,7 +1625,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'verifyTransactionExtraConditions',
         true,
-        false,
+        true,
       );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
@@ -1726,7 +1726,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'verifyTransactionExtraConditions',
         false,
-        false,
+        true,
       );
       // mock `getActualTxId`
       ChainHandlerMock.mockChainFunction(

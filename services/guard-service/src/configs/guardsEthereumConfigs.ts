@@ -30,6 +30,9 @@ class GuardsEthereumConfigs {
 
   // value configs
   static maxParallelTx = config.get<number>('ethereum.maxParallelTx');
+  static activeNonceLengthLimit = config.get<number>(
+    'ethereum.activeNonceLengthLimit',
+  );
   static gasPriceSlippage = BigInt(
     config.get<number>('ethereum.gasPriceSlippage'),
   );
@@ -88,6 +91,7 @@ class GuardsEthereumConfigs {
     },
     rwtId: this.ethereumContractConfig.tokens.RWTId,
     maxParallelTx: this.maxParallelTx,
+    activeNonceLengthLimit: this.activeNonceLengthLimit,
     gasPriceSlippage: this.gasPriceSlippage,
     gasLimitSlippage: this.gasLimitSlippage,
     gasLimitMultiplier: this.gasLimitMultiplier,

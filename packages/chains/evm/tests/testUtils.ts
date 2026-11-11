@@ -21,6 +21,7 @@ const rwtId =
   '9410db5b39388c6b515160e7248346d7ec63d5457292326da12a26cc02efb526';
 export const configs: EvmConfigs = {
   maxParallelTx: 10,
+  activeNonceLengthLimit: 10,
   fee: 1000000n,
   addresses: {
     lock: testData.lockAddress,

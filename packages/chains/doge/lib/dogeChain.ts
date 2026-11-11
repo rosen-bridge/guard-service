@@ -412,9 +412,9 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    * @param transaction the PaymentTransaction
    * @returns true if the transaction is verified
    */
-  verifyTransactionExtraConditions = (
+  verifyTransactionExtraConditions = async (
     transaction: PaymentTransaction,
-  ): boolean => {
+  ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
     // check change box

@@ -427,11 +427,11 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
    * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
-  verifyTransactionExtraConditions = (
+  verifyTransactionExtraConditions = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     signingStatus: SigningStatus = SigningStatus.UnSigned,
-  ): boolean => {
+  ): Promise<boolean> => {
     const mtx = Serializer.deserialize(transaction.txBytes);
 
     if (mtx.outputs.some((output) => output.covenant.type !== 0)) {

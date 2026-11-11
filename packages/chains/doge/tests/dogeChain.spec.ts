@@ -628,7 +628,8 @@ describe('DogeChain', () => {
 
       // run test
       const dogeChain = await testUtils.generateChainObject(network);
-      const result = dogeChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await dogeChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
@@ -666,7 +667,8 @@ describe('DogeChain', () => {
       );
 
       // run test
-      const result = dogeChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await dogeChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);

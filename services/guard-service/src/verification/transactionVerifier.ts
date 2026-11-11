@@ -61,7 +61,12 @@ class TransactionVerifier {
     }
 
     // verify extra conditions
-    if (!chain.verifyTransactionExtraConditions(tx, SigningStatus.UnSigned)) {
+    if (
+      !(await chain.verifyTransactionExtraConditions(
+        tx,
+        SigningStatus.UnSigned,
+      ))
+    ) {
       logger.debug(
         `Transaction [${tx.txId}] is invalid: Extra conditions are not verified`,
       );

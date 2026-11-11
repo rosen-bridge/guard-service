@@ -587,10 +587,10 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
    * @param signingStatus the signing status of transaction
    * @returns true if the transaction verified
    */
-  verifyTransactionExtraConditions = (
+  verifyTransactionExtraConditions = async (
     transaction: PaymentTransaction,
     signingStatus: SigningStatus = SigningStatus.UnSigned,
-  ): boolean => {
+  ): Promise<boolean> => {
     // deserialize transaction
     let tx: wasm.Transaction | wasm.UnsignedTransaction;
     try {

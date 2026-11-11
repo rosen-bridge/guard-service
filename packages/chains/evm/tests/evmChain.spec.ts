@@ -11,7 +11,7 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 
-import { EvmTxStatus } from '../lib';
+import { EvmTxStatus, MaxActiveNonceExceededError } from '../lib';
 import Serializer from '../lib/serializer';
 import TestEvmNetwork from './network/testEvmNetwork';
 import TestChain from './testChain';
@@ -728,6 +728,42 @@ describe('EvmChain', () => {
 
       // check gas price
       expect(tx.gasPrice).toEqual(10n);
+    });
+    /**
+     * @target EvmChain.generateMultipleTransactions should throw
+     * MaxActiveNonceExceededError when the last order exceeds activeNonceLengthLimit
+     * @dependencies
+     * @scenario
+     * - set activeNonceLengthLimit = 3 and use a multi-order payment
+     *   which splits into more than 3 transactions
+     * - mock hasLockAddressEnoughAssets, getFeeData, getGasRequired, getAddressNextNonce
+     * - call the function
+     * @expected
+     * - throw MaxActiveNonceExceededError
+     */
+    it('should throw MaxActiveNonceExceededError when the last order exceeds activeNonceLengthLimit', async () => {
+      const network = new TestEvmNetwork();
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.tokenMapWithVariousTestTokens,
+      );
+      evmChain.configs = { ...evmChain.configs, activeNonceLengthLimit: 3 };
+      testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
+      testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
+      testUtils.mockGetGasRequired(network, 21000n);
+      testUtils.mockGetAddressNextAvailableNonce(network, 54);
+
+      await expect(
+        evmChain.generateMultipleTransactions(
+          'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          TransactionType.payment,
+          TestData.multipleOrders,
+          [],
+          [],
+        ),
+      ).rejects.toThrow(MaxActiveNonceExceededError);
     });
   });
 
@@ -1954,6 +1990,11 @@ describe('EvmChain', () => {
     const network = new TestEvmNetwork();
     const evmChain = await testUtils.generateChainObject(network);
 
+    beforeEach(() => {
+      // next available nonce is far above test transactions' nonce by default
+      testUtils.mockGetAddressNextAvailableNonce(network, 1000);
+    });
+
     /**
      * @target EvmChain.verifyTransactionExtraConditions should return true
      * for erc-20 transfer when extra conditions are met and eventId is not empty
@@ -1979,7 +2020,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
@@ -2011,7 +2052,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
@@ -2045,7 +2086,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
@@ -2080,7 +2121,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
@@ -2114,7 +2155,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -2148,7 +2189,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -2184,7 +2225,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -2217,7 +2258,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -2252,7 +2293,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -2286,7 +2327,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -2320,9 +2361,37 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target EvmChain.verifyTransactionExtraConditions should return false
+     * when nonce is equal to next available nonce + activeNonceLengthLimit
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction with nonce 10 (activeNonceLengthLimit is 10)
+     * - mock getAddressNextAvailableNonce to return 0
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when nonce is equal to next available nonce + activeNonceLengthLimit', async () => {
+      const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        Serializer.serialize(tx),
+        TransactionType.payment,
+      );
+      testUtils.mockGetAddressNextAvailableNonce(network, 0);
+
+      const result = await evmChain.verifyTransactionExtraConditions(paymentTx);
+
       expect(result).toEqual(false);
     });
   });

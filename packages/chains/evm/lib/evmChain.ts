@@ -25,6 +25,7 @@ import {
   EcdsaSignMediator,
 } from '@rosen-chains/abstract-chain';
 
+import { MaxActiveNonceExceededError } from './errors';
 import * as EvmUtils from './evmUtils';
 import AbstractEvmNetwork from './network/abstractEvmNetwork';
 import Serializer from './serializer';
@@ -81,7 +82,9 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * generates single or multiple unsigned PaymentTransactions for a payment order
    * performs the following checks before:
    * - in case of erc-20 transfer, the tokenId must be in our supported list
-   * - number of pending transactions shouldn't exceed our maxParallelTx
+   * - number of pending transactions per nonce shouldn't exceed our maxParallelTx
+   * - the last assigned nonce must be within activeNonceLengthLimit of the next available
+   *   nonce (otherwise MaxActiveNonceExceededError is thrown)
    * - lock address should have enough balance
    * - nonces must be set in sequential order starting from next available nonce
    * @param eventId the id of event
@@ -126,6 +129,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     let nextNonce = await this.network.getAddressNextAvailableNonce(
       this.configs.addresses.lock,
     );
+    const firstAvailableNonce = nextNonce;
     const nonceCount = new Map<number, number>();
     unsignedTransactions.forEach((tx) => {
       const nonce = Serializer.deserialize(tx.txBytes).nonce;
@@ -143,6 +147,19 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     });
     while ((nonceCount.get(nextNonce) ?? 0) >= this.configs.maxParallelTx) {
       nextNonce++;
+    }
+
+    // the last order gets nonce `nextNonce + orders.length - 1`
+    const lastNonce = nextNonce + orders.length - 1;
+    if (
+      lastNonce >=
+      firstAvailableNonce + this.configs.activeNonceLengthLimit
+    ) {
+      throw new MaxActiveNonceExceededError(
+        `Cannot generate transaction: nonce [${lastNonce}] exceeds the active nonce range [${firstAvailableNonce}, ${
+          firstAvailableNonce + this.configs.activeNonceLengthLimit
+        }) (activeNonceLengthLimit: ${this.configs.activeNonceLengthLimit})`,
+      );
     }
 
     const feeData = await this.network.getFeeData();
@@ -809,15 +826,17 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * - eventId must be at the end of the `data`
    * - multiple payments are not allowed in one transaction
    * - in case of erc-20 transfer, `data` must be appropriately parsed with the `transfer` ABI
+   * - nonce must be lower than next available nonce + activeNonceLengthLimit
+   *   (no lower bound, since already mined transactions are verified too)
    * @param transaction the PaymentTransaction
    * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
-  verifyTransactionExtraConditions = (
+  verifyTransactionExtraConditions = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     signingStatus: SigningStatus = SigningStatus.UnSigned,
-  ): boolean => {
+  ): Promise<boolean> => {
     let tx: Transaction;
     try {
       tx = Serializer.deserialize(transaction.txBytes);
@@ -877,6 +896,18 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         );
         return false;
       }
+    }
+
+    // nonce must not be too far from the next available nonce
+    const nextNonce = await this.network.getAddressNextAvailableNonce(
+      this.configs.addresses.lock,
+    );
+    const maxNonce = nextNonce + this.configs.activeNonceLengthLimit;
+    if (tx.nonce >= maxNonce) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified. Nonce [${tx.nonce}] is not lower than the allowed bound [${maxNonce}] (next available nonce [${nextNonce}] + activeNonceLengthLimit [${this.configs.activeNonceLengthLimit}])`,
+      );
+      return false;
     }
 
     return true;

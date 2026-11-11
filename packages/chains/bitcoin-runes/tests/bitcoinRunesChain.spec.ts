@@ -1485,7 +1485,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
@@ -1513,7 +1513,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
@@ -1551,7 +1551,7 @@ describe('BitcoinRunesChain', () => {
 
       // run test
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1591,7 +1591,7 @@ describe('BitcoinRunesChain', () => {
 
       // run test
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1619,7 +1619,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1647,7 +1647,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1675,7 +1675,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1703,7 +1703,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1731,7 +1731,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1759,7 +1759,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1788,7 +1788,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1817,7 +1817,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1845,7 +1845,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1873,7 +1873,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1901,7 +1901,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);
@@ -1929,7 +1929,7 @@ describe('BitcoinRunesChain', () => {
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result =
-        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+        await bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toEqual(false);

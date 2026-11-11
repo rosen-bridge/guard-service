@@ -578,7 +578,8 @@ describe('FiroChain', () => {
 
       // run test
       const firoChain = await testUtils.generateChainObject(network);
-      const result = firoChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await firoChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toBe(true);
@@ -603,7 +604,8 @@ describe('FiroChain', () => {
 
       // run test
       const firoChain = await testUtils.generateChainObject(network);
-      const result = firoChain.verifyTransactionExtraConditions(paymentTx);
+      const result =
+        await firoChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
       expect(result).toBe(false);

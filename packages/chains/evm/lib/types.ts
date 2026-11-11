@@ -2,6 +2,7 @@ import { ChainConfigs } from '@rosen-chains/abstract-chain';
 
 export interface EvmConfigs extends ChainConfigs {
   maxParallelTx: number;
+  activeNonceLengthLimit: number;
   gasPriceSlippage: bigint;
   gasLimitSlippage: bigint;
   gasLimitMultiplier: bigint;

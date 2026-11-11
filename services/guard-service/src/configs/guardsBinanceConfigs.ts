@@ -30,6 +30,9 @@ class GuardsBinanceConfigs {
 
   // value configs
   static maxParallelTx = config.get<number>('binance.maxParallelTx');
+  static activeNonceLengthLimit = config.get<number>(
+    'binance.activeNonceLengthLimit',
+  );
   static gasPriceSlippage = BigInt(
     config.get<number>('binance.gasPriceSlippage'),
   );
@@ -88,6 +91,7 @@ class GuardsBinanceConfigs {
     },
     rwtId: this.binanceContractConfig.tokens.RWTId,
     maxParallelTx: this.maxParallelTx,
+    activeNonceLengthLimit: this.activeNonceLengthLimit,
     gasPriceSlippage: this.gasPriceSlippage,
     gasLimitSlippage: this.gasLimitSlippage,
     gasLimitMultiplier: this.gasLimitMultiplier,

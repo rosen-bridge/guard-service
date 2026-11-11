@@ -638,11 +638,11 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    * @param signingStatus the signing status of transaction
    * @returns true if all conditions are met
    */
-  verifyTransactionExtraConditions = (
+  verifyTransactionExtraConditions = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     signingStatus: SigningStatus = SigningStatus.UnSigned,
-  ): boolean => {
+  ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
     // check metadata

@@ -77,6 +77,7 @@ describe('TransactionVerifier', () => {
         chain,
         'verifyTransactionExtraConditions',
         true,
+        true,
       );
 
       // run test
@@ -130,6 +131,7 @@ describe('TransactionVerifier', () => {
       ChainHandlerMock.mockChainFunction(
         chain,
         'verifyTransactionExtraConditions',
+        true,
         true,
       );
 
@@ -185,6 +187,7 @@ describe('TransactionVerifier', () => {
         chain,
         'verifyTransactionExtraConditions',
         true,
+        true,
       );
 
       // run test
@@ -238,6 +241,7 @@ describe('TransactionVerifier', () => {
       ChainHandlerMock.mockChainFunction(
         chain,
         'verifyTransactionExtraConditions',
+        true,
         true,
       );
 
@@ -293,6 +297,7 @@ describe('TransactionVerifier', () => {
         chain,
         'verifyTransactionExtraConditions',
         false,
+        true,
       );
 
       // run test
