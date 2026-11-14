@@ -1082,7 +1082,7 @@ describe('DogeChain', () => {
     it('should return true when data is consistent', async () => {
       // mock a DogeTransaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction2PaymentTransaction,
+        testData.transaction0PaymentTransaction,
       );
 
       // run test
@@ -1107,7 +1107,7 @@ describe('DogeChain', () => {
     it('should return false when transaction id is wrong', async () => {
       // mock a DogeTransaction with changed txId
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction2PaymentTransaction,
+        testData.transaction0PaymentTransaction,
       );
       paymentTx.txId = testUtils.generateRandomId();
 
@@ -1133,7 +1133,7 @@ describe('DogeChain', () => {
     it('should return false when number of utxos is wrong', async () => {
       // mock a DogeTransaction with less utxos
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction2PaymentTransaction,
+        testData.transaction0PaymentTransaction,
       );
       paymentTx.inputUtxos.pop();
 
@@ -1159,12 +1159,166 @@ describe('DogeChain', () => {
     it('should return false when at least one of the utxos is wrong', async () => {
       // mock a DogeTransaction with changed utxo
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction2PaymentTransaction,
+        testData.transaction0PaymentTransaction,
       );
       paymentTx.inputUtxos[1] = JsonBigInt.stringify({
         txId: testUtils.generateRandomId(),
         index: 1,
       });
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return false
+     * when an input value differs from the parent output value
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction with changed input value
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when an input value differs from the parent output value', async () => {
+      // mock a DogeTransaction with changed input value
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction0PaymentTransaction,
+      );
+      paymentTx.inputUtxos[0] = JsonBigInt.stringify({
+        ...JsonBigInt.parse(paymentTx.inputUtxos[0]),
+        value: 400000000n,
+      });
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return false
+     * when nonWitnessUtxo is absent for an input
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction without nonWitnessUtxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when nonWitnessUtxo is absent for an input', async () => {
+      // mock a DogeTransaction without nonWitnessUtxo
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return false
+     * when nonWitnessUtxo id does not match the input
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction with wrong nonWitnessUtxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when nonWitnessUtxo id does not match the input', async () => {
+      // mock a DogeTransaction with wrong nonWitnessUtxo
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transactionWrongParentTxPaymentTransaction,
+      );
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return false
+     * when parent output script is not the lock script
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction with a parent output of another script
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when parent output script is not the lock script', async () => {
+      // mock a DogeTransaction with a parent output of another script
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transactionWrongParentScriptPaymentTransaction,
+      );
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return false
+     * when nonWitnessUtxo is not parsable
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction with an unparsable nonWitnessUtxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when nonWitnessUtxo is not parsable', async () => {
+      // mock a DogeTransaction with an unparsable nonWitnessUtxo
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transactionUnparsableNonWitnessUtxoPaymentTransaction,
+      );
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return false
+     * when parent transaction has no output at the input index
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction whose input references a missing parent output
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when parent transaction has no output at the input index', async () => {
+      // mock a DogeTransaction whose input references a missing parent output
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transactionMissingParentOutputPaymentTransaction,
+      );
 
       // run test
       const dogeChain = await testUtils.generateChainObject(network);

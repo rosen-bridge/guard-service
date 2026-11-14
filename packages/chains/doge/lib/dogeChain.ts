@@ -742,6 +742,14 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
 
   /**
    * verifies consistency within the PaymentTransaction object
+   * - verify txId
+   * - verify inputUtxos
+   *   - verify input count
+   *   - verify input box id
+   *   - verify input box against the embedded parent transaction (nonWitnessUtxo)
+   *     - parent transaction id
+   *     - input box value
+   *     - input box lock script
    * @param transaction the PaymentTransaction
    * @returns true if the transaction is verified
    */
@@ -780,6 +788,54 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
         this.logger.warn(
           baseError +
             `Utxo id for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualInputId}]`,
+        );
+        return false;
+      }
+
+      // verify input value and lock script using the embedded parent transaction
+      const nonWitnessUtxo = psbt.data.inputs[i].nonWitnessUtxo;
+      if (!nonWitnessUtxo) {
+        this.logger.warn(
+          baseError + `Input at index [${i}] has no nonWitnessUtxo`,
+        );
+        return false;
+      }
+      let parent: Transaction;
+      try {
+        parent = Transaction.fromBuffer(nonWitnessUtxo);
+      } catch (e) {
+        this.logger.warn(
+          baseError +
+            `nonWitnessUtxo of input at index [${i}] is not parsable: ${e}`,
+        );
+        return false;
+      }
+      if (parent.getId() !== dogeInput.txId) {
+        this.logger.warn(
+          baseError +
+            `nonWitnessUtxo id of input at index [${i}] is inconsistent [expected ${dogeInput.txId} found ${parent.getId()}]`,
+        );
+        return false;
+      }
+      const parentOutput = parent.outs[dogeInput.index];
+      if (parentOutput === undefined) {
+        this.logger.warn(
+          baseError +
+            `nonWitnessUtxo of input at index [${i}] has no output at index [${dogeInput.index}]`,
+        );
+        return false;
+      }
+      if (BigInt(parentOutput.value) !== dogeInput.value) {
+        this.logger.warn(
+          baseError +
+            `Utxo value for input at index [${i}] is inconsistent [expected ${dogeInput.value} found ${parentOutput.value}]`,
+        );
+        return false;
+      }
+      if (parentOutput.script.toString('hex') !== this.lockScript) {
+        this.logger.warn(
+          baseError +
+            `Utxo script for input at index [${i}] is not the lock script`,
         );
         return false;
       }

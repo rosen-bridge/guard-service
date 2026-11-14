@@ -379,6 +379,160 @@ describe('FiroChain', () => {
       // check returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when an input value differs from the parent output value
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with changed input value
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when an input value differs from the parent output value', async () => {
+      // mock a FiroTransaction with changed input value
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      paymentTx.inputUtxos[0] = JsonBigInt.stringify({
+        ...JsonBigInt.parse(paymentTx.inputUtxos[0]),
+        value: 400000000n,
+      });
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when nonWitnessUtxo is absent for an input
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction without nonWitnessUtxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when nonWitnessUtxo is absent for an input', async () => {
+      // mock a FiroTransaction without nonWitnessUtxo
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionNoNonWitnessUtxoPaymentTransaction,
+      );
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when nonWitnessUtxo id does not match the input
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with wrong nonWitnessUtxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when nonWitnessUtxo id does not match the input', async () => {
+      // mock a FiroTransaction with wrong nonWitnessUtxo
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionWrongParentTxPaymentTransaction,
+      );
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when parent output script is not the lock script
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with a parent output of another script
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when parent output script is not the lock script', async () => {
+      // mock a FiroTransaction with a parent output of another script
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionWrongParentScriptPaymentTransaction,
+      );
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when nonWitnessUtxo is not parsable
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with an unparsable nonWitnessUtxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when nonWitnessUtxo is not parsable', async () => {
+      // mock a FiroTransaction with an unparsable nonWitnessUtxo
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionUnparsableNonWitnessUtxoPaymentTransaction,
+      );
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when parent transaction has no output at the input index
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction whose input references a missing parent output
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when parent transaction has no output at the input index', async () => {
+      // mock a FiroTransaction whose input references a missing parent output
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionMissingParentOutputPaymentTransaction,
+      );
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
   });
 
   describe('getTransactionAssets', () => {
