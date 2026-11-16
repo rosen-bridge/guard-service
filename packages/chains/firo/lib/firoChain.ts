@@ -144,13 +144,6 @@ class FiroChain extends AbstractUtxoChain<FiroTx, FiroUtxo> {
       },
     );
 
-    // Save the hex bytes of the signed transaction in case their utxos are going to be spent in this transaction
-    const txToHex: Record<string, string> = {};
-    for (const serializedTx of finalizedSignedTransactions) {
-      const psbt = Psbt.fromHex(serializedTx, { network: FIRO_NETWORK });
-      const tx = psbt.extractTransaction(true);
-      txToHex[tx.getId()] = tx.toHex();
-    }
     const trackMap = this.getTransactionsBoxMapping(
       finalizedSignedTransactions.map((serializedTx) =>
         Psbt.fromHex(serializedTx, { network: FIRO_NETWORK }),
@@ -206,18 +199,16 @@ class FiroChain extends AbstractUtxoChain<FiroTx, FiroUtxo> {
       );
     }
 
-    // Fetch transaction hex for boxes not in txToHex map
-    for (const box of coveredBoxes.boxes) {
-      if (!txToHex[box.txId]) {
-        txToHex[box.txId] = await this.network.getTransactionHex(box.txId);
-      }
-    }
-
     // Add inputs
     const txInputs = coveredBoxes.boxes.map((box) => ({
       hash: box.txId,
       index: box.index,
-      nonWitnessUtxo: Buffer.from(txToHex[box.txId], 'hex'),
+      // bitcoinjs-lib cannot parse Firo special transactions (e.g. Spark spends), so the previous
+      // transaction is not attached. The lock script and value are all that is needed to finalize.
+      witnessUtxo: {
+        script: Buffer.from(this.lockScript, 'hex'),
+        value: Number(box.value),
+      },
     }));
 
     // Calculate total FIRO available from inputs
@@ -270,7 +261,7 @@ class FiroChain extends AbstractUtxoChain<FiroTx, FiroUtxo> {
       psbt.addInput({
         hash: input.hash,
         index: input.index,
-        nonWitnessUtxo: input.nonWitnessUtxo,
+        witnessUtxo: input.witnessUtxo,
       });
     }
 
