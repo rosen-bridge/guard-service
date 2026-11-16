@@ -332,6 +332,7 @@ describe('AbstractChain', () => {
      *   - 'getBlockTransactionIds'
      *   - 'getTransaction'
      *   - 'getBlockInfo' to return event block height
+     * - mock verifyLockTransactionExtraConditions to return true
      * - mock rosen-extractor to return event data (expect for a key which
      *   should be wrong)
      * - run test
@@ -386,6 +387,13 @@ describe('AbstractChain', () => {
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(invalidData);
 
+      // mock verifyLockTransactionExtraConditions to return true
+      const verifyLockTxSpy = vi.spyOn(
+        chain,
+        'verifyLockTransactionExtraConditions',
+      );
+      verifyLockTxSpy.mockResolvedValueOnce(true);
+
       // run test
       const result = await chain.verifyEvent(event, feeConfig);
 
@@ -403,6 +411,7 @@ describe('AbstractChain', () => {
      *   - 'getBlockTransactionIds'
      *   - 'getTransaction'
      *   - 'getBlockInfo' to return event block height
+     * - mock verifyLockTransactionExtraConditions to return true
      * - mock rosen-extractor to return event data (expect for a key which
      *   should be wrong)
      * - run test
@@ -443,6 +452,13 @@ describe('AbstractChain', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
+
+      // mock verifyLockTransactionExtraConditions to return true
+      const verifyLockTxSpy = vi.spyOn(
+        chain,
+        'verifyLockTransactionExtraConditions',
+      );
+      verifyLockTxSpy.mockResolvedValueOnce(true);
 
       // run test
       const result = await chain.verifyEvent(event, feeConfig);
@@ -675,12 +691,13 @@ describe('AbstractChain', () => {
      *   - 'getBlockTransactionIds'
      *   - 'getTransaction'
      *   - 'getBlockInfo' to return event block height
-     * - mock rosen-extractor to return event d ata
      * - mock verifyLockTransactionExtraConditions to return false
      * - run test
      * - check returned value
+     * - check if functions got called
      * @expected
      * - it should return false
+     * - rosen-extractor should not have been called
      */
     it('should return false when lock tx is not verified', async () => {
       //  mock an event
@@ -710,11 +727,9 @@ describe('AbstractChain', () => {
         height: event.sourceChainHeight,
       } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-      // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
-      extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
       // mock verifyLockTransactionExtraConditions to return false
       const verifyLockTxSpy = vi.spyOn(
@@ -728,6 +743,9 @@ describe('AbstractChain', () => {
 
       // check returned value
       expect(result).toEqual(false);
+
+      // check rosen-extractor was not called
+      expect(extractorSpy).not.toHaveBeenCalled();
     });
   });
 

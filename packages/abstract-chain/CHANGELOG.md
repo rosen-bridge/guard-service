@@ -1,5 +1,13 @@
 # @rosen-chains/abstract-chain
 
+## 17.0.1
+
+### Patch Changes
+
+- Reorder `verifyEvent` to run `verifyLockTransactionExtraConditions` before extracting rosen data from the lock transaction
+- Update dependencies
+  - @rosen-bridge/rosen-extractor@12.1.2
+
 ## 17.0.0
 
 ### Major Changes

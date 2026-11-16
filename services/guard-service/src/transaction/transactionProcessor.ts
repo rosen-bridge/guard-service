@@ -104,14 +104,7 @@ class TransactionProcessor {
     tx: PaymentTransaction,
   ): Promise<void> => {
     logger.info(`Tx [${tx.txId}] is signed successfully`);
-    const currentHeight = await ChainHandler.getInstance()
-      .getChain(tx.network)
-      .getHeight();
-    await DatabaseAction.getInstance().updateWithSignedTx(
-      tx.txId,
-      tx.toJson(),
-      currentHeight,
-    );
+    await DatabaseAction.getInstance().updateWithSignedTx(tx.txId, tx.toJson());
   };
 
   /**
@@ -196,6 +189,8 @@ class TransactionProcessor {
       if (validityStatus.isValid) {
         // tx is valid, requesting to sign...
         logger.info(`Tx [${tx.txId}] is still valid. Requesting to sign tx...`);
+        const height = await chain.getHeight();
+        await DatabaseAction.getInstance().updateTxLastCheck(tx.txId, height);
         await this.processApprovedTx(tx);
       } else {
         // tx is invalid, reset status if enough blocks past.

@@ -4,6 +4,7 @@ export const lockAddressPublicKey =
 
 // RPC response for blockchain info
 export const blockHeightResponse = {
+  jsonrpc: '2.0',
   result: {
     chain: 'main',
     blocks: 5693743,
@@ -61,6 +62,7 @@ export const blockHash =
 
 // RPC response for a block
 export const blockResponse = {
+  jsonrpc: '2.0',
   result: {
     hash: '491256bdad2121de4a07e640795398f92da33e6082bab6c2c859f2be2a48ad1a',
     confirmations: 2,
@@ -118,6 +120,7 @@ export const txBlockHash =
 
 // RPC response for a transaction
 export const txResponse = {
+  jsonrpc: '2.0',
   result: {
     hex: '0100000001334a2a5e41047070a5497cf208b3c408998bc4be3487b8125e244bbfb742d915000000006b483045022100dce96e89af41443891626f059ab6934a5b8ac76de3b6881cdc87a0c1c578cc070220054d44f9b6241fe9fbd10482ae5f285c273025324538a3d7e419d7f3dde69d0d012103dc1945a85a6147ed5da6d6f150e9de002e40c4ff48cca96b488fe74fa9af8a88ffffffff02109e6cd81b0000001976a9144883eb0a391995f422a48595edf7a19af5e0660c88ac3b70f1bd731b00001976a914a17fdccb11e75bf95df8f760fde346357f34c7ec88ac00000000',
     txid: '87ce994dacf48d97dcffd30221f70acf8c2b40ba4d5ed9be8615d79daf922c73',
@@ -175,6 +178,7 @@ export const txConfirmation = 3;
 
 // Response for transaction not in mempool
 export const txNotInMempoolResponse = {
+  jsonrpc: '2.0',
   result: null,
   error: {
     code: -5,
@@ -185,6 +189,7 @@ export const txNotInMempoolResponse = {
 
 // UTXO response for testing
 export const txOutResponse = {
+  jsonrpc: '2.0',
   result: {
     bestblock:
       '7ece87585c3bda22c8357efaabfe1b4264ccb23360dee49a779a41c9865c5fb1',
@@ -206,6 +211,7 @@ export const txOutResponse = {
 
 // Fee estimation response
 export const estimateSmartFeeResponse = {
+  jsonrpc: '2.0',
   result: {
     feerate: 0.01001657,
     blocks: 10,
@@ -216,6 +222,7 @@ export const estimateSmartFeeResponse = {
 
 // Transaction hex response
 export const txHexResponse = {
+  jsonrpc: '2.0',
   result:
     '01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff35032fe1560fe4b883e5bda9e7a59ee4bb99e9b1bc205b323032352d30352d30335431343a30363a31302e3532393530363039345a5dffffffff01b84d6d6fe90000001976a914212da786d4574d8401d73ac295f34a9ebd98386b88ac00000000',
   error: null,

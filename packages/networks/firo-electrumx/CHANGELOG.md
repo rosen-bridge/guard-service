@@ -1,5 +1,14 @@
 # @rosen-chains/firo-electrumx
 
+## 0.1.3
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/firo-scanner@1.0.2
+  - @rosen-chains/abstract-chain@17.0.1
+  - @rosen-chains/firo@1.0.1
+
 ## 0.1.2
 
 ### Patch Changes

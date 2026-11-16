@@ -114,4 +114,19 @@ declare module 'hsd' {
   export class CoinView {
     addCoin(coin: Coin): void;
   }
+
+  const hsd: {
+    MTX: typeof MTX;
+    TX: typeof TX;
+    Input: typeof Input;
+    Output: typeof Output;
+    Outpoint: typeof Outpoint;
+    Witness: typeof Witness;
+    Address: typeof Address;
+    Script: typeof Script;
+    Coin: typeof Coin;
+    CoinView: typeof CoinView;
+  };
+
+  export default hsd;
 }

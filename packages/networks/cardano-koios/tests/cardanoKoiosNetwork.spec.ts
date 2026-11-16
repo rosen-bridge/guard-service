@@ -322,27 +322,31 @@ describe('CardanoKoiosNetwork', () => {
     });
 
     /**
-     * @target `CardanoKoiosNetwork.getTransaction` should throw FailedError
-     * when transaction is failed on chain
+     * @target `CardanoKoiosNetwork.getTransaction` should return transaction
+     * with isValid false when transaction is failed on chain
      * @dependencies
      * @scenario
      * - mock `txCbor` of cardano koios client
-     * - run test & check thrown exception
+     * - run test
+     * - check returned value
      * @expected
-     * - it should throw FailedError
+     * - it should be mocked transaction with `isValid: false`
      */
-    it('should throw FailedError when transaction is failed on chain', async () => {
+    it('should return transaction with isValid false when transaction is failed on chain', async () => {
       // mock client response
       mockTxCbor(testData.failedOnChainTxKoiosResponse);
 
-      // run test & check thrown exception
+      // run test
       const network = mockNetwork();
-      await expect(async () => {
-        await network.getTransaction(
-          testData.failedOnChainTxId,
-          testData.failedOnChainTxBlockId,
-        );
-      }).rejects.toThrow(FailedError);
+      const result = await network.getTransaction(
+        testData.failedOnChainTxId,
+        testData.failedOnChainTxBlockId,
+      );
+
+      // check returned value
+      expect(JsonBigInt.stringify(result)).toEqual(
+        testData.expectedFailedOnChainTxResponse,
+      );
     });
   });
 
@@ -564,7 +568,8 @@ describe('CardanoKoiosNetwork', () => {
 
     /**
      * @target `CardanoKoiosNetwork.isBoxUnspentAndValid` should return false
-     * when the origin transaction is failed on chain
+     * when the origin transaction is failed on chain and the requested
+     * output is not the collateral return output
      * @dependencies
      * @scenario
      * - mock `txCbor` of cardano koios client
@@ -573,7 +578,7 @@ describe('CardanoKoiosNetwork', () => {
      * @expected
      * - it should be false
      */
-    it('should return false when the origin transaction is failed on chain', async () => {
+    it('should return false when the origin transaction is failed on chain and utxo is not the collateral return output', async () => {
       // mock client response
       mockTxCbor(testData.failedOnChainTxKoiosResponse);
 
@@ -581,6 +586,61 @@ describe('CardanoKoiosNetwork', () => {
       const network = mockNetwork();
       const result = await network.isBoxUnspentAndValid(
         testData.failedOnChainTxId + '.0',
+      );
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target `CardanoKoiosNetwork.isBoxUnspentAndValid` should return true
+     * when the origin transaction is failed on chain but the requested
+     * output is the unspent collateral return output
+     * @dependencies
+     * @scenario
+     * - mock `txCbor` and `credentialUtxos` of cardano koios client
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be true
+     */
+    it('should return true when the origin transaction is failed on chain and utxo is the unspent collateral return output', async () => {
+      // mock client response
+      mockUtxoValidation(
+        testData.failedOnChainTxKoiosResponse,
+        testData.failedOnChainTxCollateralReturnCredentialUtxos,
+      );
+
+      // run test
+      const network = mockNetwork();
+      const result = await network.isBoxUnspentAndValid(
+        testData.failedOnChainTxCollateralReturnBoxId,
+      );
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target `CardanoKoiosNetwork.isBoxUnspentAndValid` should return false
+     * when the origin transaction is failed on chain and the collateral
+     * return output is already spent
+     * @dependencies
+     * @scenario
+     * - mock `txCbor` and `credentialUtxos` of cardano koios client
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be false
+     */
+    it('should return false when the origin transaction is failed on chain and the collateral return output is spent', async () => {
+      // mock client response
+      mockUtxoValidation(testData.failedOnChainTxKoiosResponse, []);
+
+      // run test
+      const network = mockNetwork();
+      const result = await network.isBoxUnspentAndValid(
+        testData.failedOnChainTxCollateralReturnBoxId,
       );
 
       // check returned value
@@ -637,7 +697,8 @@ describe('CardanoKoiosNetwork', () => {
 
     /**
      * @target `CardanoKoiosNetwork.getUtxo` should throw FailedError
-     * when transaction is failed on chain
+     * when transaction is failed on chain and requested output is not the
+     * collateral return output
      * @dependencies
      * @scenario
      * - mock `txCbor` of cardano koios client
@@ -645,7 +706,7 @@ describe('CardanoKoiosNetwork', () => {
      * @expected
      * - it should throw FailedError
      */
-    it('should throw FailedError when transaction is failed on chain', async () => {
+    it('should throw FailedError when transaction is failed on chain and utxo is not the collateral return output', async () => {
       // mock client response
       mockTxCbor(testData.failedOnChainTxKoiosResponse);
 
@@ -654,6 +715,34 @@ describe('CardanoKoiosNetwork', () => {
       await expect(async () => {
         await network.getUtxo(testData.failedOnChainTxId + '.0');
       }).rejects.toThrow(FailedError);
+    });
+
+    /**
+     * @target `CardanoKoiosNetwork.getUtxo` should return the collateral
+     * return utxo when transaction is failed on chain and requested output
+     * is the collateral return output
+     * @dependencies
+     * @scenario
+     * - mock `txCbor` of cardano koios client
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the collateral return utxo
+     */
+    it('should return the collateral return utxo when transaction is failed on chain', async () => {
+      // mock client response
+      mockTxCbor(testData.failedOnChainTxKoiosResponse);
+
+      // run test
+      const network = mockNetwork();
+      const result = await network.getUtxo(
+        testData.failedOnChainTxCollateralReturnBoxId,
+      );
+
+      // check returned value
+      expect(result).toEqual(
+        testData.expectedFailedOnChainTxCollateralReturnUtxo,
+      );
     });
   });
 

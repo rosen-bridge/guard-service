@@ -44,7 +44,8 @@ bitcoin:
     url: 'https://blockstream.info'
     timeout: 8
   bankPublicKey: '' # corresponding public key of lock address
-  txFeeSlippage: 10 # allowed slippage percentage for tx fees
+  txFeeSlippage: 300 # allowed slippage percentage for tx fees
+  txMaxFee: 10000 # absolute cap (in satoshis) on tx fee; tx is rejected if fee exceeds this, regardless of slippage
   confirmation: # required block confirmation
     observation: 2 # an observation transaction (lock transaction) on Bitcoin get confirmed
     payment: 2 # a payment transaction on Bitcoin get confirmed
@@ -77,6 +78,7 @@ firo:
   electrumx:
     host: ''
     port: 50002
+    useTls: true # if true, uses SSL connection, otherwise uses unencrypted TCP connection
     reconnectDelay: 5
     timeout: 30
   bankPublicKey: '' # corresponding public key of lock address
@@ -87,6 +89,26 @@ firo:
     cold: 8 # a cold storage transaction on Firo get confirmed
     manual: 8 # a manual transaction on Firo get confirmed
     arbitrary: 8 # an arbitrary transaction on Firo get confirmed
+  tssChainCode: ''
+  derivationPath:
+    -
+handshake:
+  chainNetwork: 'rpc' # 'rpc'
+  rpc:
+    url: ''
+    timeout: 8
+    # username: ''
+    # password: ''
+    # apiKey: ''
+    # rps: 5 # request per second for RPC requests
+  bankPublicKey: '' # corresponding public key of lock address
+  txFeeSlippage: 20 # allowed slippage percentage for tx fees
+  confirmation: # required block confirmation
+    observation: 2 # an observation transaction (lock transaction) on Handshake get confirmed
+    payment: 2 # a payment transaction on Handshake get confirmed
+    cold: 2 # a cold storage transaction on Handshake get confirmed
+    manual: 2 # a manual transaction on Handshake get confirmed
+    arbitrary: 2 # an arbitrary transaction on Handshake get confirmed
   tssChainCode: ''
   derivationPath:
     -
@@ -203,8 +225,13 @@ eventSync:
   timeout: 3600
   interval: 60
 eventReprocessCooldown: 43200
+scanners:
+  blockCleanup:
+    isActiveForErgoChain: false
+    isActiveForNonErgoChains: true
 extractors:
   initializeEventTriggers: false # if true, all event trigger extractors will be initialized upon starting the service
+  initializeCommitments: false # if true, all commitment extractors will be initialized upon starting the service
 tss:
   path: './bin/tss.exe' # path to tss executable file
   configPath: './bin/conf/conf.env'
@@ -353,6 +380,9 @@ balanceHandler:
   firo:
     tokensPerIteration:
       electrumx: 9999
+  handshake:
+    tokensPerIteration:
+      rpc: 9999
   doge:
     tokensPerIteration:
       esplora: 9999

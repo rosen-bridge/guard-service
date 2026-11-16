@@ -62,12 +62,19 @@ export interface HandshakeRpcTransaction {
   confirmations?: number;
   time?: number;
   blocktime?: number;
-  blockheight?: number;
+}
+
+/**
+ * error object hsd returns in the body of a failed JSON-RPC call
+ */
+export interface JsonRpcError {
+  code: number;
+  message: string;
 }
 
 export interface JsonRpcResult<Result> {
   result: Result;
-  error: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  error: JsonRpcError | null;
   id: string;
 }
 
@@ -92,8 +99,8 @@ export interface HandshakeChainInfo {
  */
 export interface HandshakeCoin {
   version: number;
-  height: number;
-  value: number;
+  height: number; // -1 while the coin is in the mempool
+  value: number; // in dollarydoos, unlike the RPC outputs which are in HNS
   address: string;
   covenant: {
     type: number;
@@ -103,6 +110,21 @@ export interface HandshakeCoin {
   coinbase: boolean;
   hash: string; // transaction ID
   index: number; // output index
+}
+
+/**
+ * Transaction object returned by the /tx/:hash endpoint
+ */
+export interface HandshakeNodeTransaction {
+  hash: string;
+  height: number; // -1 while the transaction is in the mempool
+  inputs: Array<{
+    prevout: {
+      hash: string;
+      index: number;
+    };
+    coin?: Omit<HandshakeCoin, 'hash' | 'index'>;
+  }>;
 }
 
 /**

@@ -4,6 +4,7 @@ import { TokenMap } from '@rosen-bridge/tokens';
 import {
   BlockInfo,
   BoxInfo,
+  ImpossibleBehavior,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
   SigningStatus,
@@ -1061,6 +1062,179 @@ describe('ErgoChain', () => {
 
       // check returned value
       expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyTransactionFee should return false when
+     * transaction has multiple fee boxes
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction (a valid fee box followed by a huge fee box)
+     * - mock a config that has more fee comparing to the valid fee box
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction has multiple fee boxes', async () => {
+      // mock PaymentTransaction
+      const paymentTx = new ErgoTransaction(
+        'txId',
+        'eventId',
+        wasm.ReducedTransaction.sigma_parse_bytes(
+          Buffer.from(
+            transactionTestData.transaction2HugeSecondFeeBoxUnsignedSerialized,
+            'hex',
+          ),
+        ).sigma_serialize_bytes(),
+        TransactionType.payment,
+        [],
+        [],
+      );
+
+      // mock a config that has more fee comparing to the valid fee box
+      const config: ErgoConfigs = {
+        fee: 1200000n,
+        confirmations: ergoTestUtils.defaultConfirmations,
+        addresses: {
+          lock: boxTestData.testLockAddress,
+          cold: 'cold_addr',
+          permit: 'permit_addr',
+          fraud: 'fraud_addr',
+        },
+        rwtId: ergoTestUtils.rwtId,
+        minBoxValue: 1000000n,
+        eventTxConfirmation: 18,
+      };
+
+      // run test
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
+      const ergoChain = new ErgoChain(
+        network,
+        config,
+        tokenMap,
+        ergoTestUtils.defaultSignMediator,
+      );
+      const result = await ergoChain.verifyTransactionFee(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyTransactionFee should return false when fee box
+     * contains tokens
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction (fee box has a token)
+     * - mock a config that has more fee comparing to the valid fee box
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when fee box contains tokens', async () => {
+      // mock PaymentTransaction
+      const paymentTx = new ErgoTransaction(
+        'txId',
+        'eventId',
+        wasm.ReducedTransaction.sigma_parse_bytes(
+          Buffer.from(
+            transactionTestData.transaction2FeeBoxWithTokenUnsignedSerialized,
+            'hex',
+          ),
+        ).sigma_serialize_bytes(),
+        TransactionType.payment,
+        [],
+        [],
+      );
+
+      // mock a config that has more fee comparing to the valid fee box
+      const config: ErgoConfigs = {
+        fee: 1200000n,
+        confirmations: ergoTestUtils.defaultConfirmations,
+        addresses: {
+          lock: boxTestData.testLockAddress,
+          cold: 'cold_addr',
+          permit: 'permit_addr',
+          fraud: 'fraud_addr',
+        },
+        rwtId: ergoTestUtils.rwtId,
+        minBoxValue: 1000000n,
+        eventTxConfirmation: 18,
+      };
+
+      // run test
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
+      const ergoChain = new ErgoChain(
+        network,
+        config,
+        tokenMap,
+        ergoTestUtils.defaultSignMediator,
+      );
+      const result = await ergoChain.verifyTransactionFee(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyTransactionFee should throw error when no fee box
+     * exists
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction (no fee box)
+     * - mock a config that has more fee comparing to the valid fee box
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should throw ImpossibleBehavior
+     */
+    it('should throw error when no fee box exists', async () => {
+      // mock PaymentTransaction
+      const paymentTx = new ErgoTransaction(
+        'txId',
+        'eventId',
+        wasm.ReducedTransaction.sigma_parse_bytes(
+          Buffer.from(
+            transactionTestData.transaction2NoFeeBoxUnsignedSerialized,
+            'hex',
+          ),
+        ).sigma_serialize_bytes(),
+        TransactionType.payment,
+        [],
+        [],
+      );
+
+      // mock a config that has more fee comparing to the valid fee box
+      const config: ErgoConfigs = {
+        fee: 1200000n,
+        confirmations: ergoTestUtils.defaultConfirmations,
+        addresses: {
+          lock: boxTestData.testLockAddress,
+          cold: 'cold_addr',
+          permit: 'permit_addr',
+          fraud: 'fraud_addr',
+        },
+        rwtId: ergoTestUtils.rwtId,
+        minBoxValue: 1000000n,
+        eventTxConfirmation: 18,
+      };
+
+      // run test
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
+      const ergoChain = new ErgoChain(
+        network,
+        config,
+        tokenMap,
+        ergoTestUtils.defaultSignMediator,
+      );
+      await expect(ergoChain.verifyTransactionFee(paymentTx)).rejects.toThrow(
+        ImpossibleBehavior,
+      );
     });
   });
 

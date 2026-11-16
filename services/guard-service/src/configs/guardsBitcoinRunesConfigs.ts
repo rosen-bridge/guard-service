@@ -71,6 +71,7 @@ class GuardsBitcoinRunesConfigs {
     rwtId: this.bitcoinRunesContractConfig.tokens.RWTId,
     aggregatedPublicKey: this.aggregatedPublicKey,
     txFeeSlippage: GuardsBitcoinConfigs.txFeeSlippage,
+    txMaxFee: GuardsBitcoinConfigs.txMaxFee,
   };
 }
 

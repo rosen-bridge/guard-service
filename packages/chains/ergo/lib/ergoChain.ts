@@ -517,23 +517,38 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
   ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
     const outputBoxes = tx.output_candidates();
+    const feeBoxes: wasm.ErgoBoxCandidate[] = [];
     for (let i = 0; i < outputBoxes.len(); i++) {
       const box = outputBoxes.get(i);
-      if (box.ergo_tree().to_base16_bytes() === ErgoChain.feeBoxErgoTree) {
-        if (BigInt(box.value().as_i64().to_str()) > this.configs.fee) {
-          this.logger.warn(
-            `Tx [${transaction.txId}] is not verified: Transaction fee [${box
-              .value()
-              .as_i64()
-              .to_str()}] is more than maximum allowed fee [${
-              this.configs.fee
-            }]`,
-          );
-          return false;
-        } else return true;
-      }
+      if (box.ergo_tree().to_base16_bytes() === ErgoChain.feeBoxErgoTree)
+        feeBoxes.push(box);
     }
-    throw new ImpossibleBehavior(`No box matching fee box ergo tree found`);
+    if (feeBoxes.length === 0)
+      throw new ImpossibleBehavior(`No box matching fee box ergo tree found`);
+    if (feeBoxes.length > 1) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified: Transaction has [${feeBoxes.length}] fee boxes, exactly one is allowed`,
+      );
+      return false;
+    }
+
+    const feeBox = feeBoxes[0];
+    if (feeBox.tokens().len() > 0) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified: Fee box contains tokens`,
+      );
+      return false;
+    }
+    if (BigInt(feeBox.value().as_i64().to_str()) > this.configs.fee) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified: Transaction fee [${feeBox
+          .value()
+          .as_i64()
+          .to_str()}] is more than maximum allowed fee [${this.configs.fee}]`,
+      );
+      return false;
+    }
+    return true;
   };
 
   /**

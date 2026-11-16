@@ -34,6 +34,7 @@ export const configs: BitcoinConfigs = {
   },
   aggregatedPublicKey: testData.lockAddressPublicKey,
   txFeeSlippage: 10,
+  txMaxFee: 10000n,
 };
 export const mockedSignMediator = {
   sign: vi.fn(),

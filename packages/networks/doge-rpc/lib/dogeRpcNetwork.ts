@@ -110,6 +110,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     const randomId = this.generateRandomId();
     try {
       const response = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'getblockchaininfo',
         id: randomId,
         params: [],
@@ -149,6 +150,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     const randomId = this.generateRandomId();
     try {
       const response = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'getblock',
         id: randomId,
         params: [blockId, 1],
@@ -188,6 +190,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     const randomId = this.generateRandomId();
     try {
       const response = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'getblock',
         id: randomId,
         params: [blockId, 1],
@@ -236,6 +239,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     const randomId = this.generateRandomId();
     try {
       const response = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'getrawtransaction',
         id: randomId,
         params: [transactionId, true],
@@ -291,6 +295,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     const randomId = this.generateRandomId();
     try {
       const response = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'sendrawtransaction',
         id: randomId,
         params: [txHex],
@@ -331,6 +336,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     try {
       // Check if the output is spent
       const listUnspentResponse = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'gettxout',
         id: randomId,
         params: [txId, outputIndex, false], // txid, n, include_mempool
@@ -372,6 +378,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     try {
       // Get the transaction to extract the UTXO information
       const txResponse = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'getrawtransaction',
         id: randomId,
         params: [txId, true],
@@ -415,6 +422,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     const randomId = this.generateRandomId();
     try {
       const response = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'estimatesmartfee',
         id: randomId,
         params: [CONFIRMATION_TARGET], // Number of blocks to target for confirmation
@@ -454,6 +462,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     const randomId = this.generateRandomId();
     try {
       const response = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'getmempoolentry',
         id: randomId,
         params: [txId],
@@ -495,6 +504,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     const randomId = this.generateRandomId();
     try {
       const response = await this.client.post<JsonRpcResult>('', {
+        jsonrpc: '2.0',
         method: 'getrawtransaction',
         id: randomId,
         params: [txId, false], // txid, verbose (false = return hex)

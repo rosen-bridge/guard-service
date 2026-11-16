@@ -56,7 +56,7 @@ class EventBoxes {
             commitment.commitment,
       )
       .map((commitment) =>
-        Buffer.from(commitment.boxSerialized, 'base64').toString('hex'),
+        Buffer.from(commitment.serialized, 'base64').toString('hex'),
       );
   };
 

@@ -151,9 +151,25 @@ class Configs {
     43200,
   );
 
+  // scanners
+  static scannersBlockCleanup = {
+    isActiveForErgoChain: getOptionalConfig<boolean>(
+      'scanners.blockCleanup.isActiveForErgoChain',
+      false,
+    ),
+    isActiveForNonErgoChains: getOptionalConfig<boolean>(
+      'scanners.blockCleanup.isActiveForNonErgoChains',
+      true,
+    ),
+  };
+
   // extractors
   static initializeEventTriggers = getOptionalConfig<boolean>(
     'extractors.initializeEventTriggers',
+    false,
+  );
+  static initializeCommitments = getOptionalConfig<boolean>(
+    'extractors.initializeCommitments',
     false,
   );
 
@@ -386,8 +402,10 @@ class Configs {
     'healthCheck.ergoNode.maxPeerHeightDifference',
     2,
   );
-  static logDuration =
-    getConfigIntKeyOrDefault('healthCheck.logs.duration', 600) * 1000;
+  static logDuration = getConfigIntKeyOrDefault(
+    'healthCheck.logs.duration',
+    600,
+  );
   static errorLogAllowedCount = getConfigIntKeyOrDefault(
     'healthCheck.logs.maxAllowedErrorCount',
     10,

@@ -132,6 +132,7 @@ export const noMetadataTransactionInCardanoTx: CardanoTx = {
     },
   ],
   fee: BigInt(noMetadataTransaction.fees),
+  isValid: true,
 };
 
 export const rosenTransaction = {
@@ -281,6 +282,7 @@ export const rosenTransactionInCardanoTx: CardanoTx = {
     },
     cbor: 'a100a562746f646572676f69627269646765466565663330303030306a6e6574776f726b4665656635303030303069746f41646472657373783339685a785633594e536662437153364745736573374468415653617476616f4e746473694e766b696d504747326338667a6b476b66726f6d41646472657373827840616464723171797267727068647379376c746132726165327075386870356d7732666e7076753873653030727861367a7a6d63347368346779666b6468707766782771386c6e68356c39353636336430396e337339637275746e63397977616d637671733565356d36',
   },
+  isValid: true,
 };
 
 export const differentMetadataTransaction = {
@@ -472,6 +474,7 @@ export const differentMetadataTransactionInCardanoTx: CardanoTx = {
     },
     cbor: 'a11902a2a1636d736782724d7574616e74204c61627320526166666c6578314275792035207469636b65747320666f7220526166666c6520363436323562383565363664363763653135626162663430',
   },
+  isValid: true,
 };
 
 export const failedOnChainTransaction = {
@@ -504,6 +507,96 @@ export const failedOnChainTransaction = {
   valid_contract: false,
   treasury_donation: '0',
 };
+export const failedOnChainTransactionUtxos = {
+  hash: 'c04ba08bdb667387e8d2d932a24d40fccb32fc050d425d4c4eeee0f958b194a8',
+  inputs: [
+    {
+      address: 'addr1v8djv8h2ws084wc92rwau0u73wtnsw8x3fm6uw292npscwsx2xc98',
+      amount: [
+        {
+          unit: 'lovelace',
+          quantity: '63002390',
+        },
+      ],
+      tx_hash:
+        '1413dabc052bb46445598d4d9089e519ca804df5a1f313d0b5afd49a1545704a',
+      output_index: 0,
+      data_hash: null,
+      inline_datum: null,
+      reference_script_hash: null,
+      collateral: true,
+      reference: false,
+    },
+  ],
+  outputs: [
+    {
+      address: 'addr1v94725lv4umktv89cg2t04qjn4qq3p6l6zegvtx5esu2zuqfd487u',
+      amount: [
+        {
+          unit: 'lovelace',
+          quantity: '62002390',
+        },
+      ],
+      // the collateral return output's `output_index` is the number of the
+      // transaction's regular outputs (2 here), not 0 - it is the only
+      // output actually created on-chain, even though it is the sole entry
+      // in this array
+      output_index: 2,
+      data_hash: null,
+      inline_datum: null,
+      collateral: true,
+      reference_script_hash: null,
+    },
+  ],
+};
+export const failedOnChainTransactionMetadata = [];
+export const failedOnChainTransactionInCardanoTx: CardanoTx = {
+  id: failedOnChainTransaction.hash,
+  inputs: [
+    {
+      txId: '1413dabc052bb46445598d4d9089e519ca804df5a1f313d0b5afd49a1545704a',
+      index: 0,
+    },
+  ],
+  outputs: [
+    {
+      address: 'addr1v94725lv4umktv89cg2t04qjn4qq3p6l6zegvtx5esu2zuqfd487u',
+      value: 62002390n,
+      assets: [],
+    },
+  ],
+  fee: BigInt(failedOnChainTransaction.fees),
+  isValid: false,
+};
+export const failedOnChainTransactionCollateralReturnIndex = 2;
+export const failedOnChainTransactionCollateralReturnBoxId = `${failedOnChainTransaction.hash}.${failedOnChainTransactionCollateralReturnIndex}`;
+export const failedOnChainTransactionNonExistentBoxId = `${failedOnChainTransaction.hash}.0`;
+export const expectedFailedOnChainTransactionCollateralReturnUtxo: CardanoUtxo =
+  {
+    txId: failedOnChainTransaction.hash,
+    index: failedOnChainTransactionCollateralReturnIndex,
+    value: 62002390n,
+    assets: [],
+  };
+export const failedOnChainTransactionCollateralReturnAddressUtxos: components['schemas']['address_utxo_content'] =
+  [
+    {
+      address: 'addr1v94725lv4umktv89cg2t04qjn4qq3p6l6zegvtx5esu2zuqfd487u',
+      tx_hash: failedOnChainTransaction.hash,
+      tx_index: failedOnChainTransactionCollateralReturnIndex,
+      output_index: failedOnChainTransactionCollateralReturnIndex,
+      amount: [
+        {
+          unit: 'lovelace',
+          quantity: '62002390',
+        },
+      ],
+      block: failedOnChainTransaction.block,
+      data_hash: null,
+      inline_datum: null,
+      reference_script_hash: null,
+    },
+  ];
 
 export const addressBalance = 99000000n;
 export const addressAssets = [

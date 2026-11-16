@@ -1,3 +1,4 @@
+import { InitializeOptions } from '@rosen-bridge/abstract-extractor';
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   ErgoExplorerNetwork,
@@ -24,6 +25,7 @@ import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
+import GuardsHandshakeConfigs from '../configs/guardsHandshakeConfigs';
 import { dataSource } from '../db/dataSource';
 import { TokenHandler } from '../handlers/tokenHandler';
 
@@ -149,6 +151,12 @@ const createLoggers = () => ({
   firoEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
     'firo-event-trigger-extractor',
   ),
+  handshakeCommitmentExtractorLogger: DefaultLogger.getInstance().child(
+    'handshake-commitment-extractor',
+  ),
+  handshakeEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'handshake-event-trigger-extractor',
+  ),
   bitcoinRunesCommitmentExtractorLogger: DefaultLogger.getInstance().child(
     'bitcoin-runes-commitment-extractor',
   ),
@@ -163,20 +171,18 @@ const createLoggers = () => ({
 const initScanner = () => {
   const loggers = createLoggers();
 
-  const scannerConfig =
-    GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
-      ? {
-          dataSource: dataSource,
-          initialHeight: GuardsErgoConfigs.initialHeight,
-          network: new ErgoNodeNetwork(GuardsErgoConfigs.node.url),
-          logger: loggers.ergoScannerLogger,
-        }
-      : {
-          dataSource: dataSource,
-          initialHeight: GuardsErgoConfigs.initialHeight,
-          network: new ErgoExplorerNetwork(GuardsErgoConfigs.explorer.url),
-          logger: loggers.ergoScannerLogger,
-        };
+  const scannerConfig = {
+    dataSource: dataSource,
+    initialHeight: GuardsErgoConfigs.initialHeight,
+    network:
+      GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
+        ? new ErgoNodeNetwork(GuardsErgoConfigs.node.url)
+        : new ErgoExplorerNetwork(GuardsErgoConfigs.explorer.url),
+    logger: loggers.ergoScannerLogger,
+    blockCleanupConfig: {
+      active: Configs.scannersBlockCleanup.isActiveForErgoChain,
+    },
+  };
 
   ergoScanner = new ErgoScanner(scannerConfig);
 
@@ -189,6 +195,11 @@ const initScanner = () => {
       ? GuardsErgoConfigs.node.url
       : GuardsErgoConfigs.explorer.url;
   const initialization = Configs.initializeEventTriggers;
+  const commitmentInitialization: Omit<InitializeOptions, 'address'> = {
+    active: Configs.initializeCommitments,
+    type: networkType,
+    url: networkUrl,
+  };
 
   // init Bitcoin extractors
   const bitcoinCommitmentExtractor = new CommitmentExtractor(
@@ -197,6 +208,7 @@ const initScanner = () => {
     GuardsBitcoinConfigs.bitcoinContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
+    commitmentInitialization,
     loggers.bitcoinCommitmentExtractorLogger,
   );
   const bitcoinEventTriggerExtractor = new EventTriggerExtractor(
@@ -219,6 +231,7 @@ const initScanner = () => {
     GuardsDogeConfigs.dogeContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
+    commitmentInitialization,
     loggers.dogeCommitmentExtractorLogger,
   );
 
@@ -242,6 +255,7 @@ const initScanner = () => {
     GuardsFiroConfigs.firoContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
+    commitmentInitialization,
     loggers.firoCommitmentExtractorLogger,
   );
 
@@ -258,6 +272,30 @@ const initScanner = () => {
     initialization,
   );
 
+  // init Handshake extractors
+  const handshakeCommitmentExtractor = new CommitmentExtractor(
+    'handshakeCommitment',
+    [GuardsHandshakeConfigs.handshakeContractConfig.addresses.Commitment],
+    GuardsHandshakeConfigs.handshakeContractConfig.tokens.RWTId,
+    dataSource,
+    TokenHandler.getInstance().getTokenMap(),
+    commitmentInitialization,
+    loggers.handshakeCommitmentExtractorLogger,
+  );
+
+  const handshakeEventTriggerExtractor = new EventTriggerExtractor(
+    'handshakeEventTrigger',
+    dataSource,
+    networkType,
+    networkUrl,
+    GuardsHandshakeConfigs.handshakeContractConfig.addresses.WatcherTriggerEvent,
+    GuardsHandshakeConfigs.handshakeContractConfig.tokens.RWTId,
+    GuardsHandshakeConfigs.handshakeContractConfig.addresses.WatcherPermit,
+    GuardsHandshakeConfigs.handshakeContractConfig.addresses.Fraud,
+    loggers.handshakeEventTriggerExtractorLogger,
+    initialization,
+  );
+
   // init Cardano extractors
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
@@ -265,6 +303,7 @@ const initScanner = () => {
     GuardsCardanoConfigs.cardanoContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
+    commitmentInitialization,
     loggers.cardanoCommitmentExtractorLogger,
   );
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
@@ -287,6 +326,7 @@ const initScanner = () => {
     GuardsErgoConfigs.ergoContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
+    commitmentInitialization,
     loggers.ergoCommitmentExtractorLogger,
   );
   const ergoEventTriggerExtractor = new EventTriggerExtractor(
@@ -309,6 +349,7 @@ const initScanner = () => {
     GuardsEthereumConfigs.ethereumContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
+    commitmentInitialization,
     loggers.ethereumCommitmentExtractorLogger,
   );
   const ethereumEventTriggerExtractor = new EventTriggerExtractor(
@@ -331,6 +372,7 @@ const initScanner = () => {
     GuardsBinanceConfigs.binanceContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
+    commitmentInitialization,
     loggers.binanceCommitmentExtractorLogger,
   );
   const binanceEventTriggerExtractor = new EventTriggerExtractor(
@@ -351,6 +393,7 @@ const initScanner = () => {
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
+    commitmentInitialization,
     loggers.bitcoinRunesCommitmentExtractorLogger,
   );
   const bitcoinRunesEventTriggerExtractor = new EventTriggerExtractor(
@@ -378,6 +421,8 @@ const initScanner = () => {
   ergoScanner.registerExtractor(dogeEventTriggerExtractor);
   ergoScanner.registerExtractor(firoCommitmentExtractor);
   ergoScanner.registerExtractor(firoEventTriggerExtractor);
+  ergoScanner.registerExtractor(handshakeCommitmentExtractor);
+  ergoScanner.registerExtractor(handshakeEventTriggerExtractor);
   ergoScanner.registerExtractor(binanceCommitmentExtractor);
   ergoScanner.registerExtractor(binanceEventTriggerExtractor);
   ergoScanner.registerExtractor(bitcoinRunesCommitmentExtractor);
@@ -400,6 +445,9 @@ const initScanner = () => {
         ? GuardsEthereumConfigs.rpc.fastForward.heightGap
         : undefined,
       logger: loggers.ethereumScannerLogger,
+      blockCleanupConfig: {
+        active: Configs.scannersBlockCleanup.isActiveForNonErgoChains,
+      },
     });
     const ethereumAddressTxExtractor = new EvmTxExtractor(
       dataSource,
@@ -430,6 +478,9 @@ const initScanner = () => {
         ? GuardsBinanceConfigs.rpc.fastForward.heightGap
         : undefined,
       logger: loggers.binanceScannerLogger,
+      blockCleanupConfig: {
+        active: Configs.scannersBlockCleanup.isActiveForNonErgoChains,
+      },
     });
     const BinanceAddressTxExtractor = new EvmTxExtractor(
       dataSource,

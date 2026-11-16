@@ -45,6 +45,7 @@ interface CardanoTx {
   outputs: CardanoBoxCandidate[];
   fee: bigint;
   metadata?: CardanoMetadata;
+  isValid: boolean;
 }
 
 interface CardanoTransactionJsonModel extends PaymentTransactionJsonModel {

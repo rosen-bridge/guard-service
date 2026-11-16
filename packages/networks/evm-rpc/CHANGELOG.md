@@ -1,5 +1,14 @@
 # @rosen-chains/evm-rpc
 
+## 4.0.7
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/evm-address-tx-extractor@4.0.1
+  - @rosen-chains/abstract-chain@17.0.1
+  - @rosen-chains/evm@10.0.3
+
 ## 4.0.6
 
 ### Patch Changes

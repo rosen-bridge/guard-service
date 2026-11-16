@@ -14,15 +14,32 @@ import {
 } from '../../src/utils/constants';
 import * as TxTestData from '../agreement/testData';
 import * as EventTestData from '../event/testData';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
 import DatabaseHandlerMock from './mocked/databaseAction.mock';
 import DatabaseActionMock from './mocked/databaseAction.mock';
 
 describe('DatabaseHandler', () => {
   const requiredSign = 6;
+  const mockedCurrentHeight = 100;
 
   beforeEach(async () => {
     await DatabaseHandlerMock.clearTables();
+    ChainHandlerMock.resetMock();
   });
+
+  /**
+   * mocks `getHeight` for the given chain
+   * @param chain
+   */
+  const mockChainHeight = (chain: string) => {
+    ChainHandlerMock.mockChainName(chain);
+    ChainHandlerMock.mockChainFunction(
+      chain,
+      'getHeight',
+      mockedCurrentHeight,
+      true,
+    );
+  };
 
   describe('insertTx', () => {
     /**
@@ -53,9 +70,12 @@ describe('DatabaseHandler', () => {
      * there is no other tx for the event
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock event and transaction
      * - insert mocked event into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - run test (call `insertTx`)
      * - check database
      * @expected
@@ -76,6 +96,7 @@ describe('DatabaseHandler', () => {
         mockedEvent,
         EventStatus.pendingPayment,
       );
+      mockChainHeight(tx.network);
 
       // run test
       await DatabaseHandler.insertTx(tx, requiredSign);
@@ -93,9 +114,12 @@ describe('DatabaseHandler', () => {
      * there is no other tx for the order
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock order and transaction
      * - insert mocked order into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - run test (call `insertTx`)
      * - check database
      * @expected
@@ -118,6 +142,7 @@ describe('DatabaseHandler', () => {
         `orderJson`,
         OrderStatus.pending,
       );
+      mockChainHeight(tx.network);
 
       // run test
       await DatabaseHandler.insertTx(tx, requiredSign);
@@ -239,10 +264,13 @@ describe('DatabaseHandler', () => {
      * txId is lower than existing approved tx
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock event and two transactions
      * - insert mocked event into db
      * - insert tx with higher txId (with `approved` status)
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - run test (call `insertTx`)
      * - check database
      * @expected
@@ -285,6 +313,7 @@ describe('DatabaseHandler', () => {
         highTx,
         TransactionStatus.approved,
       );
+      mockChainHeight(lowTx.network);
 
       // run test
       await DatabaseHandler.insertTx(lowTx, requiredSign);
@@ -406,8 +435,11 @@ describe('DatabaseHandler', () => {
      * tx is not in database
      * @dependencies
      * - database
+     * - ChainHandler
      * @scenario
      * - mock transaction
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
      * - run test (call `insertTx`)
      * - check database
      * @expected
@@ -421,6 +453,7 @@ describe('DatabaseHandler', () => {
         chain,
         '',
       );
+      mockChainHeight(chain);
 
       // run test
       await DatabaseHandler.insertTx(tx, requiredSign);

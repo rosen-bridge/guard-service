@@ -752,6 +752,13 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     }
 
     const fee = inBtc - outBtc;
+    if (fee > this.configs.txMaxFee) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified: Fee is more than allowed max fee [${fee} > ${this.configs.txMaxFee}]`,
+      );
+      return false;
+    }
+
     const estimateFee = generateFeeEstimatorWithPsbt(
       tx,
       await this.network.getFeeRatio(),
