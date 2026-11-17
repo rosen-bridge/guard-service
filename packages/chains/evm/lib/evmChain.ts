@@ -23,6 +23,7 @@ import {
   TokenInfo,
   ValidityStatus,
   EcdsaSignMediator,
+  ValueError,
 } from '@rosen-chains/abstract-chain';
 
 import { MaxActiveNonceExceededError } from './errors';
@@ -52,6 +53,13 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
+    if (
+      !Number.isInteger(configs.activeNonceLengthLimit) ||
+      configs.activeNonceLengthLimit < 1
+    )
+      throw new ValueError(
+        `Invalid activeNonceLengthLimit [expected a positive integer, found ${configs.activeNonceLengthLimit}]`,
+      );
     this.evmTxType = evmTxType;
     this.signMediator = signMediator;
     this.extractor = new EvmRosenExtractor(
