@@ -1,4 +1,4 @@
-import { Psbt } from 'bitcoinjs-lib';
+import { address, Psbt } from 'bitcoinjs-lib';
 import { expect, describe, it, vi } from 'vitest';
 
 import JsonBigInt from '@rosen-bridge/json-bigint';
@@ -50,12 +50,6 @@ describe('FiroChain', () => {
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
 
-      // mock getTransactionHex for each UTXO
-      const getTransactionHexSpy = vi.spyOn(network, 'getTransactionHex');
-      testData.largeTestUtxos.forEach((utxo) => {
-        getTransactionHexSpy.mockResolvedValueOnce(utxo.txHex);
-      });
-
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const firoChain = await testUtils.generateChainObject(network);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -104,6 +98,81 @@ describe('FiroChain', () => {
         undefined,
         expect.any(Function),
       );
+    });
+
+    /**
+     * @target FiroChain.generateMultipleTransactions should generate a signable
+     * transaction without fetching the previous transactions of its inputs
+     * @dependencies
+     * @scenario
+     * - mock transaction order, getFeeRatio
+     * - spy getTransactionHex
+     * - mock getCoveringBoxes, hasLockAddressEnoughAssets
+     * - run test
+     * - sign the generated transaction
+     * - check returned value
+     * @expected
+     * - getTransactionHex should not have been called
+     * - generated transaction should be verified
+     * - each input should have the lock script and the value of its box
+     * - the signed transaction should be finalized
+     */
+    it('should generate a signable transaction without fetching the previous transactions of its inputs', async () => {
+      // mock transaction order
+      const order = testData.transaction2Order;
+
+      const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
+      getFeeRatioSpy.mockResolvedValue(1);
+      const getTransactionHexSpy = vi.spyOn(network, 'getTransactionHex');
+
+      // mock getCoveringBoxes, hasLockAddressEnoughAssets
+      // the signature is a placeholder, finalizing does not verify it
+      const firoChain = await testUtils.generateChainObject(network, {
+        sign: async () => ({
+          signature: testData.transaction2Signature0,
+          signatureRecovery: '',
+        }),
+        isInSign: vi.fn(),
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const boxSelection = (firoChain as any).boxSelection;
+      vi.spyOn(boxSelection, 'getCoveringBoxes').mockResolvedValue({
+        covered: true,
+        boxes: testData.largeTestUtxos,
+      });
+      vi.spyOn(firoChain, 'hasLockAddressEnoughAssets').mockResolvedValue(true);
+
+      // run test
+      const result = await firoChain.generateMultipleTransactions(
+        'test-event-3',
+        TransactionType.payment,
+        order,
+        [],
+        [],
+      );
+      const signedTx = await firoChain.signTransaction(result[0]);
+
+      // check returned value
+      expect(getTransactionHexSpy).not.toHaveBeenCalled();
+      expect(await firoChain.verifyPaymentTransaction(result[0])).toBe(true);
+      const lockScript = address.toOutputScript(
+        testData.testFiroConfigs.addresses.lock,
+        FIRO_NETWORK,
+      );
+      const psbt = Psbt.fromBuffer(Buffer.from(result[0].txBytes), {
+        network: FIRO_NETWORK,
+      });
+      expect(psbt.data.inputs.map((input) => input.witnessUtxo)).toEqual(
+        testData.largeTestUtxos.map((utxo) => ({
+          script: lockScript,
+          value: Number(utxo.value),
+        })),
+      );
+      const signedPsbt = Psbt.fromBuffer(Buffer.from(signedTx.txBytes), {
+        network: FIRO_NETWORK,
+      });
+      const tx = signedPsbt.extractTransaction(true);
+      expect(tx.ins.every((input) => input.script.length > 0)).toBe(true);
     });
 
     /**
@@ -205,12 +274,6 @@ describe('FiroChain', () => {
 
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
-
-      // mock getTransactionHex for each UTXO
-      const getTransactionHexSpy = vi.spyOn(network, 'getTransactionHex');
-      testData.largeTestUtxos.forEach((utxo) => {
-        getTransactionHexSpy.mockResolvedValueOnce(utxo.txHex);
-      });
 
       // mock getCoveringBoxes
       const firoChain = await testUtils.generateChainObject(network);
