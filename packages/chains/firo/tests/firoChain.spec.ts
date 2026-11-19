@@ -101,78 +101,77 @@ describe('FiroChain', () => {
     });
 
     /**
-     * @target FiroChain.generateMultipleTransactions should generate a signable
-     * transaction without fetching the previous transactions of its inputs
+     * @target FiroChain.generateMultipleTransactions should set nonWitnessUtxo
+     * only on inputs which are created by a signed transaction
      * @dependencies
      * @scenario
      * - mock transaction order, getFeeRatio
-     * - spy getTransactionHex
-     * - mock getCoveringBoxes, hasLockAddressEnoughAssets
-     * - run test
-     * - sign the generated transaction
+     * - mock getCoveringBoxes to return the change box of a signed transaction
+     *   and another box
+     * - mock hasLockAddressEnoughAssets
+     * - run test with the signed transaction
      * - check returned value
      * @expected
-     * - getTransactionHex should not have been called
-     * - generated transaction should be verified
-     * - each input should have the lock script and the value of its box
-     * - the signed transaction should be finalized
+     * - the first input should have the signed transaction as nonWitnessUtxo
+     *   and the second input should not have it
+     * - the second input should have the lock script and the value of its box
+     *   as witnessUtxo and the first input should not have it
      */
-    it('should generate a signable transaction without fetching the previous transactions of its inputs', async () => {
+    it('should set nonWitnessUtxo only on inputs which are created by a signed transaction', async () => {
       // mock transaction order
       const order = testData.transaction2Order;
 
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
-      const getTransactionHexSpy = vi.spyOn(network, 'getTransactionHex');
 
-      // mock getCoveringBoxes, hasLockAddressEnoughAssets
-      // the signature is a placeholder, finalizing does not verify it
-      const firoChain = await testUtils.generateChainObject(network, {
-        sign: async () => ({
-          signature: testData.transaction2Signature0,
-          signatureRecovery: '',
-        }),
-        isInSign: vi.fn(),
-      });
+      // mock getCoveringBoxes to return the change box of a signed transaction and another box
+      const firoChain = await testUtils.generateChainObject(network);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const boxSelection = (firoChain as any).boxSelection;
-      vi.spyOn(boxSelection, 'getCoveringBoxes').mockResolvedValue({
+      const getCovBoxesSpy = vi.spyOn(boxSelection, 'getCoveringBoxes');
+      getCovBoxesSpy.mockResolvedValue({
         covered: true,
-        boxes: testData.largeTestUtxos,
+        boxes: [testData.transaction2ChangeUtxo, testData.largeTestUtxos[1]],
       });
-      vi.spyOn(firoChain, 'hasLockAddressEnoughAssets').mockResolvedValue(true);
 
-      // run test
+      // mock hasLockAddressEnoughAssets
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
+        firoChain,
+        'hasLockAddressEnoughAssets',
+      );
+      hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
+
+      // run test with the signed transaction
       const result = await firoChain.generateMultipleTransactions(
         'test-event-3',
         TransactionType.payment,
         order,
         [],
-        [],
+        [testData.transaction2SignedTxBytesHex],
       );
-      const signedTx = await firoChain.signTransaction(result[0]);
 
       // check returned value
-      expect(getTransactionHexSpy).not.toHaveBeenCalled();
-      expect(await firoChain.verifyPaymentTransaction(result[0])).toBe(true);
+      const psbt = Psbt.fromBuffer(Buffer.from(result[0].txBytes), {
+        network: FIRO_NETWORK,
+      });
+      const signedTx = Psbt.fromHex(testData.transaction2SignedTxBytesHex, {
+        network: FIRO_NETWORK,
+      }).extractTransaction(true);
+      expect(psbt.data.inputs.map((input) => input.nonWitnessUtxo)).toEqual([
+        signedTx.toBuffer(),
+        undefined,
+      ]);
       const lockScript = address.toOutputScript(
         testData.testFiroConfigs.addresses.lock,
         FIRO_NETWORK,
       );
-      const psbt = Psbt.fromBuffer(Buffer.from(result[0].txBytes), {
-        network: FIRO_NETWORK,
-      });
-      expect(psbt.data.inputs.map((input) => input.witnessUtxo)).toEqual(
-        testData.largeTestUtxos.map((utxo) => ({
+      expect(psbt.data.inputs.map((input) => input.witnessUtxo)).toEqual([
+        undefined,
+        {
           script: lockScript,
-          value: Number(utxo.value),
-        })),
-      );
-      const signedPsbt = Psbt.fromBuffer(Buffer.from(signedTx.txBytes), {
-        network: FIRO_NETWORK,
-      });
-      const tx = signedPsbt.extractTransaction(true);
-      expect(tx.ins.every((input) => input.script.length > 0)).toBe(true);
+          value: Number(testData.largeTestUtxos[1].value),
+        },
+      ]);
     });
 
     /**
@@ -342,10 +341,14 @@ describe('FiroChain', () => {
      * @dependencies
      * @scenario
      * - mock a FiroTransaction
+     * - spy getUtxo
      * - run test
      * - check returned value
+     * - check if function got called
      * @expected
      * - it should return true
+     * - getUtxo should not have been called, since the inputs have
+     *   nonWitnessUtxo
      */
     it('should return true when data is consistent', async () => {
       // mock a FiroTransaction
@@ -353,12 +356,18 @@ describe('FiroChain', () => {
         testData.transaction2PaymentTransaction,
       );
 
+      // spy getUtxo
+      const getUtxoSpy = vi.spyOn(network, 'getUtxo');
+
       // run test
       const firoChain = await testUtils.generateChainObject(network);
       const result = await firoChain.verifyPaymentTransaction(paymentTx);
 
       // check returned value
       expect(result).toEqual(true);
+
+      // check if function got called
+      expect(getUtxoSpy).not.toHaveBeenCalled();
     });
 
     /**
@@ -434,6 +443,295 @@ describe('FiroChain', () => {
         index: 0,
         value: 10000000,
       });
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when an input value differs from the parent output value
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with changed input value
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when an input value differs from the parent output value', async () => {
+      // mock a FiroTransaction with changed input value
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      paymentTx.inputUtxos[0] = JsonBigInt.stringify({
+        ...JsonBigInt.parse(paymentTx.inputUtxos[0]),
+        value: 400000000n,
+      });
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when nonWitnessUtxo id does not match the input
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with wrong nonWitnessUtxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when nonWitnessUtxo id does not match the input', async () => {
+      // mock a FiroTransaction with wrong nonWitnessUtxo
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionWrongParentTxPaymentTransaction,
+      );
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when parent output script is not the lock script
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with a parent output of another script
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when parent output script is not the lock script', async () => {
+      // mock a FiroTransaction with a parent output of another script
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionWrongParentScriptPaymentTransaction,
+      );
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return true
+     * when inputs with witnessUtxo are consistent with the network
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with witnessUtxo on its inputs
+     * - mock getUtxo to return the input utxos
+     * - run test
+     * - check returned value
+     * - check if function got called
+     * @expected
+     * - it should return true
+     * - getUtxo should have been called for both inputs
+     */
+    it('should return true when inputs with witnessUtxo are consistent with the network', async () => {
+      // mock a FiroTransaction with witnessUtxo on its inputs
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionWitnessUtxoPaymentTransaction,
+      );
+
+      // mock getUtxo to return the input utxos
+      const getUtxoSpy = vi.spyOn(network, 'getUtxo');
+      getUtxoSpy.mockImplementation(async (boxId: string) => {
+        if (boxId === testData.transaction2Input0BoxId)
+          return JsonBigInt.parse(paymentTx.inputUtxos[0]);
+        else if (boxId === testData.transaction2Input1BoxId)
+          return JsonBigInt.parse(paymentTx.inputUtxos[1]);
+        else
+          throw Error(
+            `TestError: getUtxo is called with wrong boxId [${boxId}]`,
+          );
+      });
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+
+      // check if function got called
+      expect(getUtxoSpy).toHaveBeenCalledTimes(2);
+      expect(getUtxoSpy).toHaveBeenNthCalledWith(
+        1,
+        testData.transaction2Input0BoxId,
+      );
+      expect(getUtxoSpy).toHaveBeenNthCalledWith(
+        2,
+        testData.transaction2Input1BoxId,
+      );
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when witnessUtxo script is not the lock script
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with a witnessUtxo of another script
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when witnessUtxo script is not the lock script', async () => {
+      // mock a FiroTransaction with a witnessUtxo of another script
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionWrongWitnessScriptPaymentTransaction,
+      );
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when an input value differs from the witnessUtxo value
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with witnessUtxo and changed input value
+     * - mock getUtxo to return the changed input utxos
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when an input value differs from the witnessUtxo value', async () => {
+      // mock a FiroTransaction with witnessUtxo and changed input value
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionWitnessUtxoPaymentTransaction,
+      );
+      paymentTx.inputUtxos[0] = JsonBigInt.stringify({
+        ...JsonBigInt.parse(paymentTx.inputUtxos[0]),
+        value: 400000000n,
+      });
+
+      // mock getUtxo to return the changed input utxos
+      const getUtxoSpy = vi.spyOn(network, 'getUtxo');
+      getUtxoSpy.mockImplementation(async (boxId: string) => {
+        if (boxId === testData.transaction2Input0BoxId)
+          return JsonBigInt.parse(paymentTx.inputUtxos[0]);
+        else if (boxId === testData.transaction2Input1BoxId)
+          return JsonBigInt.parse(paymentTx.inputUtxos[1]);
+        else
+          throw Error(
+            `TestError: getUtxo is called with wrong boxId [${boxId}]`,
+          );
+      });
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when an input value differs from the network utxo value
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with witnessUtxo on its inputs
+     * - mock getUtxo to return another value for the first input
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when an input value differs from the network utxo value', async () => {
+      // mock a FiroTransaction with witnessUtxo on its inputs
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionWitnessUtxoPaymentTransaction,
+      );
+
+      // mock getUtxo to return another value for the first input
+      vi.spyOn(network, 'getUtxo').mockResolvedValue({
+        ...JsonBigInt.parse(paymentTx.inputUtxos[0]),
+        value: 400000000n,
+      });
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when an input has both nonWitnessUtxo and witnessUtxo
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with both nonWitnessUtxo and witnessUtxo on its
+     *   first input
+     * - mock getUtxo to return the first input utxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when an input has both nonWitnessUtxo and witnessUtxo', async () => {
+      // mock a FiroTransaction with both nonWitnessUtxo and witnessUtxo on its first input
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionBothInputUtxosPaymentTransaction,
+      );
+
+      // mock getUtxo to return the first input utxo
+      vi.spyOn(network, 'getUtxo').mockResolvedValue(
+        JsonBigInt.parse(paymentTx.inputUtxos[0]),
+      );
+
+      // run test
+      const firoChain = await testUtils.generateChainObject(network);
+      const result = await firoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target FiroChain.verifyPaymentTransaction should return false
+     * when an input has neither nonWitnessUtxo nor witnessUtxo
+     * @dependencies
+     * @scenario
+     * - mock a FiroTransaction with neither nonWitnessUtxo nor witnessUtxo on
+     *   its inputs
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when an input has neither nonWitnessUtxo nor witnessUtxo', async () => {
+      // mock a FiroTransaction with neither nonWitnessUtxo nor witnessUtxo on its inputs
+      const paymentTx = FiroTransaction.fromJson(
+        testData.transactionNoInputUtxoPaymentTransaction,
+      );
 
       // run test
       const firoChain = await testUtils.generateChainObject(network);
