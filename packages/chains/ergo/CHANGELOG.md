@@ -1,5 +1,14 @@
 # @rosen-chains/ergo
 
+## 15.0.1
+
+### Patch Changes
+
+- Reject transactions with more than one fee box or a fee box containing tokens in `verifyTransactionFee`
+- Update dependencies
+  - @rosen-bridge/rosen-extractor@12.1.2
+  - @rosen-chains/abstract-chain@17.0.1
+
 ## 15.0.0
 
 ### Major Changes

@@ -1,5 +1,15 @@
 # @rosen-chains/cardano-blockfrost-network
 
+## 10.0.5
+
+### Patch Changes
+
+- Stop throwing `FailedError` on failed on-chain transactions in `getTransaction` and return the transaction with `isValid: false` instead
+- Fix `getUtxo` and `isBoxUnspentAndValid` to look up the requested output by its actual `output_index` instead of its position in the `txsUtxos` response array
+- Update dependencies
+  - @rosen-chains/abstract-chain@17.0.1
+  - @rosen-chains/cardano@17.0.1
+
 ## 10.0.4
 
 ### Patch Changes

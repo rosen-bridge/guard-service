@@ -1,5 +1,15 @@
 # @rosen-chains/cardano-koios-network
 
+## 13.0.5
+
+### Patch Changes
+
+- Stop throwing `FailedError` on failed on-chain transactions in `getTransaction` and return the transaction with `isValid: false` instead
+- Fix `getUtxo` and `isBoxUnspentAndValid` to account for the effective on-chain outcome of a failed transaction
+- Update dependencies
+  - @rosen-chains/abstract-chain@17.0.1
+  - @rosen-chains/cardano@17.0.1
+
 ## 13.0.4
 
 ### Patch Changes

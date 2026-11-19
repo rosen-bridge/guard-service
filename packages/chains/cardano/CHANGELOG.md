@@ -1,5 +1,15 @@
 # @rosen-chains/cardano
 
+## 17.0.1
+
+### Patch Changes
+
+- Fix `verifyLockTransactionExtraConditions` to correctly detect and reject lock transactions that failed on-chain instead of always returning true
+- Add `isValid` field to `CardanoTx`
+- Update dependencies
+  - @rosen-bridge/rosen-extractor@12.1.2
+  - @rosen-chains/abstract-chain@17.0.1
+
 ## 17.0.0
 
 ### Major Changes
