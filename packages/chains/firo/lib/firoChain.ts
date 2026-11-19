@@ -206,19 +206,25 @@ class FiroChain extends AbstractUtxoChain<FiroTx, FiroUtxo> {
       );
     }
 
-    // Fetch transaction hex for boxes not in txToHex map
-    for (const box of coveredBoxes.boxes) {
-      if (!txToHex[box.txId]) {
-        txToHex[box.txId] = await this.network.getTransactionHex(box.txId);
-      }
-    }
-
     // Add inputs
-    const txInputs = coveredBoxes.boxes.map((box) => ({
-      hash: box.txId,
-      index: box.index,
-      nonWitnessUtxo: Buffer.from(txToHex[box.txId], 'hex'),
-    }));
+    const txInputs = coveredBoxes.boxes.map((box) => {
+      const parentTxHex = txToHex[box.txId];
+      return {
+        hash: box.txId,
+        index: box.index,
+        // A chained input carries its signed parent transaction, which may not be on the network yet.
+        // Other inputs only declare their lock script and value, since bitcoinjs-lib cannot parse
+        // Firo special transactions (e.g. Spark spends) as the previous transaction.
+        ...(parentTxHex
+          ? { nonWitnessUtxo: Buffer.from(parentTxHex, 'hex') }
+          : {
+              witnessUtxo: {
+                script: Buffer.from(this.lockScript, 'hex'),
+                value: Number(box.value),
+              },
+            }),
+      };
+    });
 
     // Calculate total FIRO available from inputs
     const totalFiro = coveredBoxes.boxes.reduce(
@@ -267,11 +273,7 @@ class FiroChain extends AbstractUtxoChain<FiroTx, FiroUtxo> {
 
     // Add inputs to PSBT
     for (const input of txInputs) {
-      psbt.addInput({
-        hash: input.hash,
-        index: input.index,
-        nonWitnessUtxo: input.nonWitnessUtxo,
-      });
+      psbt.addInput(input);
     }
 
     // Add outputs to PSBT
@@ -683,6 +685,11 @@ class FiroChain extends AbstractUtxoChain<FiroTx, FiroUtxo> {
 
   /**
    * verifies consistency within the PaymentTransaction object
+   * - verify txId
+   * - verify inputUtxos
+   *   - verify input box id
+   *   - verify input box value and lock script, using its parent transaction
+   *     (nonWitnessUtxo) or its declared utxo and the network (witnessUtxo)
    * @param transaction the PaymentTransaction
    * @returns true if the transaction is verified
    */
@@ -723,6 +730,56 @@ class FiroChain extends AbstractUtxoChain<FiroTx, FiroUtxo> {
             `Utxo id for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualInputId}]`,
         );
         return false;
+      }
+
+      // verify input box value and lock script
+      const { nonWitnessUtxo, witnessUtxo } = psbt.data.inputs[i];
+      if (!nonWitnessUtxo === !witnessUtxo) {
+        this.logger.warn(
+          baseError +
+            `Input at index [${i}] should have exactly one of nonWitnessUtxo and witnessUtxo`,
+        );
+        return false;
+      }
+      let utxo = witnessUtxo;
+      if (nonWitnessUtxo) {
+        const parent = Transaction.fromBuffer(nonWitnessUtxo);
+        if (parent.getId() !== txId) {
+          this.logger.warn(
+            baseError +
+              `nonWitnessUtxo id of input at index [${i}] is inconsistent [expected ${txId} found ${parent.getId()}]`,
+          );
+          return false;
+        }
+        utxo = parent.outs[input.index];
+      }
+      if (
+        utxo === undefined ||
+        utxo.script.toString('hex') !== this.lockScript
+      ) {
+        this.logger.warn(
+          baseError +
+            `Utxo script for input at index [${i}] is not the lock script`,
+        );
+        return false;
+      }
+      if (BigInt(utxo.value) !== firoInput.value) {
+        this.logger.warn(
+          baseError +
+            `Utxo value for input at index [${i}] is inconsistent [expected ${firoInput.value} found ${utxo.value}]`,
+        );
+        return false;
+      }
+      // a witnessUtxo is only declared, so its value is verified against the network
+      if (witnessUtxo) {
+        const networkUtxo = await this.network.getUtxo(actualInputId);
+        if (networkUtxo.value !== firoInput.value) {
+          this.logger.warn(
+            baseError +
+              `Utxo value for input at index [${i}] is inconsistent with the network [expected ${firoInput.value} found ${networkUtxo.value}]`,
+          );
+          return false;
+        }
       }
     }
 
