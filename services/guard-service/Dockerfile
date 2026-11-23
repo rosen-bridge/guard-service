@@ -25,9 +25,9 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY --parents tsconfig*.json packages ./
 RUN npm run build
 
-RUN mkdir -p /tmp/artifacts && \
-    find /app/packages -type d -name dist -not -path '*/node_modules/*' \
-    -exec cp -a --parents {} /tmp/artifacts \;
+RUN mkdir -p /tmp/artifacts/app && \
+    find packages -type d -name dist -not -path '*/node_modules/*' \
+    -exec cp -a --parents {} /tmp/artifacts/app \;
 
 FROM node:22.18-bookworm-slim AS prod
 ARG SERVICE_DIR=/app/services/guard-service
@@ -36,6 +36,7 @@ LABEL maintainer="rosen-bridge team <team@rosen.tech>"
 LABEL description="Docker image for the guard-service owned by rosen-bridge organization."
 LABEL org.label-schema.vcs-url="https://github.com/rosen-bridge/guard-service"
 
+WORKDIR /app
 RUN --mount=type=cache,target=/root/.npm \
     --mount=type=cache,target=/tmp/node-compile-cache \
     npm i -g npm@11.6.2 && \
@@ -46,7 +47,6 @@ RUN --mount=type=cache,target=/root/.npm \
     apt-get install -y --no-install-recommends python3 build-essential curl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
 COPY --parents \
     package.json \
     package-lock.json \
@@ -62,7 +62,7 @@ RUN --mount=type=cache,target=/root/.npm \
     --mount=type=cache,target=/tmp/node-compile-cache \
     npm ci && chown -R ergo:ergo /app/
 COPY --chmod=700 --chown=ergo:ergo . .
-COPY --from=builder --chown=ergo:ergo /tmp/artifacts/app/ /app/
+COPY --from=builder --chmod=700 --chown=ergo:ergo /tmp/artifacts/app/ /app/
 WORKDIR ${SERVICE_DIR}
 
 USER ergo
