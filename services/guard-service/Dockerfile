@@ -62,7 +62,7 @@ RUN --mount=type=cache,target=/root/.npm \
     --mount=type=cache,target=/tmp/node-compile-cache \
     npm ci && chown -R ergo:ergo /app/
 COPY --chmod=700 --chown=ergo:ergo . .
-COPY --from=builder --chmod=700 --chown=ergo:ergo /tmp/artifacts/app/ /app/
+COPY --from=builder --chown=ergo:ergo /tmp/artifacts/app/ /app/
 WORKDIR ${SERVICE_DIR}
 
 USER ergo
