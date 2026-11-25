@@ -1,5 +1,57 @@
 # guard-service
 
+## 12.0.0
+
+### Major Changes
+
+- Integrate Handshake
+
+### Minor Changes
+
+- Add `extractors.initializeCommitments` config to enable initial sync for the commitment extractor, alongside the existing `extractors.initializeEventTriggers` (both disabled by default)
+- Add `firo.electrumx.useTls` config to toggle between SSL and plain TCP ElectrumX connections (defaults to `true`, preserving current behavior)
+- Add `scanners.blockCleanup.isActiveForErgoChain` and `scanners.blockCleanup.isActiveForNonErgoChains` config to enable periodic pruning of old scanned blocks
+
+### Patch Changes
+
+- Increase the default `txFeeSlippage` tolerance for Bitcoin and Bitcoin Runes transactions
+- Fix the `logDuration` argument of the `LogLevelHealthCheck` where it was passed as milliseconds while expecting seconds
+- Fix event synchronization quorum to count responses by `txId` and approve the transaction that reached the required count
+- Set `lastCheck` to the current chain height when a transaction is inserted into the database, instead of leaving it at `0`, and update it whenever a sign-failed transaction is revalidated and resent for signing
+- `lastCheck` is no longer updated when a transaction is signed, since signing doesn't verify anything on-chain.
+- Reject event synchronization responses whose transaction network differs from the event target chain
+- Update dependencies
+  - @rosen-bridge/abstract-scanner@4.1.0
+  - @rosen-bridge/ergo-scanner@2.0.2
+  - @rosen-bridge/evm-address-tx-extractor@4.0.1
+  - @rosen-bridge/evm-scanner@2.0.2
+  - @rosen-bridge/watcher-data-extractor@16.1.0
+  - @rosen-chains/abstract-chain@17.0.1
+  - @rosen-chains/bitcoin@11.1.0
+  - @rosen-chains/bitcoin-runes@5.1.0
+  - @rosen-chains/cardano-blockfrost-network@10.0.5
+  - @rosen-chains/cardano-koios-network@13.0.5
+  - @rosen-chains/cardano@17.0.1
+  - @rosen-chains/ergo@15.0.1
+  - @rosen-chains/evm@10.0.3
+  - @rosen-chains/firo-electrumx@0.1.3
+  - @rosen-chains/handshake-rpc@0.0.2
+  - @rosen-chains/bitcoin-runes-rpc@2.0.8
+  - @rosen-chains/doge-rpc@1.0.6
+  - @rosen-chains/evm-rpc@4.0.7
+  - @rosen-chains/handshake@1.0.1
+  - @rosen-chains/doge@5.0.1
+  - @rosen-chains/firo@1.0.1
+  - @rosen-chains/bitcoin-esplora@5.0.6
+  - @rosen-chains/doge-blockcypher@1.0.6
+  - @rosen-chains/doge-esplora@2.0.6
+  - @rosen-chains/ergo-explorer-network@10.0.6
+  - @rosen-chains/ergo-node-network@10.0.6
+  - @rosen-chains/binance@4.0.3
+  - @rosen-chains/ethereum@4.0.3
+  - @types/lodash-es@4.17.12
+  - lodash-es@4.18.1
+
 ## 11.0.2
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @rosen-chains/bitcoin-runes-rpc
 
+## 2.0.8
+
+### Patch Changes
+
+- Add `jsonrpc: '2.0'` to JSON-RPC requests so providers that require it no longer reject them
+- Update dependencies
+  - @rosen-chains/abstract-chain@17.0.1
+  - @rosen-chains/bitcoin-runes@5.1.0
+
 ## 2.0.7
 
 ### Patch Changes

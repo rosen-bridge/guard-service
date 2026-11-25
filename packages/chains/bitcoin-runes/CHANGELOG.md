@@ -1,5 +1,18 @@
 # @rosen-chains/bitcoin-runes
 
+## 5.1.0
+
+### Minor Changes
+
+- Add `txMaxFee` config to cap the absolute tx fee allowed during verification, and reject transactions whose fee exceeds it regardless of slippage
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/rosen-extractor@12.1.2
+  - @rosen-chains/abstract-chain@17.0.1
+  - @rosen-chains/bitcoin@11.1.0
+
 ## 5.0.0
 
 ### Major Changes
